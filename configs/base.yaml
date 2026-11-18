@@ -1,0 +1,110 @@
+# Base settings for the NL-to-SQL core study.
+# source: paper = stated in the paper; repo = taken from microsoft/Table-Specialist; ours = our own choice,
+# because the paper does not publish it. Every "ours" value goes in the report's discrepancy log.
+
+model:
+  base: meta-llama/Llama-3.1-8B   # paper says "Llama-3.1-8B"; the repo's README links this checkpoint
+  base_revision: d04e592bb4f6aa9cfee91e2e20afa771667e1d4b   # ours: pinned Hugging Face revision; original/ weights not downloaded
+  future_experiment: meta-llama/Llama-3.1-8B-Instruct   # at 0e9e39f; not part of the faithful reproduction
+  fallback_for_pipeline_testing: Qwen/Qwen2.5-7B-Instruct   # never reported as the faithful arm
+  fallback_revision: a09a35458c702b33eeacc393d103063234e8bc28   # as downloaded
+
+prompting:
+  api: completions       # ours: base Llama has no chat template. The repo's chat call is written for GPT-3.5
+  system_message: none   # a raw completion has no system role; the repo sends one only through its chat call
+  max_tokens: 128        # ours
+  keep_first_sql_block: true   # ours: base keeps writing after its answer, and the repo's parser takes the last block
+
+study:
+  arms: [vanilla, no_validation, table_specialist]   # paper
+  seeds: [1, 2, 3]     # ours
+  rounds: 3            # paper: "up to 3"
+  tables_per_round: 3000   # paper gives this as an example ("e.g., 3000")
+  restart_from_vanilla_each_round: true   # paper Section 6.5 and Fig. 14: vanilla beats continuing; main-results choice not stated
+  training_data_each_round: new_only      # paper Algorithm 1 resets the training sets each round
+  generator_each_round: previous_round    # paper Algorithm 1: vanilla in round 1
+  second_language_model: lockstep         # paper Section 5 allows vanilla or lockstep; Algorithm 1 fine-tunes both
+  question_model: vanilla                 # ours: the paper does not say; the repo's question files are named llama3.1-8b
+
+generation:
+  question_temperature: 0.7   # ours
+  code_temperature: 0.0       # ours
+
+validation:
+  second_language: spark_scala   # paper; repo has the prompt and sandbox. Reasons in docs/DECISIONS.md
+  row_samples: 10             # repo
+  row_fraction: 0.5           # repo
+  require_all_agree: true     # paper Algorithm 3
+  numeric_tolerance: 0.000001 # ours
+
+training:
+  method: lora         # paper; measured 20.0 GB at about 4,000 tokens. Reasons in docs/DECISIONS.md
+  rank: 16             # ours
+  alpha: 32            # ours
+  dropout: 0.05        # ours
+  target_modules: all-linear   # ours
+  learning_rate: 0.0002        # ours
+  scheduler: cosine            # ours
+  batch_fraction_of_data: 0.01 # paper
+  epochs: 3            # ours
+  max_seq_length: 4096 # repo
+
+extension2:   # not in the paper: learning from rejected programs with DPO (ts/ext2.py, ts/train/dpo.py)
+  sampled_candidates: 3     # ours: plus the greedy candidate, 4 per question
+  sample_temperature: 0.7   # ours: the question temperature above
+  dpo:
+    beta: 0.1               # ours: TRL's default and the DPO paper's usual value
+    loss_type: [sigmoid, sft]   # ours: DPO plus an SFT term on the chosen program (RPO), so that the chosen program's likelihood does not fall
+    loss_weights: [1.0, 1.0]    # ours: RPO's alpha = 1
+    learning_rate: 0.00002  # ours: LoRA needs a larger rate than full DPO's usual 5e-7 to 5e-6
+    scheduler: cosine       # ours: as SFT
+    warmup_ratio: 0.1       # ours
+    epochs: 2               # ours
+    batch_size: 16          # ours: pairs per optimiser step, built by gradient accumulation
+    max_seq_length: 4096    # repo, as SFT
+  tuning:   # ours, fixed before any dev result: DPO variants tried on seed 1's pairs, scored on the dev sets only
+    seed: 1
+    dev_benchmarks: [WikiSQL, spider, WikiQA]   # zero-shot only; BIRD has no unused split
+    selection: highest mean zero-shot dev accuracy; run on the test sets only if above bestof4's dev mean
+    variants:   # each replaces settings of extension2.dpo; negatives "rows_differ" keeps only pairs whose rejected SQL ran and gave different rows
+      v1_gentle: {learning_rate: 0.000005, epochs: 1}
+      v2_gentle_beta05: {learning_rate: 0.000005, epochs: 1, beta: 0.5}
+      v3_gentle_rowsdiffer: {learning_rate: 0.000005, epochs: 1, negatives: rows_differ}
+      v4_beta05: {beta: 0.5}
+      v5_verygentle: {learning_rate: 0.000001, epochs: 2}
+
+repair:   # not in the paper: one repair attempt per rejected pair, then Algorithm 3 again (ts/repair.py)
+  retries: 3                # ours: samples tried when the greedy repair is empty or copies the failed code
+  retry_temperature: 0.7    # ours: the question temperature above
+  instruct_pilot: Llama-3.1-8B-Instruct (models/, revision 0e9e39f) writes the repairs; the same diagnoses, retries and go / no-go rule   # ours, decided 2026-11-08 after the base pilot's no-go
+  chat_max_tokens: {sql: 256, scala: 512}   # ours: twice the base limits, because a chat reply may add text around its code block
+  pilot_go: kept pairs +30% or more, and 80% or more of hand-checked recovered pairs correct   # fixed before the pilot
+
+corpus:
+  source: gittables-1m-licensed   # ours: paper's corpus is unreleased
+  size: 20000            # ours: an upper limit; these filters give 10,378
+  min_columns: 5         # repo requires 5 or more
+  max_columns: 30        # ours
+  min_rows: 10           # ours
+  max_rows: 200          # ours
+  max_serialised_tokens: 2000   # ours
+  dedupe_header_jaccard: 0.9    # ours
+  max_per_header_group: 5       # ours: smallest limit giving the 9,000 tables each seed needs
+
+benchmarks:   # sampling_seed fixes which cases are used; ID lists are saved with the rebuilt sets
+  sampling_seed: 42    # ours
+  wikisql: {n: 1000, split: test}   # paper size; first 1,000 of a seeded shuffle that fit the prompt limit
+  wikitq: {n: 1000, split: pristine-unseen-tables}   # paper size; same method
+  spider: {filter: single_table, split: test}   # gives 1,198 after the prompt limit: same as the paper
+  bird: {filter: single_table, split: dev, prompt_rows: [20, 10, 5, 3]}   # gives 363; paper has 356
+  # Paper's fifth benchmark, Text2Analysis (271), is still unreleased.
+
+hardware:
+  serving_gpu: 0    # GPU 1 drives the display, so only GPU 0 has room for vLLM
+  training_gpu: 1
+
+self_consistency:   # plan B1+B2 (docs/PLAN_NEXT.md); fixed 2026-11-10 before any dev result
+  samples: 8                      # plus the greedy answer
+  temperatures: [0.5, 0.7, 1.0]   # tuned on dev, zero-shot, TS round 3 seed 1 adapter
+  rule: highest dev mean (WikiSQL, Spider, WikiTQ); taken to the test sets only if above the greedy dev mean
+  test_models: [vanilla, tablespecialist round 3 seeds 1-3, repairts round 3 seeds 1-3]

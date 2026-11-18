@@ -1,0 +1,26 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+models/
+runs/
+logs/
+.env
+wandb/
+mlruns/
+backups/
+# LaTeX build files
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.toc
+*.out
+*.nav
+*.snm
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.xdv
+*.synctex.gz

@@ -1,0 +1,3 @@
+[submodule "third_party/Table-Specialist"]
+	path = third_party/Table-Specialist
+	url = https://github.com/microsoft/Table-Specialist
