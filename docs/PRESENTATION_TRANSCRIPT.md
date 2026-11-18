@@ -1,0 +1,875 @@
+# End-semester presentation: speaker transcript
+
+For: Fadil Mir and Tajamul Bashir, presenting `presentation/endsem.pdf` (43 numbered slides + 7 backup slides, 30 minutes).
+Written 2026-11-18. Every number below is the number on the slide; if a slide changes, change this file too.
+
+## How to use this file
+
+- Each slide has: **Time** (budget), **Script** (what to say, word for word if you want), **Must say** (the lines you cannot skip), **Point at** (what to show on the slide), **Don't say** (traps), and **Next** (the sentence that hands over to the next slide).
+- Slide numbers are the numbers in the footer ("n / 43"). The title page and the six section dividers have no number.
+- Read the script aloud twice before the day. Then present from the **Must say** lines only; the script is there for practice, not for reading out.
+- Speaking pace for this script is about 140 words a minute. If you run late, use the "If short of time" notes.
+
+### Suggested split between the two of you
+
+| Part | Slides | Speaker (suggested) | Time |
+|---|---|---|---|
+| Opening, the paper, goals, gaps | Title to 15 | Fadil | about 12 min |
+| Reproduction, improvement, conclusions | 16 to 43 | Tajamul | about 18 min |
+
+Hand-over line at the end of slide 15 (Fadil): *"With those gaps filled, Tajamul will show you what we got."*
+Swap the parts if you prefer; the hand-over line still works.
+
+### Time plan
+
+| Section | Slides | Budget | Clock at end |
+|---|---|---|---|
+| Title + roadmap | title, 1 | 0:45 | 0:45 |
+| 1 The paper | 2-9 | 6:00 | 6:45 |
+| 2 Goals and plan | 10-11 | 1:15 | 8:00 |
+| 3 Filling the gaps | 12-15 | 3:45 | 11:45 |
+| 4 Reproducing the paper | 16-22 | 5:30 | 17:15 |
+| 5 Improving on the paper | 23-40 | 10:45 | 28:00 |
+| 6 Conclusions | 41-43 + thank you | 2:00 | 30:00 |
+
+Checkpoints: at slide 16 you should be at about 12 minutes; at slide 28 (the repair diagram) at about 21 minutes; at slide 38 at about 26 minutes.
+
+---
+
+## The ten things to say for sure
+
+If you forget everything else, these ten sentences carry the talk. Each one appears again on its slide below.
+
+1. **The idea of the paper:** "A table task can check itself: the same question answered in two languages must give the same result, and the model trains only on what agrees. No human labels."
+2. **Reproduction was detective work:** "The corpus, the test-case lists and the checkpoint were not released or not stated, and the released validator never actually compares SQL with Scala. We had to build and audit that part ourselves."
+3. **The checkpoint finding:** "The model the README links, base Llama, cannot reproduce the paper's vanilla scores under any of six settings. The Instruct model, through the repository's own chat call, comes within 0.015 on three of four test sets. So the paper's Llama numbers most likely come from Instruct."
+4. **NL-to-SQL matches:** "Our Instruct Table-Specialist scores 0.611 against the paper's 0.598 on the paper's metric."
+5. **All four tasks improve:** "Table-Specialist beats vanilla on NL-to-SQL, NL-to-Scala, NL-to-R and error detection, on every seed; on Scala, R and error detection we land above the paper's own figures."
+6. **Validation needs rounds:** "In round 1 training on everything wins, because it has 6.6 times more data. By round 3 validation wins by 0.049, because without it the model's own mistakes compound."
+7. **The waste:** "The validator throws away 73 to 89 percent of what the model generates, and a hand check showed about one rejected pair in three was usable."
+8. **Idea 1 failed, and why:** "Using rejected programs as negatives with DPO hurt accuracy by 0.021, and sampling more candidates added 52 to 62 percent more data but only 0.006 accuracy. Rejected does not mean wrong, and more of the same data does not help."
+9. **Idea 2 works where it should:** "Repair-TS fixes each rejected pair once using only its own execution feedback, and re-checks it with the paper's unchanged validator. It clearly helps base NL-to-SQL, NL-to-Scala and NL-to-R, on every seed, with p below 0.0001; it gives no gain on Instruct NL-to-SQL."
+10. **It is not just more data:** "On base NL-to-SQL, repaired pairs beat the same number of fresh validated pairs on every seed. On Instruct NL-to-SQL they are worth less, which is exactly why repair shows no gain there."
+
+And one honesty line, said once, near the end: **"We report every result, including the ones that did not work, with three seeds and paired significance tests."**
+
+---
+
+## Title slide (no number)
+
+**Time:** 0:20 (Fadil)
+
+**Script:**
+"Good morning. I am Fadil Mir, and this is Tajamul Bashir. Our project is a reproduction of Table-Specialist, a paper from the University of Michigan and Microsoft published at EMNLP 2025, on Llama-3.1-8B. We will show three things: that we could reproduce it, what it took to reproduce it, and an extension of our own that improves it."
+
+**Must say:** the paper's name and venue (EMNLP 2025), the model (Llama-3.1-8B), and "reproduce and extend".
+
+**Point at:** the loop on the right: "This loop is the paper. The red box is what we added."
+
+**Next:** "Here is the plan for the next thirty minutes."
+
+## Slide 1: Roadmap
+
+**Time:** 0:25 (Fadil)
+
+**Script:**
+"We first explain the paper, so that everyone has the same picture. Then our goals and plan. Then the gaps we had to fill before anything could run. Then the reproduction on four tasks. Then our improvement, which is about the data the paper throws away. And we finish with what is established and what is not."
+
+**Must say:** "Section 5 in red is our own contribution."
+
+**Next:** "Let me start with the problem the paper solves."
+
+---
+
+## Section 1: The paper (divider, then slides 2-9)
+
+Divider: do not stop on it. Click straight through, saying "First, the paper."
+
+## Slide 2: The problem: specialists need labels
+
+**Time:** 0:45 (Fadil)
+
+**Script:**
+"Tables are everywhere: spreadsheets, databases, data files. Large language models can be prompted to work on them, but they are weak at it. These are numbers we measured ourselves on the vanilla Llama-3.1-8B-Instruct: half the NL-to-SQL questions right, only 19 percent for NL-to-Scala, and an F1 of 0.09 for finding errors in a table.
+
+The usual fix is to fine-tune a specialist, one model per task. A specialist is more accurate, and an 8-billion-parameter model is cheap to run. But fine-tuning needs labelled data, and on tables a label is not a word: it is a whole program, or a set of cells, or a mapping between columns. Experts have to write and check each one.
+
+So the question the paper asks is the one in the box: can a model become a table specialist without any human labels?"
+
+**Must say:**
+- The three vanilla numbers (0.50, 0.19, 0.09), and that **we measured them**.
+- "On tables, a label is a program."
+- The question in the pink box.
+
+**Point at:** the pink box at the bottom.
+
+**Next:** "Let me state that problem precisely."
+
+## Slide 3: Problem statement
+
+**Time:** 0:35 (Fadil)
+
+**Script:**
+"We are given two things: a pile of real tables with no labels, and a vanilla model. We want a specialist that scores higher on the standard benchmarks for a task. The hard part is in the middle box: the model has to create its own training data and also check it. If you train a model on its own unchecked outputs, it learns its own mistakes. Everything in this paper is about that check."
+
+**Must say:** "The model must create **and check** its own training data. Without the check, it learns its own mistakes."
+
+**Next:** "The paper's answer is a dual task."
+
+## Slide 4: Key idea: a dual task checks every answer
+
+**Time:** 1:00 (Fadil)
+
+**Script:**
+"The paper's key observation is that table tasks come in two kinds, and each kind can be checked by a dual task.
+
+On the left are generative tasks, where the output is a program: NL-to-SQL, NL-to-Scala, NL-to-R. The dual is to answer the same question in a second language. If a SQL query and a Spark-Scala program, written independently for the same question, return the same rows, that is strong evidence both are right. The paper calls this execution invariance.
+
+On the right are classification tasks, where the output is a label: error detection, schema matching. Here the dual runs the other way: we create an input whose answer we already know, for example by injecting an error into a clean column, and then ask the classifier to find it. It must find it in every shuffled order of the values. The paper calls this permutation invariance.
+
+In both cases, agreement between two independent views replaces the human label."
+
+**Must say:**
+- "Generative: two languages must agree. Classification: inject a known answer and the classifier must find it in every order."
+- "Agreement replaces the human label."
+
+**Point at:** the small diagrams in each card.
+
+**Don't say:** that the paper invented dual learning; dual learning exists for machine translation. The paper's contribution is applying it to tables using execution and permutation.
+
+**Next:** "Here is how that becomes a training loop."
+
+## Slide 5: Architecture: the generator-validator loop
+
+**Time:** 1:15 (Fadil)
+
+**Script:**
+"This is the full architecture, for NL-to-SQL. Follow the red numbers.
+
+One: each round takes three thousand new real tables, and a question model writes one natural-language question per table.
+
+Two: a generator writes SQL for that question, and a second model, the dual model, writes Spark-Scala for the same question, independently.
+
+Three: both programs are executed on ten random samples of the table, each sample half of the rows.
+
+Four: the pair is kept only if the results agree on all ten samples. Anything else is discarded.
+
+Five: the kept pairs become training data, and both models are fine-tuned with LoRA. The new models then generate the next round's data. This repeats for up to three rounds. So the models improve, and because they improve, the data they write improves too."
+
+**Must say:**
+- "Ten random half-samples; kept only if all ten agree."
+- "Both models are retrained, and the better models write the next round's data, up to three rounds."
+
+**Point at:** each red number as you say it; then the dashed red arrow for "next round".
+
+**Next:** "Let me show one concrete example of step four."
+
+## Slide 6: Generative task: checked by execution
+
+**Time:** 0:45 (Fadil)
+
+**Script:**
+"This is a small made-up example. The table lists athletes, countries and medals. The model writes the question: how many medals did USA athletes win in total? The generator writes a SQL SUM with a WHERE on country; the dual model writes the same thing in Spark-Scala. We run both on ten random halves of the table. On each half the two results match: 7, 5, 2, and so on. So the pair is kept.
+
+Now suppose the Scala had counted rows instead of summing medals. It would return 2, not 7, the two programs disagree, and the pair is rejected. That is the point: two wrong programs rarely agree on ten different random halves of a table."
+
+**Must say:** "Illustrative example" (so nobody thinks it is from our data), and "two wrong programs rarely agree on ten random halves."
+
+**Next:** "For classification tasks the check works differently."
+
+## Slide 7: Classification task: checked by shuffling
+
+**Time:** 0:40 (Fadil)
+
+**Script:**
+"For error detection, the generator first writes a realistic error, say the typo 'Lodnon' in a column of cities. It is inserted into the column. The validator is then shown that column five times, in five different orders, and asked which value is wrong. If it names 'Lodnon' all five times, the example is kept, labelled 'Lodnon'. Clean columns are also used, and they pass only if the validator names nothing in all five orders.
+
+Why shuffle? A lazy validator that always names the last value would otherwise agree by luck."
+
+**Must say:** "Five shuffled orders, same answer every time."
+
+**Next:** "Each of these design parts has a reason."
+
+## Slide 8: Why each part of the design is there
+
+**Time:** 0:35 (Fadil)
+
+**Script:**
+"Quickly, why each part exists. The dual check is the only supervision there is; remove it and the model trains on its own mistakes. Ten samples guard against chance agreement. Shuffling guards against position bias. And rounds let a better model write better data.
+
+The bottom line is the price of all this: strict agreement throws most generated data away. Keep that in mind, because our extension starts there."
+
+**Must say:** "The price is that strict agreement throws most generated data away. That is where our extension starts."
+
+**If short of time:** say only the last two sentences.
+
+**Next:** "Here are the numbers the paper reports for Llama."
+
+## Slide 9: What the paper reports for Llama-3.1-8B
+
+**Time:** 0:45 (Fadil)
+
+**Script:**
+"These are the targets, from the paper's Table 3, for Llama-3.1-8B. Each cell is vanilla, arrow, Table-Specialist. On NL-to-SQL the average goes from 0.471 to 0.598. NL-to-Scala from 0.188 to 0.375. NL-to-R from 0.299 to 0.366. And error detection, a classification task, from 0.090 to 0.149 F1.
+
+Two notes. The paper also uses a fifth test set, Text2Analysis, which is not public, so all our comparisons use the mean of the other four sets. And the paper does not say which test prompt or which Llama checkpoint produced these numbers. That second point turned out to matter a lot."
+
+**Must say:**
+- "These four tasks are the ones we reproduce: three generative, one classification."
+- "Text2Analysis is not public, so we compare on the other four."
+- "The paper does not say which checkpoint." (This sets up slide 14.)
+
+**Point at:** the "Mean of 4" column.
+
+**Next:** "So here is what we set out to do."
+
+---
+
+## Section 2: Goals and plan (divider, then slides 10-11)
+
+## Slide 10: Two goals
+
+**Time:** 0:30 (Fadil)
+
+**Script:**
+"We had two goals. Goal A: reproduce the paper, first NL-to-SQL, then Scala, R and error detection. Goal B: improve on it. And the improvement comes from this number: in our runs, the validator keeps only 11 to 27 percent of the pairs the model generates. Everything else is thrown away. Can we use the rest?"
+
+**Must say:** "11 to 27 percent kept. Can we use the rest?"
+
+**Next:** "This is how we organised the work."
+
+## Slide 11: The plan: one grid, five stages
+
+**Time:** 0:45 (Fadil)
+
+**Script:**
+"Each row is a task and model; each column is a method we trained. Vanilla is no training. 'No validation' trains on every pair, which is the paper's own ablation. TS is the paper's method. Repair-TS is ours. And the last column is the controls we ran to check our own claims.
+
+We worked in five stages, left to right on the bottom: fill the gaps, reproduce NL-to-SQL, extend to the other tasks, improve using rejected data, and control, meaning we tested whether the improvement is just more data or better data. Every fine-tuned arm is three seeds times three rounds."
+
+**Must say:** "Three seeds times three rounds for every fine-tuned arm" and "the last stage tests whether our gain is more data or better data."
+
+**Next:** "Stage one turned out to be the hardest. Here is why."
+
+---
+
+## Section 3: Filling the gaps (divider, then slides 12-15)
+
+## Slide 12: What we expected vs. what we found
+
+**Time:** 1:00 (Fadil)
+
+**Script:**
+"We expected to download the paper's data and run its code. Here is what we actually found.
+
+The training tables were not released. So we built our own corpus from GitTables, filtered to about ten thousand tables, three thousand new tables per round.
+
+The test sets come with counts only, no case lists, and Text2Analysis is not public. We rebuilt WikiSQL, WikiTQ, Spider and BIRD from the original datasets. For error detection, our length rule gives exactly the paper's 1,126 and 1,081 columns, which tells us we rebuilt that test set correctly.
+
+The model: the paper says 'Llama-3.1-8B', and the README links the base model. As the next slides show, base cannot match the paper.
+
+The training settings say only LoRA, a batch of one percent, and a 'learning-rate multiplier of 0.5', which is an OpenAI API setting, not something you can set for Llama. We chose standard values and documented them.
+
+And the paper does not state the test prompt, so we use the repository's default zero-shot prompt and report every round."
+
+**Must say:**
+- "Corpus not released: we used GitTables."
+- "Our error-detection test set has exactly the paper's 1,126 and 1,081 columns."
+- "'Learning-rate multiplier 0.5' is an OpenAI setting."
+
+**Next:** "The code had its own gaps."
+
+## Slide 13: What the released code does not do
+
+**Time:** 0:50 (Fadil)
+
+**Script:**
+"The most important one is the first row. The repository's validation runs the SQL and the Scala, but it never compares their results. The core of the method, the agreement check, is not in the released code. We wrote it ourselves.
+
+The others: the Spark sandbox ran zero of thirty-two programs because the Java process hit a limit of 256 open files; we raised it and then forty-eight of forty-eight ran. The evaluator uses pandas functions that were removed in pandas 3, so we patched it. The default training settings crash. There is no validator at all for NL-to-R; we built one that checks R against SQL. And for error detection, it is not stated who writes the errors or who validates in later rounds, so we chose the same scheme as for SQL.
+
+Reproduction was mostly detective work."
+
+**Must say:** "The released validation never compares SQL with Scala. The heart of the method was missing, and we built it."
+
+**Don't say:** that the authors made mistakes. Say "not released" or "not in the released code".
+
+**Next:** "Two of these gaps cost us the most. The first is the model."
+
+## Slide 14: The hard way (1): the README's model fails
+
+**Time:** 1:00 (Fadil)
+
+**Script:**
+"Before any training, we required a gate: our vanilla model must score within 0.05 of the paper's vanilla, otherwise later gains cannot be compared. The README links base Llama. On WikiSQL the paper's vanilla is 0.525; base gave 0.326. More than half of its answers were SQL that does not even run.
+
+We tried six settings, shown on the left. Base never matched on all four sets. Then we noticed that the repository's only way of querying a model is a chat call with a fixed system message, and a base model cannot be served that way. So we tried Llama-3.1-8B-Instruct through exactly that call: 0.519 on WikiSQL, and within 0.015 of the paper on three of four sets. Spider is higher for every model we ran, which points to a difference in the Spider test cases, not in the model.
+
+We stopped searching after six settings, because if you keep trying combinations you will eventually hit 0.525 by chance. We ran both tracks: base for studying the method, Instruct for matching the paper."
+
+**Must say:**
+- "Base: 0.326 against 0.525. Instruct through the repo's chat call: within 0.015 on three of four sets."
+- "So the paper's Llama numbers most likely come from Instruct." Say "most likely": it is our inference, not a fact.
+- "We stopped after six settings on purpose."
+
+**Point at:** the pink row on the left (0.519) and the pink row on the right.
+
+**Next:** "The second gap was the comparison inside the validator."
+
+## Slide 15: The hard way (2): writing the comparison
+
+**Time:** 0:50 (Fadil)
+
+**Script:**
+"Because the released code never compares results, we had to define when a SQL result and a Spark result 'agree'. Row order and column names are ignored, because Spark returns rows in no fixed order and names computed columns differently. Numbers must match within one in a million. Empty rows are dropped. And a SQL query that returns nothing on all ten samples is rejected, because it has shown no agreement about any data.
+
+A silent bug here would decide every training set, so we ran a small first run and checked the pairs by hand. We found five defects, on the right. For example, numbers were being compared as text, so the maximum of a weight column was picked alphabetically. All five were fixed before the main experiments.
+
+After the fixes we checked a hundred pairs by hand. About 8 in 10 kept pairs were correct. And about 1 in 3 rejected pairs actually held usable SQL. That second number is where our extension comes from."
+
+**Must say:**
+- "We hand-audited the validator and fixed five defects before the main runs."
+- "8 in 10 kept pairs correct; 1 in 3 rejected pairs usable. That motivated our extension."
+
+**Hand-over (Fadil):** "With those gaps filled, Tajamul will show you what we got."
+
+---
+
+## Section 4: Reproducing the paper (divider, then slides 16-22)
+
+## Slide 16: Experimental setup
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"Thank you. A quick word on setup so the numbers make sense. We trained both base and Instruct Llama, three thousand new tables per round, three rounds, three seeds, LoRA restarted from vanilla each round, on two 24-gigabyte GPUs. We test on the paper's benchmarks, and every generated program runs in a sandbox with no network.
+
+Two metrics appear on the slides. The zero-shot mean of four is the paper's own comparison: the average over the four test sets with the default prompt. The mean of eight also adds a few-shot prompt, and it is what we use for significance tests. All significance tests are paired bootstraps, and we always show the sign of each seed separately."
+
+**Must say:** "Zero-shot mean of 4 is the paper's metric; mean of 8 adds the few-shot prompt and is what we test."
+
+**Next:** "First result: NL-to-SQL."
+
+## Slide 17: NL-to-SQL: Instruct TS matches the paper
+
+**Time:** 1:00 (Tajamul)
+
+**Script:**
+"Each group of bars is a test set. Light red is our vanilla and blue is the paper's vanilla; they are close everywhere except Spider. Dark red is our Table-Specialist after round 3, and navy is the paper's.
+
+On the paper's metric, our Instruct Table-Specialist scores 0.6113, against the paper's 0.5983. Fine-tuning adds 0.111 over vanilla, with p below 0.0001 on every seed. Per test set we are 0.032 below on WikiSQL, 0.026 below on WikiTQ, and 0.006 below on BIRD. Spider is 0.116 above, but Spider is above for every model including vanilla, so that is an offset in the test cases, not something fine-tuning did.
+
+So on the paper's main task, the reproduction succeeds."
+
+**Must say:**
+- "0.6113 against 0.5983."
+- "+0.111 over vanilla, p < 0.0001, every seed."
+- "Spider is an offset in every model, vanilla included."
+- "The reproduction succeeds."
+
+**Point at:** the big 0.6113.
+
+**Don't say:** "we beat the paper". The difference is within the seed spread (±0.0135).
+
+**Next:** "The base model lets us test something the paper only sketches: what validation is worth."
+
+## Slide 18: NL-to-SQL: validation pays off only over rounds
+
+**Time:** 1:00 (Tajamul)
+
+**Script:**
+"This is the base model, mean of eight. The red line is Table-Specialist, the orange line trains on every generated pair without validation, and the dashed line is vanilla.
+
+In round 1, no validation is actually ahead: it wins 17 of 24 comparisons, because it trains on 6.6 times more pairs. But look at what happens next. Without validation, the model's own errors go into the next round's training data, and it gets worse every round. Table-Specialist gets better. By round 3, Table-Specialist wins 20 of 24, ahead of no validation by 0.049 and ahead of vanilla by 0.065, with p below 0.0001 on every seed.
+
+The paper does not show this round-1 crossover. It is a finding of ours: validation's value only appears over rounds."
+
+**Must say:**
+- "Round 1: no validation wins, because it has 6.6 times more data."
+- "Round 3: TS wins by 0.049. Without validation, errors compound."
+- "Validation's value appears over rounds, not in round 1."
+
+**Point at:** the two lines crossing.
+
+**Next:** "Now the other three tasks, starting with Scala."
+
+## Slide 19: NL-to-Scala: TS beats the paper's figure
+
+**Time:** 0:45 (Tajamul)
+
+**Script:**
+"Same layout. Our vanilla matches the paper's vanilla closely: 0.194 against 0.188. After training, our Table-Specialist reaches 0.467 against the paper's 0.375. That is 2.4 times vanilla, and it improves every round: 0.386, 0.441, 0.467. We are above the paper on WikiTQ, Spider and BIRD, and slightly below on WikiSQL.
+
+We do not claim to know why we land above the paper here. The corpus, the checkpoint and the round are all candidates, and our design does not separate them."
+
+**Must say:** "Vanilla matches the paper. TS lands above it: 0.467 against 0.375." and "We do not claim to know why."
+
+**Next:** "NL-to-R is the task where the repository gave us no validator at all."
+
+## Slide 20: NL-to-R: TS beats the paper's figure
+
+**Time:** 0:45 (Tajamul)
+
+**Script:**
+"For NL-to-R we built the pipeline end to end: an R sandbox and a validator that checks R against SQL, because the repository has none. Our vanilla is again close to the paper's, within 0.012 on three of four sets. Our Table-Specialist goes from 0.327 to 0.476, a gain of 0.149 on every seed, and it rises every round. The paper's own gain on the same four sets is 0.067, to 0.366. We are above the paper on all four test sets.
+
+These paper numbers are from its Table 3, averaged over the four public sets; the paper's own average of 0.333 includes Text2Analysis."
+
+**Must say:**
+- "We built the R validator ourselves."
+- "0.476 against the paper's 0.366, above on all four sets."
+
+**Next:** "And the classification task."
+
+## Slide 21: Error detection: TS more than triples F1
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"Error detection on spreadsheet tables and relational tables. Our vanilla matches the paper within 0.006 on both. Vanilla is very poor because it flags about 40 percent of columns, almost all of them clean. Table-Specialist raises the average F1 from 0.089 to 0.288: more than three times vanilla, plus 0.200 with p below 0.0001 on every seed, and it improves every round. Again we are above the paper's figure, about twice its 0.136 and 0.161."
+
+**Must say:** "Vanilla matches within 0.006; TS triples F1, 0.089 to 0.288."
+
+**Next:** "Putting the four tasks together."
+
+## Slide 22: Table-Specialist improves all four tasks
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"Each line runs from our vanilla, the grey dot, to our Table-Specialist, the red dot. The navy diamond is the paper's Table-Specialist. On every task the gain is large and holds on every seed. NL-to-SQL lands on the paper. Scala, R and error detection land to the right of the paper's figure.
+
+So Goal A is met: the method reproduces on all four tasks, and with the Instruct model it matches or exceeds the paper."
+
+**Must say:** "Goal A is met: all four tasks reproduce, on every seed."
+
+**Next:** "Now Goal B. Remember the waste."
+
+---
+
+## Section 5: Improving on the paper (divider, then slides 23-40)
+
+Divider: say "Now our own contribution."
+
+## Slide 23: The validator throws most of the data away
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"This is round 1, seed 1, three thousand questions. Green is what the validator keeps: 426 on base, 319 on Instruct. Everything else is rejected, mostly because the two programs disagree, the Scala failed, or the SQL returns nothing at all. Across all our runs, only 11 to 27 percent of pairs are kept.
+
+And remember the hand audit: about one rejected pair in three held usable SQL. So we tried two ideas. Learn from the rejects, or repair them."
+
+**Must say:** "11 to 27 percent kept; one rejected pair in three usable. Two ideas: learn from the rejects, or repair them."
+
+**Next:** "Idea 1 first, which has two parts."
+
+## Slide 24: Idea 1a: best-of-4 sampling
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"The simplest way to get more validated data: give each question more chances. For every question, alongside the greedy pair, we sample three more pairs and keep the first one that passes the same validator. We ran this on base NL-to-SQL, round 1, three seeds, with the same questions and tables as Table-Specialist.
+
+It works as data collection: 52 to 62 percent more questions get a validated program. But accuracy moves by only 0.006, and not even consistently: one of the three seeds goes down. The extra programs are mostly for easy questions the model already answers."
+
+**Must say:** "52 to 62 percent more data, only +0.006 accuracy, and one seed negative."
+
+**Next:** "The second part of Idea 1 uses the rejected programs directly."
+
+## Slide 25: Idea 1b: DPO on rejected programs
+
+**Time:** 0:45 (Tajamul)
+
+**Script:**
+"If the validator tells us a program is wrong, we could teach the model not to write it. That is preference learning, DPO. For each question, the chosen program is a validated SQL, and the rejected program is one that returns different rows, fails, or returns nothing. We got about 400 such pairs per seed. We trained with DPO plus a supervised term, starting from the best-of-4 model. Same task: base NL-to-SQL, round 1, three seeds.
+
+It hurt. Accuracy fell by 0.021 compared with Table-Specialist, with p below 0.0001, and it was below best-of-4 on every seed. Execution errors went up to four times: on WikiTQ, from 15 failing queries to 58. The training logs show why: the model separated chosen from rejected almost perfectly and moved far from where it started."
+
+**Must say:** "DPO: −0.021, p < 0.0001, worse on every seed; execution errors up to four times."
+
+**Next:** "We gave DPO a fair second chance."
+
+## Slide 26: DPO tuning on dev sets could not rescue it
+
+**Time:** 0:35 (Tajamul)
+
+**Script:**
+"We tried five gentler versions, tuned only on development sets, never on the test sets. Before looking at any result, we fixed a rule: a variant goes to the test sets only if it beats best-of-4 on dev. None did. The best one, v2, was still slightly below. A lower learning rate removes most of the damage; a higher beta does not."
+
+**Must say:** "Tuned on dev only, with a rule fixed in advance; no variant passed."
+
+**If short of time:** skip this slide with one sentence: "Five gentler versions, tuned on dev with a rule fixed in advance, could not beat best-of-4 either."
+
+**Next:** "So we rejected Idea 1, and it taught us two things."
+
+## Slide 27: Idea 1 verdict: rejected, and what it taught us
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"Best-of-4: more data, little value. DPO: harmful, and tuning cannot fix it.
+
+Lesson one: rejected does not mean wrong. Most rejected programs are plausible SQL that is slightly off. Pushing them down also pushes down nearby correct SQL.
+
+Lesson two: volume is not enough. Sixty percent more programs gave 0.006. The new data must be different.
+
+So Idea 2 keeps the validator as a filter, and instead of throwing rejected pairs away or punishing them, turns them into new positives by repairing them."
+
+**Must say:** "Rejected does not mean wrong; and volume is not enough. So: repair the rejects."
+
+**Next:** "Here is where repair fits."
+
+## Slide 28: Idea 2: repair-TS inside the TS loop
+
+**Time:** 1:00 (Tajamul)
+
+**Script:**
+"This is the same architecture as before. Everything outside the red box is the paper's loop, unchanged. Our extension is the red box. When a pair fails the check, instead of discarding it, we take the feedback from its own execution and give it to a repairer, which rewrites the failing program once. The repaired pair then goes back through exactly the same ten-sample check. If it passes now, it is recovered and joins the kept pairs for training. If not, it is discarded as before.
+
+The important point is that we do not lower the bar. Every training pair, original or repaired, passes the paper's own validator."
+
+**Must say:**
+- "Everything outside the red box is unchanged."
+- "Repaired pairs pass the same check: we do not lower the bar."
+
+**Point at:** the red box, then the "re-validate" arrow.
+
+**Next:** "Three details make this work."
+
+## Slide 29: Repair-TS in detail
+
+**Time:** 0:45 (Tajamul)
+
+**Script:**
+"First, which side gets repaired depends on why the pair failed: a failing or empty SQL gets the SQL repaired, a failing Scala gets the Scala repaired, and if they disagree we repair both and try the combinations.
+
+Second, the feedback comes only from the program's own run: its error message, or 'returns no rows', or its first five rows.
+
+Third, and this is what keeps the check honest: a program never sees the other language's code or output. So if the pair agrees after repair, it is still two independent programs agreeing. The repairer cannot simply copy the answer across.
+
+There is one attempt per pair. We used the same idea for NL-to-R and for error detection."
+
+**Must say:** "A program never sees the other language's code or output, so agreement after repair still means two independent programs agree."
+
+**Next:** "Which model should do the repairing? We decided with a rule set in advance."
+
+## Slide 30: Choosing the repairer with a fixed rule
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"Before the pilot we fixed a go/no-go rule: repair must add at least 30 percent more kept pairs, and at least 80 percent of recovered pairs must be correct by hand. We ran a small pilot on the same 237 rejected pairs with two repairers. Base Llama recovered only 7, plus 17 percent: no-go. It often just copied the old code back. Instruct recovered 23, plus 56 percent, and when we checked all 23 by hand, 21 were correct, 2 doubtful and none wrong: go. So Instruct is the repairer in all our runs."
+
+**Must say:** "Rule fixed before the pilot. Base +17%: no-go. Instruct +56%, 21 of 23 correct: go."
+
+**Next:** "In the full runs, how much does repair recover?"
+
+## Slide 31: How much data repair recovers
+
+**Time:** 0:30 (Tajamul)
+
+**Script:**
+"In round 1 on base, repair adds about half as many pairs again: 48 to 56 percent. On Instruct it adds about 15 to 23 percent each round, and for R 20 to 28 percent. Most recoveries are pairs where the two programs disagreed. The 'always empty' pairs are almost never recovered. On Instruct, 60 percent of recovered pairs carry a new Scala program, which matters for the Scala result."
+
+**Must say:** "+48 to 56 percent on base in round 1; 15 to 28 percent on Instruct."
+
+**If short of time:** one sentence: "Repair adds 15 to 56 percent more training pairs, depending on setting and round."
+
+**Next:** "Now the results, all on one table."
+
+## Slide 32: Scoreboard: TS vs. repair-TS, all rounds
+
+**Time:** 1:00 (Tajamul)
+
+**Script:**
+"This table has every setting and every round. Each round has two columns: Table-Specialist and Repair. The values are the paper's metric. A teal number means repair is significantly better and better on every seed.
+
+Repair is higher in 14 of 15 cells. The top three rows are clear: on base NL-to-SQL, Instruct NL-to-Scala and Instruct NL-to-R, repair wins and the gap holds or grows over rounds. The bottom two rows are different: Instruct NL-to-SQL shows no gain, and error detection gains clearly only in round 1. We will look at each, starting at the top."
+
+**Must say:**
+- "Clear gains on base SQL, Scala and R, on every seed."
+- "No gain on Instruct SQL; error detection only in round 1."
+
+**Point at:** the teal numbers, then the bottom two rows.
+
+**Next:** "Base NL-to-SQL."
+
+## Slide 33: Base NL-to-SQL: repair-TS leads every round
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"On the left, round 3 by test set; on the right, the trend over rounds, with the y-axis zoomed so you can see the gap. Repair-TS leads at every round: plus 0.029, 0.051 and 0.044. At round 3 the gain is 0.042 on the mean of eight, p below 0.0001, positive on every seed. The gains are on the harder sets: WikiTQ, Spider and BIRD. And repair-TS is also the most stable model we trained: its seed spread is a quarter of Table-Specialist's."
+
+**Must say:** "+0.042 at round 3, p < 0.0001, every seed; gains on the harder sets."
+
+**Next:** "Scala."
+
+## Slide 34: NL-to-Scala: repair-TS leads every round
+
+**Time:** 0:35 (Tajamul)
+
+**Script:**
+"On Scala, repair leads at every round, significant at every round, and all nine seed-round differences are positive. At round 3: plus 0.017. The gains are on WikiTQ and Spider. And this is with Instruct repairing its own programs, no stronger model involved. The dashed line is the paper's figure; both our models are well above it."
+
+**Must say:** "9 of 9 seed-round differences positive, and Instruct repairing its own programs."
+
+**Next:** "NL-to-R."
+
+## Slide 35: NL-to-R: the repair gain grows every round
+
+**Time:** 0:35 (Tajamul)
+
+**Script:**
+"NL-to-R is our cleanest new result. The gain grows every round: plus 0.010, 0.023, 0.028. It is significant at every round and positive on every seed at every round. Most of it comes from WikiSQL, plus 0.097 at round 3. And this is on a pipeline we built end to end, scored on 7,122 test cases per model."
+
+**Must say:** "The gain grows every round, and every seed is positive at every round."
+
+**Next:** "Now the two settings where repair does not clearly help. We show them on purpose."
+
+## Slide 36: Instruct NL-to-SQL: no gain from repair
+
+**Time:** 0:35 (Tajamul)
+
+**Script:**
+"On Instruct NL-to-SQL the two lines lie on top of each other. The differences are about plus or minus 0.01, the seeds split in sign, and at round 3 p is 0.55. We read this as no effect. Both models stay above the paper's line. The interesting question is why repair works on Scala and R but not here, and the controls in a moment answer it."
+
+**Must say:** "No effect: differences of ±0.01, seeds split, p = 0.55. The controls explain why."
+
+**Don't say:** "repair helps everywhere."
+
+**Next:** "Error detection."
+
+## Slide 37: Error detection: repair helps in round 1 only
+
+**Time:** 0:35 (Tajamul)
+
+**Script:**
+"On error detection, repair is ahead at every round. In round 1 the gain is 0.027, significant, on every seed. In rounds 2 and 3 it stays ahead, by 0.006 and 0.011, but those are not significant. The test sets are small, 42 and 36 columns that contain errors, so one column moves F1 by one or two points. We call it round 1 only."
+
+**Must say:** "Round 1 significant; rounds 2 and 3 ahead but within noise, because the test sets are small."
+
+**Don't say:** that the gain "disappears". It is still positive, just not significant.
+
+**Next:** "The obvious objection to all of this: repair-TS simply trains on more data. We tested that."
+
+## Slide 38: Is it just more data? The test
+
+**Time:** 0:50 (Tajamul)
+
+**Script:**
+"Repair-TS trains on 15 to 56 percent more pairs than Table-Specialist. So is the gain from more data, or from better data? This slide is the test design.
+
+Three training sets. Table-Specialist has its N kept pairs. Repair-TS has N plus M repaired pairs. The same-data control has N plus M fresh pairs: pairs that passed the same validator from the same generator on tables this seed never used. So the control has the same amount of data as repair-TS, and differs only in where the extra pairs come from.
+
+Then control minus TS is the volume effect, what more data alone gives. And repair minus control is the content effect, what repaired data gives beyond its volume.
+
+Two more controls: best-of-4 adds data by resampling, and for error detection, best-of-2 makes a second attempt without any feedback. All at round 1, three seeds."
+
+**Must say:**
+- "Same-data control: same amount of data, only the source of the extra pairs differs."
+- "Control minus TS is volume; repair minus control is content."
+
+**Point at:** the three bars, then the two cards.
+
+**Next:** "Here is the split for three settings."
+
+## Slide 39: Is it just more data? Splitting the round-1 gain
+
+**Time:** 1:00 (Tajamul)
+
+**Script:**
+"Each panel goes from TS, to the same-data control, to repair. The orange arrow is the volume effect, the second arrow the content effect.
+
+Base NL-to-SQL, left: more data alone gives 0.012. Repaired data gives another 0.012 on top, and that one is positive on every seed. So about half the gain is volume and half is content. And the grey circle is best-of-4: repair beats it by 0.018, on every seed.
+
+Instruct NL-to-SQL, middle: more fresh data helps, 0.008 on every seed. But replacing those fresh pairs with repaired ones loses 0.011. Repaired pairs are worth less than fresh ones here. That is exactly why repair showed no gain on Instruct SQL.
+
+Error detection, right: volume alone gives almost nothing, 0.004 and not significant. Repair adds 0.023 on top, significant. But a plain second attempt without feedback, best-of-2, does about as well. So for error detection the retry matters, and we cannot show that the feedback does."
+
+**Must say:**
+- "Base SQL: half volume, half content; the content half holds on every seed."
+- "Instruct SQL: repaired pairs are worth less than fresh ones, which explains the null result."
+- "Error detection: a retry without feedback does as well."
+
+**Next:** "Summing up what the controls prove."
+
+## Slide 40: Is it just more data? What the controls show
+
+**Time:** 0:45 (Tajamul)
+
+**Script:**
+"One line per setting. Base SQL: about half the gain is new content, and repaired pairs beat as many fresh ones. Instruct SQL: repaired pairs are worth less than fresh ones. Error detection: not a volume effect, but a plain retry works as well as feedback. For Scala and R we did not run a control, so their volume share is not measured, and we say so.
+
+What we can claim is in the green box: on base NL-to-SQL, repaired data beats as much fresh data, on every seed. The caveat: on base, the repairer is Instruct, a stronger model, so part of that gain may be the stronger model's knowledge, a kind of distillation. We have not separated those two."
+
+**Must say:**
+- The green-box sentence.
+- The distillation caveat, in those words.
+
+**Next:** "Let me close with what is established and how strongly."
+
+---
+
+## Section 6: Conclusions (divider, then slides 41-43)
+
+## Slide 41: What is established, and how strongly
+
+**Time:** 0:50 (Tajamul)
+
+**Script:**
+"We graded each claim by its evidence. 'Strong' means three seeds, p below 0.0001, the same sign on every seed, and a control for the obvious alternative. 'Moderate' means significant and consistent, but an alternative is untested. 'Weak' means mixed or not significant.
+
+The reproduction of NL-to-SQL on Instruct is approximate: 0.611 against 0.598. Table-Specialist improving all four tasks is strong. Validation paying off over rounds is moderate. Repair helping base SQL, Scala and R is moderate, and repair beating more data on base SQL is moderate. The negative findings are also findings: repair does not help Instruct SQL, strongly; repair for error detection is weak; and DPO harms, moderately."
+
+**Must say:** "We report negative results with the same care as positive ones."
+
+**Next:** "The limits."
+
+## Slide 42: Limitations and next steps
+
+**Time:** 0:40 (Tajamul)
+
+**Script:**
+"What could move the numbers: we used a substitute corpus; Text2Analysis is not public, so we compare on four of five test sets; three seeds; Instruct no-validation has one seed; the error-detection test sets are small; and on base the repairer is a stronger model.
+
+What would settle the open questions: a same-data control for NL-to-R, about six GPU-hours; separating repair from distillation by having Instruct write fresh pairs for base; repairers from another model family; and a precision-recall study of the validator itself."
+
+**Must say:** "The repairer-is-stronger caveat, and the R control as the first next step."
+
+**Next:** "To summarise."
+
+## Slide 43: Summary
+
+**Time:** 0:30 (Tajamul)
+
+**Script:**
+"Five points. One: Table-Specialist reproduces, 0.611 against 0.598, but on the Instruct model, not the base model the README points to. Two: it beats vanilla on all four tasks, and on Scala, R and error detection it lands above the paper. Three: validation pays off over rounds, not in round 1. Four: on the rejected data, DPO hurts and resampling barely helps, while repair-TS clearly helps base SQL, Scala and R. Five: on base SQL, repaired data is worth more than the same amount of fresh data. Thank you."
+
+**Must say:** all five points, in order.
+
+## Thank-you slide
+
+**Time:** 0:05
+
+"We are happy to take questions."
+
+---
+
+## Backup slides: when to use them
+
+Open a backup slide only when a question needs it. Do not present them otherwise.
+
+| Backup | Use it when someone asks... | One-line answer |
+|---|---|---|
+| B1 Repair vs. TS, seed by seed | "Is the repair gain consistent across seeds?" | "Base SQL, Scala and R: positive on every seed at every tested round. Instruct SQL and errors: mixed." |
+| B2 Error detection: full results | "What are the precision, recall, ST and RT numbers?" | Point at the table; mention 42 and 36 error columns. |
+| B3 Test-time voting and few-shot prompts | "Did you try self-consistency?" or "What about few-shot prompting?" | "Voting adds 0.014 to 0.025 to every model. Few-shot vanilla Instruct already scores 0.609, as high as zero-shot TS, so fine-tuning mostly teaches the zero-shot format." |
+| B4 Training settings | "What hyper-parameters?" | "Rank 16, alpha 32, learning rate 2e-4, 3 epochs, batch 1% of the data as in the paper." |
+| B5 How the work progressed | "How did the project unfold?" | The six steps; three machine incidents with no lost results. |
+| B6 Statistics | "How did you test significance?" | "Paired bootstrap over test cases, 10,000 draws, same draw for both models; seed signs shown because the bootstrap does not cover seed variance." |
+| B7 References | Rarely needed. | |
+
+---
+
+## Likely questions and answers
+
+Answer in two or three sentences, then stop. If you do not know, say "We did not test that" rather than guessing.
+
+**About the reproduction**
+
+1. **"Why do you say the paper used Instruct when the README links base?"**
+   "Base fails the vanilla gate under six settings; Instruct through the repository's own chat call is within 0.015 on three of four sets. The repository can only query through chat, which a base model cannot serve. It is our inference, not something the paper states."
+
+2. **"Your Spider numbers are much higher than the paper's. Is something wrong?"**
+   "Spider is higher for every model, vanilla included, by a similar amount, so the offset is in the test cases or scoring, not in training. The paper does not publish its Spider case list; our count matches but the cases may differ."
+
+3. **"You are above the paper on Scala, R and error detection. Did you make the task easier?"**
+   "Our vanilla matches the paper's on all three, within 0.012 on most sets, so the test sets behave the same before training. The difference appears in fine-tuning. Candidates are our corpus, the checkpoint, and our loop choices; we cannot separate them and do not claim one."
+
+4. **"Is 0.611 against 0.598 really a match? You are above the paper."**
+   "The difference, 0.013, is inside our seed spread of ±0.0135, and per set we are slightly below on three of four. We call it an approximate match, not a win."
+
+5. **"Why only three seeds?"**
+   "Each arm is nine fine-tuning runs plus generation and Spark validation, which takes days of GPU time. We compensate by reporting every seed's sign alongside the paired tests."
+
+6. **"Why GitTables and not web tables?"**
+   "The paper's corpus is not released. GitTables is a large public corpus of real tables; we filtered it to about 10,000 tables and used 3,000 new ones each round, as the paper does."
+
+7. **"Does agreement between SQL and Scala guarantee correctness?"**
+   "No. Two programs can make the same mistake. Our hand audit found about 8 in 10 kept pairs correct, so the validator is a strong filter, not a proof. A full precision-recall study is in our next steps."
+
+8. **"What is the difference between the zero-shot mean of 4 and the mean of 8?"**
+   "The mean of 4 averages the four test sets with the repository's default zero-shot prompt; it is the paper's comparison. The mean of 8 also includes the few-shot prompt; we use it for significance tests because it covers both prompts."
+
+8a. **"In the paper, the dual of a generative task is a classification task. Why do you show a second language?"**
+   "Strictly, the paper's dual of NL-to-SQL is the classification task 'does this code answer the question?' (its Figure 4). For code tasks it then adds a stronger check, execution invariance: the same question in a second language must give the same result (Algorithm 3). That execution check is what the paper uses for NL-to-SQL, Scala and R, and it is what we implemented."
+
+8b. **"The paper permutes the rows and columns of the table. You shuffle the values of one column. Is that the same?"**
+   "For error detection, the repository's validation prompt shows the values of one column, so permuting rows means shuffling those values. We follow the repository: five shuffles with fixed seeds 0 to 4."
+
+**About validation and rounds**
+
+9. **"The paper says validation helps. Why does no-validation win in round 1 for you?"**
+   "In round 1 both arms learn from the same vanilla model's output, and no-validation has 6.6 times more of it. Validation's advantage appears once a model's own errors feed into its next round's training. By round 3 TS wins by 0.049 on every seed."
+
+10. **"Why do rounds not help Instruct NL-to-SQL?"**
+    "We do not know for sure. Instruct's round-1 model is already strong, and each round restarts from vanilla with a similar amount of data. Testing it would need cumulative data or continued training, which we did not run."
+
+**About the extension**
+
+11. **"Isn't repair just giving the model the answer?"**
+    "No. Feedback comes only from the program's own execution: its error, 'no rows', or its own first five rows. It never sees the other language's code or output, and the repaired pair must pass the same ten-sample check."
+
+12. **"Isn't the gain just more training data?"**
+    "That is exactly what the same-data control tests. On base SQL, repaired pairs beat the same number of fresh validated pairs on every seed. On Instruct SQL they do worse, which explains the null result there."
+
+13. **"On base, the repairer is a stronger model. Isn't that distillation?"**
+    "Possibly, in part, and we say so on the slide. On Scala and R, Instruct repairs its own programs, with no stronger model, and repair still helps on every seed. Separating the two on base is our next step."
+
+14. **"Why does repair help Scala but not Instruct SQL, with the same runs?"**
+    "60 percent of recovered pairs carry a new Scala program, against 35 percent for SQL, and Scala is the weaker language (vanilla 0.19 against 0.50). So repair adds more new material where the first-pass data is weakest. That fits the data but we have not tested it as the cause."
+
+15. **"Why did DPO fail when it works elsewhere?"**
+    "Our rejected programs are mostly plausible SQL that returns slightly different rows. Pushing them down also pushes down correct SQL nearby; execution errors rose up to four times. Lower learning rates reduced the damage but never beat best-of-4 on dev."
+
+16. **"Did you tune anything on the test sets?"**
+    "No. DPO variants and the voting temperature were chosen on dev sets, and the repair go/no-go rule was fixed before the pilot."
+
+17. **"Why only one repair attempt?"**
+    "To keep the cost bounded and the comparison clean. More attempts would recover more pairs, but would also look more like best-of-N sampling."
+
+18. **"Why not repair the 'always empty' pairs, the biggest group?"**
+    "We try, but they are almost never recovered: 7 of 1,048 in one Instruct round. An empty result gives the repairer almost no information."
+
+**About statistics**
+
+19. **"What does p < 0.0001 mean here?"**
+    "In 10,000 paired bootstrap resamples of the test cases, the difference never crossed zero. It covers test-case variance, not seed variance, so we also show each seed's sign."
+
+20. **"Error detection round 1 is significant but rounds 2 and 3 are not. Which do we believe?"**
+    "With 42 and 36 error columns, one column moves F1 by one or two points. We believe round 1, and treat rounds 2 and 3 as not shown either way."
+
+**About the project**
+
+21. **"What was your own contribution, beyond running the code?"**
+    "The SQL-Scala comparator and its audit, the R validator and sandbox, the error-detection loop design, the whole repair-TS method with its pilot rule, and all the controls and statistics. The released code had no comparison step at all."
+
+22. **"How long did the experiments take, and what hardware?"**
+    "Two 24 GB GPUs, one job per GPU. Each fine-tuned arm is 3 seeds × 3 rounds; a single no-validation round on base took 6.5 to 7.8 hours." Give the hardware and the run structure; do not guess total hours on the spot. Run timings are in the report (chapter 7 and the timings table).
+
+23. **"Could this work on a larger or different model?"**
+    "The method does not depend on Llama, but we only tested Llama-3.1-8B base and Instruct. A repairer from another model family is in our next steps."
+
+---
+
+## Delivery checklist
+
+- [ ] Rehearse once with a timer. Target: slide 16 at 12:00, slide 28 at 21:00, slide 38 at 26:00.
+- [ ] Practise the hand-over line at slide 15.
+- [ ] Practise the three slides people will push on hardest: 14 (checkpoint), 36 (no gain) and 39 (more data).
+- [ ] Say "most likely" on slide 14 and "possibly" for distillation. Do not overclaim.
+- [ ] Never say "repair helps everywhere" or "we beat the paper on NL-to-SQL".
+- [ ] Have the PDF open in presenter mode, with the backup slides one click past "Thank you".
+- [ ] Bring the report (`report/main.pdf`) for detailed questions.
