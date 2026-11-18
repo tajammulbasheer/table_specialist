@@ -24,3 +24,7 @@ backups/
 *.run.xml
 *.xdv
 *.synctex.gz
+*.loa
+*.lof
+*.lot
+*-SAVE-ERROR
