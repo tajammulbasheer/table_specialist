@@ -1,12 +1,19 @@
 # Results
 
-Last updated: 2026-11-04 12:10 (machine clock).
+This file is a dated lab log, written as each experiment finished between 2026-11-04 and 2026-11-16. Later sections
+supersede earlier ones. For the final results and conclusions, read the [report](../report/main.pdf) or the
+[README](../README.md#findings).
 
-**Summary:** the faithful model is Llama-3.1-8B base. It meets the gate only on BIRD (0.364 against 0.388), and misses WikiSQL (0.326 against 0.525), WikiTQ (0.219 against 0.300) and, narrowly, Spider (0.725 against 0.670). The repo's few-shot prompt meets the gate on WikiTQ and BIRD but overshoots WikiSQL (0.685) and Spider (0.769). No setting tested reproduces the paper, and the gaps are recorded as unexplained. LoRA and Spark-Scala both work on this machine, and Spark makes validation take about 11 hours per round.
+"Vanilla" means not fine-tuned. Raw summaries are in `results/`. "Repo-faithful" uses the authors' comparison, bug
+included. "Corrected" fixes the defects listed in `docs/DECISIONS.md`. Intervals are 95% Wilson intervals.
 
-"Vanilla" means not fine-tuned. All Instruct scores below are a future-experiment reference, not the reproduction.
+## Baseline-gate summary (as of 2026-11-04, before any fine-tuning)
 
-Raw summaries are in `results/`. "Repo-faithful" uses the authors' comparison, bug included. "Corrected" fixes the defects listed in `docs/DECISIONS.md`. Intervals are 95% Wilson intervals. No fine-tuned model has been trained yet.
+At this point the model under test was Llama-3.1-8B base. It met the gate only on BIRD (0.364 against 0.388), and
+missed WikiSQL (0.326 against 0.525), WikiTQ (0.219 against 0.300) and, narrowly, Spider (0.725 against 0.670). The
+repo's few-shot prompt met the gate on WikiTQ and BIRD but overshot WikiSQL (0.685) and Spider (0.769). The Instruct
+scores in the baseline-gate sections were then only a reference. The Instruct checkpoint was adopted later (see
+"Plan A1" below).
 
 ## Targets from the paper
 
