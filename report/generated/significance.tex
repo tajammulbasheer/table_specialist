@@ -1,0 +1,49 @@
+\begin{landscape}
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}p{6.2cm}clrlrp{4.0cm}@{}}
+\caption{NL-to-SQL: paired bootstrap tests over test cases (10,000 draws, fixed seed). Per case, correctness is averaged over the seeds both models have; the statistic is the mean over cells of A $-$ B with equal cell weights. Per-seed differences show seed variation, which the case bootstrap does not cover.}\label{tab:gen-significance}\\
+\toprule
+\rowcolor{headshade}\makecell{Comparison\\(A vs B)} & Seeds & M8: $\Delta$ [95\% CI] & $p$ & ZS4: $\Delta$ [95\% CI] & $p$ & \makecell{Per\\seed (M8)}\\
+\midrule
+\endfirsthead
+\multicolumn{7}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}\makecell{Comparison\\(A vs B)} & Seeds & M8: $\Delta$ [95\% CI] & $p$ & ZS4: $\Delta$ [95\% CI] & $p$ & \makecell{Per\\seed (M8)}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Base: TS r3 vs vanilla & 3 & +0.0647 [+0.0554, +0.0738] & $<$0.0001 & +0.1377 [+0.1228, +0.1527] & $<$0.0001 & +0.0872, +0.0456, +0.0612\\
+Base: TS r3 vs NV r3 & 3 & +0.0492 [+0.0426, +0.0557] & $<$0.0001 & +0.0384 [+0.0294, +0.0473] & $<$0.0001 & +0.0593, +0.0354, +0.0528\\
+Base: repair-TS r3 vs TS r3 & 3 & +0.0421 [+0.0367, +0.0476] & $<$0.0001 & +0.0444 [+0.0365, +0.0524] & $<$0.0001 & +0.0204, +0.0557, +0.0501\\
+Base: repair-TS r1 vs TS r1 & 3 & +0.0243 [+0.0197, +0.0290] & $<$0.0001 & +0.0288 [+0.0222, +0.0354] & $<$0.0001 & +0.0282, +0.0426, +0.0023\\
+Base: repair-TS r1 vs bestof4 r1 & 3 & +0.0180 [+0.0134, +0.0227] & $<$0.0001 & +0.0222 [+0.0157, +0.0288] & $<$0.0001 & +0.0217, +0.0144, +0.0178\\
+Base: same-data control r1 vs TS r1 & 3 & +0.0119 [+0.0075, +0.0163] & $<$0.0001 & +0.0116 [+0.0054, +0.0179] & $<$0.0001 & +0.0214, +0.0296, -0.0153\\
+Base: repair-TS r1 vs same-data control r1 & 3 & +0.0124 [+0.0079, +0.0170] & $<$0.0001 & +0.0171 [+0.0106, +0.0237] & $<$0.0001 & +0.0067, +0.0130, +0.0176\\
+Base: DPO r1 vs TS r1 & 3 & -0.0209 [-0.0262, -0.0156] & $<$0.0001 & -0.0191 [-0.0263, -0.0118] & $<$0.0001 & -0.0246, +0.0117, -0.0497\\
+Instruct: TS r3 vs vanilla & 3 & +0.0523 [+0.0424, +0.0622] & $<$0.0001 & +0.1111 [+0.0956, +0.1264] & $<$0.0001 & +0.0572, +0.0374, +0.0623\\
+Instruct: TS r3 vs NV r3 (seed 1) & 1 & +0.0403 [+0.0308, +0.0499] & $<$0.0001 & +0.0304 [+0.0175, +0.0436] & $<$0.0001 & +0.0403\\
+Instruct: TS r3 vs TS r1 & 3 & -0.0083 [-0.0133, -0.0032] & 0.0012 & -0.0052 [-0.0124, +0.0019] & 0.1526 & -0.0154, -0.0150, +0.0055\\
+Instruct: repair-TS r1 vs TS r1 & 3 & -0.0035 [-0.0081, +0.0010] & 0.1268 & -0.0009 [-0.0072, +0.0053] & 0.7804 & -0.0080, +0.0133, -0.0158\\
+Instruct: repair-TS r2 vs TS r2 & 3 & +0.0053 [+0.0008, +0.0099] & 0.0208 & +0.0065 [+0.0002, +0.0129] & 0.0440 & -0.0149, +0.0062, +0.0248\\
+Instruct: repair-TS r3 vs TS r3 & 3 & -0.0014 [-0.0062, +0.0033] & 0.5544 & +0.0010 [-0.0055, +0.0076] & 0.7828 & -0.0044, +0.0052, -0.0050\\
+Instruct: same-data control r1 vs TS r1 & 3 & +0.0079 [+0.0038, +0.0120] & 0.0006 & +0.0104 [+0.0044, +0.0164] & 0.0004 & +0.0068, +0.0096, +0.0072\\
+Instruct: repair-TS r1 vs same-data control r1 & 3 & -0.0114 [-0.0155, -0.0074] & $<$0.0001 & -0.0113 [-0.0168, -0.0057] & $<$0.0001 & -0.0148, +0.0037, -0.0231\\
+Vote vs greedy: base vanilla & 3 & +0.0248 [+0.0192, +0.0302] & $<$0.0001 & +0.0247 [+0.0196, +0.0299] & $<$0.0001 & +0.0248, +0.0248, +0.0248\\
+Vote vs greedy: base TS r3 & 3 & +0.0156 [+0.0132, +0.0180] & $<$0.0001 & +0.0122 [+0.0090, +0.0154] & $<$0.0001 & +0.0145, +0.0148, +0.0174\\
+Vote vs greedy: base repair-TS r3 & 3 & +0.0159 [+0.0132, +0.0187] & $<$0.0001 & +0.0163 [+0.0126, +0.0202] & $<$0.0001 & +0.0179, +0.0130, +0.0170\\
+Vote vs greedy: Instruct vanilla & 3 & +0.0175 [+0.0131, +0.0220] & $<$0.0001 & +0.0100 [+0.0070, +0.0132] & $<$0.0001 & +0.0175, +0.0175, +0.0175\\
+Vote vs greedy: Instruct TS r3 & 3 & +0.0173 [+0.0147, +0.0200] & $<$0.0001 & +0.0164 [+0.0128, +0.0203] & $<$0.0001 & +0.0165, +0.0224, +0.0132\\
+Vote vs greedy: Instruct repair-TS r3 & 3 & +0.0188 [+0.0158, +0.0217] & $<$0.0001 & +0.0178 [+0.0136, +0.0221] & $<$0.0001 & +0.0141, +0.0247, +0.0174\\
+Instruct: repair-TS r3 + vote vs TS r3 + vote & 3 & -0.0000 [-0.0045, +0.0046] & 0.9970 & +0.0023 [-0.0041, +0.0090] & 0.4906 & -0.0068, +0.0076, -0.0008\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Source: \fpath{results/analysis/significance.json}, written by \fpath{ts/analysis/significance.py}.\par}
+\medskip
+\end{landscape}

@@ -1,0 +1,52 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Table-LLM-Specialist~\cite{xing2024tablellmspecialist} (``Table-Specialist'' below) fine-tunes a language model for a
+single table task without human labels. Each task is paired with a \emph{dual} task whose output can check the first:
+for NL-to-SQL, a SQL program and a Spark-Scala program written for the same question must return the same rows on
+random samples of the table. Only agreeing pairs become training data. The fine-tuned model then generates the next
+round's data, for up to three rounds. This report documents a fourteen-day reproduction of the paper's Llama-3.1-8B
+results on one workstation. It also covers four experiments beyond the paper.
+
+\textbf{Reproduction.} The paper's training corpus, one of its five NL-to-SQL test sets (Text2Analysis), its test-case
+lists, its checkpoint choice and most training settings are unpublished. We substituted a filtered GitTables corpus of
+10,053 tables and rebuilt the test sets. We also wrote the parts of the validation pipeline that the released code lacks.
+\begin{itemize}
+\item \textbf{Base checkpoint.} Following the repository's README, we first used Llama-3.1-8B base. Under every setting
+tried, its vanilla scores missed the paper's (WikiSQL 0.326 against 0.525).
+\item \textbf{Instruct checkpoint.} Queried through the repository's own chat call, Llama-3.1-8B-Instruct reproduces
+the paper's vanilla scores within 0.015 on WikiSQL, WikiTQ and BIRD. After three rounds of Table-Specialist it
+reproduces the paper's fine-tuned scores within 0.032 per test set. Spider is the exception: every model of ours,
+vanilla included, scores 0.055--0.121 above the paper there. On the zero-shot mean of four test sets, Instruct
+Table-Specialist scores $0.6113\pm0.0135$ against the paper's 0.5983.
+\item \textbf{Ablation.} On the base model, Table-Specialist beats both vanilla and fine-tuning without validation at
+round~3, by $+0.0647$ and $+0.0492$ on the mean of eight cells (paired bootstrap, $p<0.0001$, every seed positive).
+\item \textbf{Rounds.} Validation pays off only over rounds. Unvalidated training wins in round~1 and degrades every
+round after it.
+\item \textbf{Other tasks.} We approximately reproduce the paper's vanilla scores for NL-to-Scala, NL-to-R and error
+detection. Our Table-Specialist scores on all three are higher than the paper's.
+\end{itemize}
+
+\textbf{Extensions.} We tested two ways to recover the training data that the validator discards.
+\begin{itemize}
+\item \textbf{Preference learning} (DPO on validated against rejected programs) consistently harmed accuracy, even
+after tuning on dev sets ($-0.0209$, $p<0.0001$).
+\item \textbf{Repair-TS} repairs each rejected pair once, using only that program's own execution feedback, then
+re-validates it with the paper's unchanged Algorithm~3. Its effect depends on the generator and the language:
+  \begin{itemize}
+  \item On base NL-to-SQL it gains $+0.0421$ at round~3 ($p<0.0001$, all three seeds). A same-data control shows that
+  about half of the round-1 gain is not explained by data volume.
+  \item On Instruct NL-to-SQL it gains nothing ($-0.0014$, $p=0.55$).
+  \item The Scala adapters trained inside those same Instruct runs gain at every round ($+0.0141$ to $+0.0337$,
+  $p<0.0001$).
+  \end{itemize}
+\item \textbf{Self-consistency} at test time adds 0.016--0.025 everywhere.
+\item \textbf{Repair for error detection} (repair-ED) helps significantly only at round~1 ($+0.027$ F1, $p=0.03$); it beats
+a same-data control but not a plain second sample (best-of-2, $p=0.71$). At rounds 2 and 3 it is still slightly
+ahead ($+0.006$, $+0.011$) but not significantly ($p=0.70$, $0.58$), with seeds split in sign.
+\item \textbf{NL-to-R}, run end to end with our SQL--R validator: TS gains $+0.128$ over vanilla (mean of 8,
+$p<0.0001$), rounds help, and \textbf{repair-TS-R} beats TS-R at every round on every seed ($+0.011$, $+0.020$,
+$+0.024$, all $p<0.0001$; zero-shot mean of 4 at round~3: 0.5043 against 0.4760). No same-data control was run for R.
+\end{itemize}
+We separate measured observations from interpretations and hypotheses throughout. We also grade the evidence for each
+candidate contribution, and list the experiments that would be needed to turn the repair findings into a general claim.

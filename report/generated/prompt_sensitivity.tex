@@ -1,0 +1,34 @@
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}llcrrr@{}}
+\caption{Prompt sensitivity: the same models scored with the repository's zero-shot test prompt and its few-shot generation prompt (repo-faithful).}\label{tab:gen-prompt}\\
+\toprule
+\rowcolor{headshade}Task & Model & Seeds & \makecell{Zero-shot\\mean of 4} & \makecell{Few-shot\\mean of 4} & Few $-$ zero\\
+\midrule
+\endfirsthead
+\multicolumn{6}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Task & Model & Seeds & \makecell{Zero-shot\\mean of 4} & \makecell{Few-shot\\mean of 4} & Few $-$ zero\\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+NL-to-SQL & Base vanilla & 1 & 0.4083 & 0.5493 & +0.1410\\
+NL-to-SQL & Base TS r3 & 3 & 0.5460 & 0.5410 & -0.0050\\
+NL-to-SQL & Base NV r3 & 3 & 0.5077 & 0.4809 & -0.0267\\
+NL-to-SQL & Base repair-TS r3 & 3 & 0.5904 & 0.5808 & -0.0096\\
+NL-to-SQL & Instruct vanilla & 1 & 0.5001 & 0.6090 & +0.1089\\
+NL-to-SQL & Instruct TS r3 & 3 & 0.6113 & 0.6025 & -0.0088\\
+NL-to-SQL & Instruct repair-TS r3 & 3 & 0.6122 & 0.5986 & -0.0136\\
+NL-to-Scala & Vanilla & 1 & 0.1936 & 0.3386 & +0.1450\\
+NL-to-Scala & TS r3 & 3 & 0.4666 & 0.4541 & -0.0125\\
+NL-to-Scala & Repair-TS r3 & 3 & 0.4817 & 0.4726 & -0.0091\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Means over seeds; recalculated from the per-cell files.\par}
+\medskip

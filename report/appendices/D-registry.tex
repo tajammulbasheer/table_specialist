@@ -1,0 +1,40 @@
+\chapter{Run Registry}\label{app:registry}
+
+Run identifiers follow the scheme in \cref{sec:runids}. Training-run directories (\fpath{runs/train_<arm>_<profile>_seed<s>/round<r>/})
+hold the questions, programs, validation verdicts (\fpath{validated.jsonl}), training examples, adapters, logs and a
+round summary. Test cells hold per-case predictions (\fpath{runs/<cell>/preds.jsonl}) and a summary in
+\fpath{results/baseline/<cell>.json}. Training runs are also logged to a local MLflow store (\fpath{mlruns/}).
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.6cm}p{6.3cm}p{1.4cm}p{1.4cm}p{1.9cm}@{}}
+\caption{Experiment families: training-run identifiers, seeds and rounds.}\label{tab:families}\\
+\toprule\rowcolor{headshade}Experiment & Run identifier & Seeds & Rounds & Section\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Experiment & Run identifier & Seeds & Rounds & Section\\\midrule\endhead
+\bottomrule\endfoot
+TS, base & \fpath{train_tablespecialist_base_seed<s>} & 1--3 & 1--3 & \ref{sec:sql-core}\\
+NV, base & \fpath{train_novalidation_base_seed<s>} & 1--3 & 1--3 & \ref{sec:sql-core}\\
+TS, Instruct & \fpath{train_tablespecialist_instruct_seed<s>} & 1--3 & 1--3 & \ref{sec:sql-instruct}\\
+NV, Instruct & \fpath{train_novalidation_instruct_seed1} & 1 & 1--3 & \ref{sec:sql-instruct}\\
+bestof4 & \fpath{train_bestof4_base_seed<s>} & 1--3 & 1 & \ref{sec:ext2}\\
+DPO & \fpath{train_dpo_base_seed<s>} & 1--3 & 1 & \ref{sec:ext2}\\
+DPO dev tuning & \fpath{train_dpotune<variant>_base_seed1_dev} & 1 & 1 & \ref{sec:ext2}\\
+Repair pilots & \fpath{repair_pilot_seed1_test300}, \fpath{repair_pilot_instruct_seed1_test300} & 1 & 1 &
+\ref{sec:ext-repair}\\
+Repair-TS, base & \fpath{train_repairts_base_seed<s>} & 1--3 & 1--3 & \ref{sec:ext-repair}\\
+Repair-TS, Instruct & \fpath{train_repairts_instruct_seed<s>} & 1--3 & 1--3 & \ref{sec:ext-repair}\\
+Same-data control & \fpath{train_tsdata_{base,instruct}_seed<s>} & 1--3 & 1 & \ref{sec:ext-control}\\
+Self-consistency & \fpath{final_sct10_<model>}, \fpath{final_sct10seq_<model>} (base BIRD) & 1--3 & 3 &
+\ref{sec:ext-sc}\\
+Self-consistency dev & \fpath{gate_scdev_t<T>_<set>} & 1 & 3 & \ref{sec:ext-sc}\\
+NL-to-Scala & \fpath{final_nlscala_instruct_<model>} & 1--3 & 1--3 & \ref{sec:results-scala}\\
+Error-detection TS & \fpath{train_edts_instruct_seed<s>} & 1--3 & 1--3 & \ref{sec:results-ed}\\
+Repair-ED & \fpath{train_edrepair_instruct_seed<s>} & 1--3 & 1--3 & \ref{sec:results-ed}\\
+Best-of-2 control & \fpath{train_edresample_instruct_seed<s>} & 1--3 & 1 & \ref{sec:results-ed}\\
+Same-data control (ED) & \fpath{train_eddata_instruct_seed<s>} & 1--3 & 1 & \ref{sec:results-ed}\\
+NL-to-R & \fpath{train_rts_instruct_seed<s>}, \fpath{train_rrepairts_instruct_seed<s>}, \fpath{final_nlr_*} & 1--3 & 1--3 &
+\ref{sec:results-r}\\
+\end{longtable}
+}
+
+\input{generated/registry.tex}

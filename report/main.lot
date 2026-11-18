@@ -1,0 +1,78 @@
+\babel@toc {english}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Tasks in the paper, their dual-task validation, and their test sets. Sizes and metrics are from the published Table~2.}}{7}{table.2.1}%
+\contentsline {table}{\numberline {2.2}{\ignorespaces The paper's Llama-3.1-8B results that this report compares against (published Table~3). The mean of 4 excludes Text2Analysis, which is unreleased; the paper's own averages include it.}}{9}{table.2.2}%
+\contentsline {table}{\numberline {2.3}{\ignorespaces What the paper and repository specify, and what they leave open. Our choice for each gap is in \cref {tab:adaptations}.}}{10}{table.2.3}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces Computing environment. Versions are those installed in the project's virtual environment at the time of writing; container images are pinned by digest.}}{21}{table.4.1}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Models used. Revisions are pinned Hugging Face commits; all four weight-file checksums were verified after download.}}{21}{table.4.2}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Training-table corpus built from GitTables (\texttt {ts/corpus/build.py}).}}{22}{table.4.3}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Test sets: how we rebuilt each one, and how it compares with the paper's. Every gold answer was re-checked against the dataset's own engine.}}{23}{table.4.4}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces Saved case and table ID lists, so the exact sets can be rebuilt.}}{24}{table.4.5}%
+\contentsline {table}{\numberline {4.6}{\ignorespaces Settings of the NL-to-SQL study and their source: \emph {paper}, \emph {repo} (repository) or \emph {ours} (the paper is silent).}}{24}{table.4.6}%
+\contentsline {table}{\numberline {4.7}{\ignorespaces Where randomness enters, and how each source is seeded. ``$s$'' is the study seed (1, 2 or 3); ``$r$'' the round.}}{26}{table.4.7}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces Repository components used by our pipeline, how they enter it, and what was changed.}}{27}{table.5.1}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Components we wrote. Line counts are for the files listed.}}{28}{table.5.2}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {7.1}{\ignorespaces NL-to-SQL vanilla baselines on the four rebuilt test sets, both checkpoints and both prompts. Execution accuracy (fraction of cases). The paper's vanilla figures (Table~3, Llama-3.1-8B) are set beside our zero-shot rows only, because the paper does not state its test prompt.}}{36}{table.7.1}%
+\contentsline {table}{\numberline {7.2}{\ignorespaces Core study on Llama-3.1-8B base: every seed and round of Table-Specialist (TS) and no-validation (NV).}}{37}{table.7.2}%
+\contentsline {table}{\numberline {7.3}{\ignorespaces NL-to-SQL summary statistics over seeds for every approach and round. SD is the sample standard deviation ($n-1$); it is omitted when only one seed exists. Vanilla is a single deterministic run.}}{38}{table.7.3}%
+\contentsline {table}{\numberline {7.4}{\ignorespaces Algorithm~3 outcomes for every validated round (3,000 tables per round). Each question yields one SQL--Scala pair; a pair is kept only if both programs run and agree on all 10 row samples. Rejection reasons are mutually exclusive and are assigned in the order the validator checks them.}}{41}{table.7.4}%
+\contentsline {table}{\numberline {7.5}{\ignorespaces Core study on Llama-3.1-8B-Instruct: TS on seeds 1--3 and NV on seed~1, every round.}}{43}{table.7.5}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {8.1}{\ignorespaces Extension~2 labelling (base, round~1): 4 candidates per question (TS's greedy pair + 3 vanilla samples at temperature 0.7); the first candidate that passes Algorithm~3 is chosen.}}{47}{table.8.1}%
+\contentsline {table}{\numberline {8.2}{\ignorespaces Extension~2 test scores per seed (base, round~1), beside TS and NV round~1 on the same questions.}}{48}{table.8.2}%
+\contentsline {table}{\numberline {8.3}{\ignorespaces DPO tuning on dev sets only (zero-shot; WikiSQL 300, Spider single-table 411 within the prompt limit, WikiTQ 300). Selection rule fixed beforehand: test a variant only if its dev mean exceeds bestof4's.}}{49}{table.8.3}%
+\contentsline {table}{\numberline {8.4}{\ignorespaces Repair pilot on seed~1's 300-table round~1 (291 questions, 41 pairs kept first pass): the same rejected pairs and diagnoses, repaired by base Llama-3.1-8B or by Llama-3.1-8B-Instruct.}}{50}{table.8.4}%
+\contentsline {table}{\numberline {8.5}{\ignorespaces Repair-TS (Extension~3): rejected pairs repaired once by Llama-3.1-8B-Instruct and validated again with Algorithm~3 unchanged. Per-reason columns give recovered / attempted; the last three give which side's new code passed.}}{51}{table.8.5}%
+\contentsline {table}{\numberline {8.6}{\ignorespaces Repair-TS on base, every seed and round (repairs written by Llama-3.1-8B-Instruct).}}{52}{table.8.6}%
+\contentsline {table}{\numberline {8.7}{\ignorespaces Repair-TS on Instruct, every seed and round (the Instruct model is generator and repairer).}}{52}{table.8.7}%
+\contentsline {table}{\numberline {8.8}{\ignorespaces Same-data control: TS round~1's kept pairs plus as many extra validated first-pass pairs (from another seed's TS round~1, on tables this seed never used) as repair-TS round~1 recovered.}}{53}{table.8.8}%
+\contentsline {table}{\numberline {8.9}{\ignorespaces Self-consistency temperature tuning on dev sets (base TS round~3 seed~1 adapter, zero-shot, greedy + 8 samples). The highest dev mean was taken to the test sets.}}{55}{table.8.9}%
+\contentsline {table}{\numberline {8.10}{\ignorespaces Execution-based self-consistency on the test sets (greedy + 8 samples at T = 1.0, majority vote over execution results; failed or empty results dropped; gold never used). ``Greedy'' is the greedy answer of the same run.}}{55}{table.8.10}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {9.1}{\ignorespaces NL-to-Scala, all 19 Instruct models: execution accuracy per test set and prompt (repo-faithful, following the repo's \texttt {nss\_evaluator}), with the corrected zero-shot mean.}}{57}{table.9.1}%
+\contentsline {table}{\numberline {9.2}{\ignorespaces NL-to-Scala summary statistics over seeds (repo-faithful).}}{58}{table.9.2}%
+\contentsline {table}{\numberline {9.3}{\ignorespaces Error detection, summary: repo-faithful F1 per seed, mean $\pm $ sample SD over seeds, and the mean of ST and RT.}}{59}{table.9.3}%
+\contentsline {table}{\numberline {9.4}{\ignorespaces Error detection on AutoTest (Llama-3.1-8B-Instruct, repo zero-shot prompt). Precision is averaged over columns with a prediction, recall over columns with errors, and F1 is taken from the two averages (the repo's \texttt {ed\_evaluator}); the AutoTest protocol ignores predictions of debatable values.}}{59}{table.9.4}%
+\contentsline {table}{\numberline {9.5}{\ignorespaces Error-detection data per round: Algorithm~2 outcomes (kept / candidates; all 5 shuffles must agree), recovered errors for the repair and resample arms, and training examples.}}{61}{table.9.5}%
+\contentsline {table}{\numberline {9.6}{\ignorespaces NL-to-R, all 19 Instruct models: execution accuracy per test set and prompt (repo-faithful, following the repo's \texttt {nr\_evaluator}), with the corrected zero-shot mean.}}{63}{table.9.6}%
+\contentsline {table}{\numberline {9.7}{\ignorespaces NL-to-R summary statistics over seeds (repo-faithful).}}{64}{table.9.7}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {11.1}{\ignorespaces Ablations: the factor varied, the comparison, and the effect on \textsf {M8}{} (paired bootstrap; per-seed differences in \cref {tab:gen-significance}).}}{72}{table.11.1}%
+\contentsline {table}{\numberline {11.2}{\ignorespaces Prompt sensitivity: the same models scored with the repository's zero-shot test prompt and its few-shot generation prompt (repo-faithful).}}{73}{table.11.2}%
+\contentsline {table}{\numberline {11.3}{\ignorespaces Scoring sensitivity: repo-faithful against corrected scores (zero-shot). Spider, whose gold queries often lack ORDER BY, is shown separately because it carries most of the difference.}}{74}{table.11.3}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {12.1}{\ignorespaces The paper's method against ours, component by component. Type: C = forced by a constraint, M = a methodological correction, O = our choice where the paper is silent, X = our extension.}}{76}{table.12.1}%
+\contentsline {table}{\numberline {12.2}{\ignorespaces Data differences.}}{77}{table.12.2}%
+\contentsline {table}{\numberline {12.3}{\ignorespaces Training and evaluation differences.}}{77}{table.12.3}%
+\contentsline {table}{\numberline {12.4}{\ignorespaces Every result that can be compared with the paper. ``Ours'' is the mean over seeds 1--3 at round~3 for fine-tuned models. Paper values: published Table~3, Llama-3.1-8B.}}{78}{table.12.4}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {13.1}{\ignorespaces Repair-TS across settings, at round~3 unless stated.}}{81}{table.13.1}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {15.1}{\ignorespaces Candidate contributions, graded. \emph {Strong}: 3 seeds, $p<0.0001$, consistent sign and a control for the obvious alternative. \emph {Moderate}: significant and consistent, with an untested alternative. \emph {Weak}: one seed, mixed, or not significant.}}{87}{table.15.1}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {B.1}{\ignorespaces LoRA training runs of the NL-to-SQL study (one row per adapter). Batch = 1\% of the round's examples, built by gradient accumulation of single examples; 3 epochs.}}{94}{table.B.1}%
+\contentsline {table}{\numberline {B.2}{\ignorespaces Wall-clock hours per stage of each NL-to-SQL round, as recorded in the round summaries.}}{96}{table.B.2}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {C.1}{\ignorespaces NL-to-SQL: paired bootstrap tests over test cases (10,000 draws, fixed seed). Per case, correctness is averaged over the seeds both models have; the statistic is the mean over cells of A $-$ B with equal cell weights. Per-seed differences show seed variation, which the case bootstrap does not cover.}}{99}{table.C.1}%
+\contentsline {table}{\numberline {C.2}{\ignorespaces NL-to-Scala: paired bootstrap tests over test cases (10,000 draws, fixed seed). Per case, correctness is averaged over the seeds both models have; the statistic is the mean over cells of A $-$ B with equal cell weights. Per-seed differences show seed variation, which the case bootstrap does not cover.}}{100}{table.C.2}%
+\contentsline {table}{\numberline {C.3}{\ignorespaces NL-to-R: paired bootstrap tests over test cases (10,000 draws, fixed seed). Per case, correctness is averaged over the seeds both models have; the statistic is the mean over cells of A $-$ B with equal cell weights. Per-seed differences show seed variation, which the case bootstrap does not cover.}}{101}{table.C.3}%
+\contentsline {table}{\numberline {C.4}{\ignorespaces Error detection: paired bootstrap tests over test columns (10,000 draws, resampled within each test set, the same draw for both models and all seeds); F1 is recomputed on each draw, averaged over seeds, and the statistic is the mean over ST and RT of A $-$ B.}}{102}{table.C.4}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {D.1}{\ignorespaces Experiment families: training-run identifiers, seeds and rounds.}}{103}{table.D.1}%
+\contentsline {table}{\numberline {D.2}{\ignorespaces Every result file in \texttt {results/baseline/}, grouped by run family. A ``run'' is one model (one seed and round); each writes one file per test set and prompt.}}{104}{table.D.2}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {E.1}{\ignorespaces Machine and pipeline incidents (IST).}}{106}{table.E.1}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {F.1}{\ignorespaces Code inventory: every source file we wrote, with its size and the first line of its description.}}{108}{table.F.1}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {G.1}{\ignorespaces Cross-check of headline values: the value stated in \texttt {docs/RESULTS.md} against the value recomputed from the per-cell result files by the table generator. A tolerance of 0.0001 allows for rounding of means.}}{111}{table.G.1}%
+\addvspace {10\p@ }

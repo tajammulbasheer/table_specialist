@@ -1,0 +1,433 @@
+\chapter{Our Research Methodology}\label{ch:method}
+
+This chapter describes every approach we built, in the order of the research questions they answer. For each one it
+states what is taken from the paper and what is ours. Concrete settings are collected in \cref{ch:setup}, and the code
+is described in \cref{ch:impl}.
+
+\section{Research design}\label{sec:design}
+
+\subsection{Two model tracks}
+
+The paper names ``Llama-3.1-8B'' without saying base or instruction-tuned. The two pieces of evidence point in
+opposite directions:
+\begin{itemize}
+\item the repository README links the \emph{base} checkpoint;
+\item the repository's only query path is a \emph{chat} call, which a base model cannot serve, because it has no chat
+template.
+\end{itemize}
+We ran both tracks.
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Base track (2026-11-04 onward): faithful to the README.] Llama-3.1-8B base at revision \texttt{d04e592}, queried
+with raw completions. The base model was chosen \emph{because the README links it}, before any score was known for it.
+An earlier blueprint had chosen Instruct, and we had briefly defended that choice on the grounds that its scores were
+nearer the paper's. The user rejected that test on 2026-11-04: choosing a model by how close its score lands to the
+target is circular.
+\item[Instruct track (2026-11-10 onward): faithful to the repository's query path.] Llama-3.1-8B-Instruct at revision
+\texttt{0e9e39f}, queried through the repository's chat call with its system message. It is used in generation,
+training (chat template) and evaluation alike. It was adopted for matching the paper after the base track's vanilla
+gate failed (\cref{sec:sql-vanilla}), under an approved plan with the rule ``Instruct is treated as the paper's model
+for matching; base stays the faithful reproduction''.
+\end{description}
+
+\subsection{Arms, seeds and rounds}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Vanilla.] The untuned model, greedy decoding. It is deterministic, so it is run once.
+\item[Table-Specialist (TS).] \Cref{alg:ours-loop}: three rounds with 3,000 new tables per round. Each round's
+adapters restart from vanilla and train only on that round's validated pairs. Each round's generators are the previous
+round's adapters.
+\item[No-validation (NV).] The same loop with the validation step removed: every pair with extractable code is used.
+This is the paper's ablation.
+\end{description}
+
+Every fine-tuned arm runs with seeds 1, 2 and 3. A seed fixes the table order (each seed takes its own random
+permutation of the corpus, and round $r$ uses positions $3000(r-1)$ to $3000r$), the question-sampling RNG, the LLM
+request seed, and the training seed. Three seeds was our choice; the paper does not report seeds. Instruct NV was run
+for seed~1 only (\cref{sec:sql-instruct}).
+
+\subsection{Principles}
+
+\begin{enumerate}
+\item \textbf{Fill gaps with documented choices; do not tune towards the paper's number.} Every unpublished setting is
+recorded in \fpath{configs/base.yaml} as ``ours'', with its reason in \fpath{docs/DECISIONS.md}.
+\item \textbf{Report both scores.} Repo-faithful scores (the authors' comparison, bugs included) are the headline;
+corrected scores are reported beside them.
+\item \textbf{Prefer the repository's artefacts.} Prompts, prompt classes, evaluator rules and sampling rules come
+from the repository wherever it has them (\cref{sec:provenance}).
+\item \textbf{Fix controls and decision rules before seeing results.} Go/no-go thresholds, dev-set selection rules and
+same-data controls were written down before the runs they judge.
+\end{enumerate}
+
+\section{The Table-Specialist loop as implemented}\label{sec:ours-loop}
+
+\begin{figure}[htbp]
+\centering
+\begin{adjustbox}{max width=\linewidth}\input{figures/our-pipeline.tex}\end{adjustbox}
+\caption{Our implementation of one round (\fpath{ts/loop.py}). Teal boxes are our code, amber boxes are repository
+artefacts used unchanged. The response cache and the GPU and CPU locks make every stage resumable and keep one job per
+GPU.}
+\label{fig:our-pipeline}
+\end{figure}
+
+\begin{algorithm}[htbp]
+\caption{One round of our TS / NV loop for NL-to-SQL (\fpath{ts/loop.py: run_round})}\label{alg:ours-loop}
+\KwIn{seed $s$; round $r$; adapters $A^{(r-1)}_{\text{SQL}}, A^{(r-1)}_{\text{Scala}}$ (none in round 1); arm
+$\in\{\text{TS},\text{NV}\}$}
+$\mathcal{T}_r \leftarrow \operatorname{perm}_s(\mathcal{T})[3000(r-1):3000r]$\;
+\ForEach{$t\in\mathcal{T}_r$}{
+  draw requirements with RNG$(1000s+r)$ (repo sampler; redraw if empty)\;
+  $x \leftarrow$ vanilla$(\text{question prompt}(t))$ at $T=0.7$, request seed $s$\Comment*[r]{ours: vanilla writes questions}
+}
+$y \leftarrow A^{(r-1)}_{\text{SQL}}(\text{few-shot SQL prompt})$;\ $y' \leftarrow A^{(r-1)}_{\text{Scala}}(\text{few-shot
+Scala prompt})$, greedy\;
+keep the first complete code block of each reply\Comment*[r]{ours}
+\eIf{arm $=$ TS}{
+  $\mathcal{D}_r \leftarrow \{(x,y,y') : V_{\text{ours}}(t,y,y')=1\}$\Comment*[r]{\cref{alg:ours-validate}}
+}{
+  $\mathcal{D}_r \leftarrow \{(x,y,y') : y \neq \varnothing,\ y'\neq\varnothing\}$\;
+}
+build examples in the repo's NL-to-SQL and NL-to-Scala training formats\;
+train $A^{(r)}_{\text{SQL}}$ and $A^{(r)}_{\text{Scala}}$ \emph{from vanilla} with LoRA\Comment*[r]{restart, paper Sec.~6.5}
+evaluate $A^{(r)}_{\text{SQL}}$ on 4 test sets $\times$ 2 prompts\;
+\end{algorithm}
+
+\subsection{Questions and programs}
+
+\begin{itemize}
+\item \textbf{Questions} use the repository's question prompt and requirement sampler, read from
+\fpath{table2question_generationv_v4.py} by parsing the script's syntax tree, without running it. The vanilla model
+writes the questions in every round, at temperature 0.7, with a token limit of 128 (base) or 256 (Instruct). The paper
+does not say which model writes questions; the repository's question files are named for Llama, in a fresh table slice
+per round.
+\item \textbf{Programs} use the repository's few-shot generation prompts for SQL and Spark-Scala, read the same way.
+Decoding is greedy (temperature 0).
+\begin{itemize}
+\item Base: limits of 128 tokens (SQL) and 256 (Scala).
+\item Instruct: limits of 256 and 512, because chat replies add prose around the code.
+\item We keep the \emph{first} complete fenced code block. A base model keeps writing after its answer, and the
+repository's parser takes the last block. A block cut off by the token limit has no closing fence and counts as no
+code.
+\end{itemize}
+\item \textbf{Adapter names.} Each adapter is served by vLLM~\cite{kwon2023vllm} under a name derived from a hash of
+its weights. The response cache keys on the model name, so fixed names such as \texttt{sql} would have let one arm
+silently reuse another arm's cached answers.
+\end{itemize}
+
+\subsection{Validation: our comparator}\label{sec:comparator}
+
+The repository's validation scripts run both languages but never compare their results, so the comparison is ours.
+Let a result be a list of rows. For a cell $v$, define the text form $\tau(v)$ as the trimmed string, with
+$\tau(\text{NULL})=\tau(\text{NaN})=\text{``''}$, and map the strings \texttt{true}/\texttt{false} to
+\texttt{1}/\texttt{0}. Two cells agree if
+\begin{equation}
+  a \simeq b \iff \tau(a)=\tau(b)\ \ \lor\ \ \bigl|\,\operatorname{float}(\tau(a))-\operatorname{float}(\tau(b))\,\bigr|
+  \le \epsilon,\qquad \epsilon=10^{-6}.
+\end{equation}
+Two rows agree if they have equal length and agree cell by cell, in column order. Let $E(R)$ be result $R$ with
+all-empty rows removed. Two results agree if
+\begin{equation}
+  R \equiv R' \iff |E(R)|=|E(R')| \ \land\ \exists\ \text{a bijection } \sigma: E(R)\to E(R') \text{ with } \rho \simeq
+  \sigma(\rho)\ \ \forall \rho,
+\end{equation}
+found greedily. Row order and column names are ignored, because Spark gives no order without a sort and the two
+languages name computed columns differently. A pair whose SQL returns no non-empty row on \emph{all} 10 samples is
+rejected as \texttt{always\_empty}: it has shown no agreement about any data. A literal reading of
+\cref{alg:paper-exec} would keep it.
+
+Five rules were added after a hand inspection of pairs (\cref{sec:fail-validator}). Each fixed a case where identical
+logic was being rejected:
+\begin{enumerate}
+\item SQL samples are written to CSV and read back with type inference before loading SQLite, as the repository's
+\fpath{execute.py} does. Our first version kept all text, so \texttt{MAX("Weight")} compared strings.
+\item All-empty rows are ignored. Spark writes no line for a one-column null row.
+\item Booleans compare equal to 1 and 0.
+\item Spark's \texttt{\textbackslash"} escaping is read correctly.
+\item Adapter names are derived from weight hashes (above).
+\end{enumerate}
+SQL runs first, because it takes milliseconds in SQLite. Scala stops at the first disagreeing sample, because every
+sample must agree. Neither shortcut can change a verdict.
+
+\begin{algorithm}[htbp]
+\caption{Our validation of one pair (\fpath{ts/validate/exec_agree.py: validate_pair})}\label{alg:ours-validate}
+\KwIn{table $t$ (read as text); SQL $y$; Scala $y'$}
+$S_0,\dots,S_9 \leftarrow$ \texttt{t.sample(frac=0.5, random\_state=}$k$\texttt{)}\;
+\For{$k\leftarrow 0$ \KwTo $9$}{$R_k \leftarrow \operatorname{SQLite}(y, \operatorname{reinfer}(S_k))$; \lIf{error}{\Return{sql\_failed}}}
+\lIf{$E(R_k)=\varnothing$ for all $k$}{\Return{always\_empty}}
+\For{$k\leftarrow 0$ \KwTo $9$}{
+  $R'_k \leftarrow \operatorname{Spark}(y', S_k)$ in the Docker sandbox\;
+  \lIf{failure or unreadable output}{\Return{scala\_failed}}
+  \lIf{$R_k \not\equiv R'_k$}{\Return{disagree}}
+}
+\Return{agree}
+\end{algorithm}
+
+\subsection{Training}
+
+Both adapters are trained with LoRA (\cref{eq:lora}) and completion-only loss (\cref{eq:sft}), using TRL's SFT trainer
+with PEFT, from the vanilla weights each round:
+\begin{itemize}
+\item rank $r=16$, $\alpha=32$, dropout 0.05, all linear layers;
+\item learning rate $2\times10^{-4}$, cosine schedule, 3 epochs, bf16;
+\item maximum length 4,096 tokens.
+\end{itemize}
+The paper's batch of 1\% of the data is built by gradient accumulation of single examples: accumulation $=\lceil
+0.01\,|\mathcal{D}_r|\rceil$. That gives about 300 optimiser steps for any data size (3 epochs of about 100 steps each).
+Examples use the repository's prompt classes for NL-to-SQL and NL-to-Scala, with the zero-shot prompt. The repository's
+own few-shot training defaults raise an error, so its training format cannot be reproduced exactly
+(\cref{sec:fail-repo}). On Instruct, examples are in TRL's conversational prompt--completion form with the repository's
+system message, so training sees the same template as serving.
+
+Checkpoints are saved about every twelfth of a run, or every 5 minutes for large adapters, with the trainer keeping
+only the latest. A crash therefore loses at most about 5 minutes of training. Checkpoints were copied aside before
+every resume (\cref{app:incidents}).
+
+\section{Evaluation and statistics}\label{sec:scoring}
+
+\subsection{Test sets and prompts}
+
+The SQL adapter of every round is scored on four rebuilt test sets (\cref{sec:testsets}) with two prompts:
+\begin{itemize}
+\item \textbf{zero-shot}: the repository's default test prompt, from its prompt class;
+\item \textbf{few-shot}: the repository's four-example generation prompt.
+\end{itemize}
+The paper does not state its test prompt, so the comparison with the paper uses the zero-shot rows. This choice
+followed the repository's default; it was \emph{not} made because zero-shot scores were closer to the paper's. On base,
+few-shot was closer on 3 of 4 sets.
+
+\subsection{Repo-faithful and corrected scores}
+
+The repo-faithful score runs the repository's \texttt{NSEvaluator} compiled from source with checked patches
+(\cref{sec:provenance}). Its list comparison \texttt{are\_lists\_equal} has three defects, which the corrected score
+(\fpath{ts/eval/compare.py}) fixes, keeping its numeric tolerance unchanged:
+\begin{enumerate}
+\item It returns \emph{equal} at the first cell that differs but is numerically close, skipping every later cell.
+\item A differing cell whose gold value is 0 raises a division error, which counts as a mismatch.
+\item Rows are compared in order even when the gold query has no \texttt{ORDER BY}, where row order is undefined.
+\end{enumerate}
+The corrected comparison treats two cells as equal if they are identical, or if both are numbers with absolute
+difference below 0.01 and relative difference below 0.01 (absolute difference alone when the gold value is 0). Results
+are compared as multisets unless the gold SQL contains \texttt{ORDER BY}. The corrected score also does not lowercase
+gold SQL, because lowercasing breaks non-ASCII column names such as \texttt{"Álbum"}.
+
+\subsection{Statistics}\label{sec:stats}
+
+Each cell reports a 95\% Wilson interval~\cite{wilson1927} for its accuracy $\hat p$ over $n$ cases:
+\begin{equation}
+  \frac{\hat p + \frac{z^2}{2n} \pm z\sqrt{\frac{\hat p(1-\hat p)}{n}+\frac{z^2}{4n^2}}}{1+\frac{z^2}{n}},\qquad z=1.96.
+\end{equation}
+
+Comparisons between models use a paired bootstrap over test cases~\cite{efron1993bootstrap}
+(\fpath{ts/analysis/significance.py}).
+\begin{itemize}
+\item Let $a_i$ and $b_i$ be the correctness of models A and B on case $i$, each averaged over the seeds both models
+have.
+\item For cells $c=1..C$ ($C=8$, or 4 for the zero-shot mean) with case sets $I_c$, the statistic is
+\begin{equation}
+  \Delta \;=\; \frac{1}{C}\sum_{c=1}^{C}\frac{1}{|I_c|}\sum_{i\in I_c}(a_i-b_i).
+\end{equation}
+\item Cases are resampled with replacement within each cell, $B=10{,}000$ times with a fixed RNG seed.
+\item The 95\% interval is the 2.5th and 97.5th percentiles of $\Delta^\ast$. The two-sided $p$-value is $2\min\bigl(\Pr[\Delta^\ast\le 0],\Pr[\Delta^\ast\ge
+0]\bigr)$, capped at 1.
+\end{itemize}
+The case bootstrap does not cover seed-to-seed variation, so per-seed differences are always reported beside it. With
+three seeds, a finding is only called consistent when all three seeds agree in sign.
+
+\section{Extension 2: learning from rejected programs}\label{sec:method-ext2}
+
+\begin{oursbox}[title={Our extension (not in the paper)}]
+\textbf{Motivation.} TS keeps only about 15\% of pairs, and a hand check suggested that about one rejected pair in three
+holds usable SQL (\cref{sec:fail-validator}). Two questions follow. Does sampling more candidates per question recover
+validated data (\emph{bestof4})? Can the rejected programs themselves teach the model what not to write (\emph{DPO})?
+\end{oursbox}
+
+\textbf{Labelling (base, round~1, same questions and tables as TS round~1).}
+\begin{itemize}
+\item Each question has 4 candidate pairs: TS's greedy pair (its verdict reused) plus 3 pairs sampled from vanilla at
+$T=0.7$, with request seeds $100s+j$.
+\item The \emph{chosen} program is the first candidate, in order, whose SQL and Scala pass Algorithm~3 unchanged.
+\item A candidate is \emph{rejected} if its SQL rows differ from the chosen SQL's on some sample, or it fails, or it is
+always empty. It is never judged by its own Scala, so that a correct SQL whose Scala failed does not become a negative.
+\item Spark runs only until a question has a chosen program; later candidates are labelled by SQL results alone.
+\end{itemize}
+
+\textbf{Models.}
+\begin{itemize}
+\item \emph{bestof4}: SFT from vanilla on one chosen program per question, with the TS settings.
+\item \emph{DPO}~\cite{rafailov2023dpo}: bestof4, then preference training on (chosen, rejected) pairs with an added
+SFT term on the chosen program (the RPO loss~\cite{pang2024rpo}):
+\end{itemize}
+\begin{equation}
+  \mathcal{L} \;=\; -\log\sigma\!\Bigl(\beta\Bigl[\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\text{ref}}(y_w\mid x)} -
+  \log\frac{\pi_\theta(y_l\mid x)}{\pi_{\text{ref}}(y_l\mid x)}\Bigr]\Bigr) \;-\; \lambda\,\frac{\log\pi_\theta(y_w\mid
+  x)}{|y_w|},
+\end{equation}
+with $\pi_{\text{ref}}$ the frozen bestof4 adapter, $\beta=0.1$, $\lambda=1$, LoRA learning rate $2\times10^{-5}$,
+cosine, 10\% warm-up, 2 epochs and 16 pairs per step. Five gentler variants were tuned on dev sets only, under a
+selection rule fixed in the configuration before any dev result (\cref{sec:ext2}).
+
+\section{Extension 3: repair-TS}\label{sec:method-repair}
+
+\begin{oursbox}[title={Our extension (not in the paper)}]
+\textbf{Idea.} Give each rejected pair one repair attempt, guided only by what its own program did on the table, and
+then validate it again with Algorithm~3 \emph{unchanged}. A program never sees the other language's code or output, so
+agreement after repair is still two independent programs agreeing. The validator's standard is not lowered.
+\end{oursbox}
+
+\begin{figure}[htbp]
+\centering
+\begin{adjustbox}{max width=\linewidth}\input{figures/repair-flow.tex}\end{adjustbox}
+\caption{Repair-TS. The failure type decides which side is repaired; each side's feedback comes only from its own
+execution on the sample where the pair was rejected. Recovered pairs join the kept pairs for training.}
+\label{fig:repair-flow}
+\end{figure}
+
+\paragraph{Which side is repaired.} The failure type decides:
+\begin{itemize}
+\item \texttt{sql\_failed} and \texttt{always\_empty}: repair the SQL.
+\item \texttt{scala\_failed}: repair the Scala.
+\item \texttt{disagree}: repair both separately, then try (new SQL, old Scala), (old SQL, new Scala) and (new, new) in
+that order, keeping the first that passes.
+\item \texttt{no\_code}: not repaired.
+\end{itemize}
+
+\paragraph{Feedback.}
+\begin{itemize}
+\item The SQLite or Spark error message (at most 3 lines, file paths removed).
+\item Or ``returns no rows''.
+\item Or the program's own first 5 result rows on the sample where the pair was rejected.
+\end{itemize}
+
+\paragraph{Prompts.}
+\begin{itemize}
+\item \emph{Base repairer}: the repository's generation prompt, then the failed code block, its feedback, and the
+repository's own correction phrase from \fpath{nss_task_descriptor.py}: ``Upon review, code is incorrect and should be
+rewritten as follows:''.
+\item \emph{Instruct repairer}: the same content in one user message, asking for the corrected code only.
+\end{itemize}
+
+\paragraph{Retries.} Repair is greedy first. If the reply is empty or identical to the failed code, up to 3 samples at
+$T=0.7$ are tried (request seeds $100s+1..3$).
+
+\paragraph{Go / no-go rule.} Fixed before the pilot: kept pairs must rise by at least 30\%, and at least 80\% of
+hand-checked recovered pairs must be correct. The base repairer failed the rule. Instruct passed it and is the
+repairer in every full run (\cref{sec:fail-baserepair}). On base, repair-TS therefore uses a second model for repairs,
+which matters for interpretation (\cref{ch:discussion}).
+
+\paragraph{Rounds.} Round~1 repairs TS round~1's rejected pairs. Rounds 2--3 follow \cref{alg:ours-loop} with repair-TS's
+own previous adapters as generators, then repair. Both adapters train from vanilla on kept plus recovered pairs.
+
+\begin{algorithm}[htbp]
+\caption{Repair-TS for one round (\fpath{ts/repair.py}, \fpath{ts/repair_loop.py})}\label{alg:repair}
+\KwIn{validated pairs of the round; repairer $M_R$ (Instruct)}
+\ForEach{rejected pair $(x,y,y')$ with reason $\in$\{sql\_failed, always\_empty, scala\_failed, disagree\}}{
+  $k \leftarrow$ index of the first rejecting sample\;
+  feedback for each side to repair $\leftarrow$ its own error, ``no rows'', or its first 5 rows on $S_k$\;
+  new code $\leftarrow M_R$(repo prompt $\Vert$ failed code $\Vert$ feedback), greedy, then up to 3 samples if unchanged\;
+  \ForEach{candidate (SQL, Scala) in the fixed order}{
+    \lIf{\cref{alg:ours-validate} returns agree}{recover the candidate; \textbf{break}}
+  }
+}
+train SQL and Scala adapters from vanilla on kept $\cup$ recovered\;
+\end{algorithm}
+
+\section{Controls for repair-TS}\label{sec:method-controls}
+
+\paragraph{Same-data control} (\fpath{ts/data_control.py}). For seed $s$, train on TS round~1's kept pairs plus $N$
+extra validated pairs, where $N$ is repair-TS round~1's recovered count for that seed. The extra pairs are drawn with
+\texttt{Random(}$s$\texttt{)} from TS round~1 of donor seed $s \bmod 3 + 1$, excluding tables seed $s$ used. They come
+from the same generator and passed the same check. The control therefore differs from repair-TS only in \emph{where}
+the extra pairs come from, and from TS only in \emph{how many} pairs there are.
+
+\paragraph{bestof4 as a sampling control.} bestof4 recovers data by sampling rather than by feedback-guided repair, on
+the same questions.
+
+\section{Self-consistency at test time}\label{sec:method-sc}
+
+As an established test-time method~\cite{wang2022selfconsistency,wang2018egd}, each test case gets the greedy answer
+plus $m=8$ samples at temperature $T$. Let $\mathcal{A}$ be the set of answers that execute and return a non-empty
+result, and group answers by identical execution result. The vote returns the first answer of the largest group,
+\begin{equation}
+  \hat y \;=\; \arg\max_{g}\ |g|,\qquad g \subseteq \mathcal{A},\ \ \text{ties broken by order (greedy first)},
+\end{equation}
+or the greedy answer if $\mathcal{A}=\varnothing$. The gold answer is never used. $T$ was chosen on dev sets
+(\cref{sec:ext-sc}). Self-consistency is reported \emph{beside} greedy results, never in their place: the paper's
+numbers are greedy, and the vote costs 9 generations per case.
+
+\section{The paper's other tasks}\label{sec:method-other}
+
+\subsection{NL-to-Scala}
+
+Every TS and repair-TS round already trained a Scala adapter on the validated pairs, so NL-to-Scala needs only scoring.
+19 Instruct models are scored: vanilla, plus TS and repair-TS for 3 seeds $\times$ 3 rounds. Scoring follows the
+repository's \fpath{nss_evaluator.py} (\fpath{ts/eval/scala_eval.py}):
+\begin{itemize}
+\item \textbf{Prompts}: zero-shot from the NSS prompt class, few-shot from \fpath{nl2sparkscala_generation_v6.py}.
+\item \textbf{Code}: the \emph{last} \texttt{scala} block. It must read \texttt{data.csv} and write
+\texttt{.write.option("header","true").csv("result")}, or it is not run.
+\item \textbf{Execution}: Spark runs on the full table. BIRD tables are exported from the case database.
+\item \textbf{Repo-faithful verdict}: exact, order-sensitive list equality after \texttt{to\_numeric} and
+\texttt{fillna("None")}.
+\item \textbf{Corrected verdict}: the corrected comparison on the same results.
+\end{itemize}
+Identical (code, table) pairs run once, through a shared execution cache.
+
+\subsection{Error detection}\label{sec:method-ed}
+
+\begin{oursbox}[title={Choices the paper leaves open}]
+The paper and repository give the prompts and Algorithm~2, but not which model writes the errors, nor how rounds are
+chained for this task. Our choices mirror the SQL study:
+\begin{itemize}
+\item \emph{vanilla} writes the errors, at $T=0.7$;
+\item the \emph{validator} is the previous round's error-detection adapter (vanilla in round~1), greedy;
+\item each round trains from vanilla on its own kept columns.
+\end{itemize}
+\end{oursbox}
+
+\paragraph{Per round, per seed} (\fpath{ts/ed_loop.py}):
+\begin{enumerate}
+\item On the round's 3,000 tables, one random column per table receives a typo, from the repository's
+\fpath{table2typo_genneration_v1.py}.
+\item Another random column receives a semantic error, from \fpath{table2semerr_genneration_v6.py}. Columns with a
+value over 50 characters are skipped, as in the repository.
+\item An error that is empty, or already present in the column, is dropped.
+\item Clean columns come from the first 1,000 tables, at most 2 per table, as in the repository's negative script.
+\item \Cref{alg:paper-perm} validates each candidate with 5 shuffles.
+\item Kept positives are labelled with the error; kept clean columns with NULL.
+\end{enumerate}
+Examples use the repository's test format (\texttt{EDPromptGenerator}, zero-shot). Only columns whose prompt fits the
+length limit are used.
+
+Scoring follows \fpath{ed_evaluator.py} (\cref{eq:edf1}). We also report AutoTest's own protocol, in which predictions
+of debatable values count neither way. The test columns are those whose repository prompt fits 70\% of 4,096 tokens.
+That rule gives exactly the paper's 1,126 (ST) and 1,081 (RT) columns.
+
+\paragraph{Repair-ED and its controls} (\fpath{ts/repair_ed.py}). Each error the validator rejects gets one more
+attempt from vanilla.
+\begin{itemize}
+\item \textbf{Repair prompt.} The repository's generation prompt, the model's own answer, then what the validator did
+on the 5 shuffles: how many found the error, how many found nothing, and up to 3 other values it named, each cut to 60
+characters. It ends with our phrase, modelled on the repository's: ``Upon review, the error is not obvious enough and
+should be rewritten as follows:''.
+\item \textbf{Validation.} Algorithm~2 runs again, unchanged, with the same validator.
+\item \textbf{Reuse.} Repair-ED reuses TS's generated errors, and in round~1 TS's validation, both of which are
+identical by construction.
+\item \textbf{Best-of-2 control.} The same prompt, sampled again with no feedback (request seed $+1000$).
+\item \textbf{Same-data control.} TS round~1's kept columns, plus as many extra kept errors of each kind as repair-ED
+recovered, taken from a donor seed.
+\end{itemize}
+
+\subsection{NL-to-R}\label{sec:method-r}
+
+The repository has an NL-to-R generation prompt and evaluator, but no validation script. Our design
+(\fpath{ts/r_loop.py}, \fpath{ts/validate/r_agree.py}, \fpath{ts/eval/r_eval.py}) pairs R with SQL:
+\begin{itemize}
+\item \textbf{Validation.} Algorithm~3 with R in place of Scala: same samples, same comparator. R's unquoted
+\texttt{NA} is read as an empty cell.
+\item \textbf{Data.} Questions are TS's own, and round~1 SQL is TS round~1's. Both are identical by construction.
+\item \textbf{Training.} Both SQL and R adapters train each round.
+\item \textbf{Scoring.} The repository's \texttt{nr\_evaluator} rules: the \emph{first} \texttt{r} block, no format
+check, exact list equality.
+\end{itemize}
+It runs in an R sandbox we built from the repository's recipe plus \texttt{dplyr}. It was smoke-tested on GPU before
+the full runs; results are in \cref{sec:results-r}.

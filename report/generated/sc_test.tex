@@ -1,0 +1,38 @@
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lcrrrrr@{}}
+\caption{Execution-based self-consistency on the test sets (greedy + 8 samples at T = 1.0, majority vote over execution results; failed or empty results dropped; gold never used). ``Greedy'' is the greedy answer of the same run.}\label{tab:gen-sc-test}\\
+\toprule
+\rowcolor{headshade}Model & Seed & M8 greedy & M8 vote & Gain & \makecell{ZS4\\greedy} & ZS4 vote\\
+\midrule
+\endfirsthead
+\multicolumn{7}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Model & Seed & M8 greedy & M8 vote & Gain & \makecell{ZS4\\greedy} & ZS4 vote\\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Base vanilla & -- & 0.4788 & 0.5036 & +0.0248 & 0.4083 & 0.4330\\
+Base TS r3 & 1 & 0.5660 & 0.5805 & +0.0145 & 0.5746 & 0.5853\\
+Base TS r3 & 2 & 0.5244 & 0.5393 & +0.0149 & 0.5215 & 0.5343\\
+Base TS r3 & 3 & 0.5400 & 0.5573 & +0.0173 & 0.5419 & 0.5549\\
+Base repair-TS r3 & 1 & 0.5864 & 0.6043 & +0.0179 & 0.5904 & 0.6076\\
+Base repair-TS r3 & 2 & 0.5801 & 0.5931 & +0.0130 & 0.5867 & 0.5983\\
+Base repair-TS r3 & 3 & 0.5901 & 0.6072 & +0.0170 & 0.5941 & 0.6143\\
+Instruct vanilla & -- & 0.5546 & 0.5721 & +0.0176 & 0.5001 & 0.5101\\
+Instruct TS r3 & 1 & 0.6118 & 0.6282 & +0.0165 & 0.6156 & 0.6316\\
+Instruct TS r3 & 2 & 0.5920 & 0.6143 & +0.0223 & 0.5961 & 0.6166\\
+Instruct TS r3 & 3 & 0.6169 & 0.6300 & +0.0132 & 0.6220 & 0.6350\\
+Instruct repair-TS r3 & 1 & 0.6073 & 0.6214 & +0.0141 & 0.6135 & 0.6236\\
+Instruct repair-TS r3 & 2 & 0.5972 & 0.6219 & +0.0247 & 0.6009 & 0.6288\\
+Instruct repair-TS r3 & 3 & 0.6118 & 0.6292 & +0.0174 & 0.6223 & 0.6377\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Base BIRD is scored on one thread (\fpath{final_sct10seq_*}); see Section~\ref{sec:fail-bird}. Source: \fpath{results/baseline/final_sct10*}.\par}
+\medskip

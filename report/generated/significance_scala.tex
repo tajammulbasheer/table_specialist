@@ -1,0 +1,32 @@
+\begin{landscape}
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}p{6.2cm}clrlrp{4.0cm}@{}}
+\caption{NL-to-Scala: paired bootstrap tests over test cases (10,000 draws, fixed seed). Per case, correctness is averaged over the seeds both models have; the statistic is the mean over cells of A $-$ B with equal cell weights. Per-seed differences show seed variation, which the case bootstrap does not cover.}\label{tab:gen-significance_scala}\\
+\toprule
+\rowcolor{headshade}\makecell{Comparison\\(A vs B)} & Seeds & M8: $\Delta$ [95\% CI] & $p$ & ZS4: $\Delta$ [95\% CI] & $p$ & \makecell{Per\\seed (M8)}\\
+\midrule
+\endfirsthead
+\multicolumn{7}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}\makecell{Comparison\\(A vs B)} & Seeds & M8: $\Delta$ [95\% CI] & $p$ & ZS4: $\Delta$ [95\% CI] & $p$ & \makecell{Per\\seed (M8)}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Scala: TS r3 vs vanilla & 3 & +0.1943 [+0.1842, +0.2045] & $<$0.0001 & +0.2730 [+0.2576, +0.2885] & $<$0.0001 & +0.2018, +0.1855, +0.1955\\
+Scala: repair-TS r3 vs vanilla & 3 & +0.2110 [+0.2007, +0.2214] & $<$0.0001 & +0.2881 [+0.2727, +0.3034] & $<$0.0001 & +0.2109, +0.2094, +0.2128\\
+Scala: TS r3 vs TS r1 & 3 & +0.0693 [+0.0621, +0.0766] & $<$0.0001 & +0.0806 [+0.0698, +0.0917] & $<$0.0001 & +0.0642, +0.0586, +0.0852\\
+Scala: repair-TS r1 vs TS r1 & 3 & +0.0141 [+0.0098, +0.0183] & $<$0.0001 & +0.0155 [+0.0094, +0.0215] & $<$0.0001 & +0.0167, +0.0056, +0.0200\\
+Scala: repair-TS r2 vs TS r2 & 3 & +0.0337 [+0.0284, +0.0389] & $<$0.0001 & +0.0414 [+0.0333, +0.0493] & $<$0.0001 & +0.0301, +0.0138, +0.0572\\
+Scala: repair-TS r3 vs TS r3 & 3 & +0.0167 [+0.0119, +0.0216] & $<$0.0001 & +0.0150 [+0.0079, +0.0221] & $<$0.0001 & +0.0091, +0.0239, +0.0173\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Source: \fpath{results/analysis/significance_scala.json}, written by \fpath{ts/analysis/significance.py}.\par}
+\medskip
+\end{landscape}

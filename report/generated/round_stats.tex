@@ -1,0 +1,48 @@
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lccrrrrrrrr@{}}
+\caption{NL-to-SQL summary statistics over seeds for every approach and round. SD is the sample standard deviation ($n-1$); it is omitted when only one seed exists. Vanilla is a single deterministic run.}\label{tab:gen-round-stats}\\
+\toprule
+\rowcolor{headshade}Approach & Rd & Seeds & \multicolumn{4}{c}{M8 over seeds} & \multicolumn{4}{c}{ZS4 over seeds}\\\rowcolor{headshade} & & & Mean & SD & Min & Max & Mean & SD & Min & Max\\
+\midrule
+\endfirsthead
+\multicolumn{11}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Approach & Rd & Seeds & \multicolumn{4}{c}{M8 over seeds} & \multicolumn{4}{c}{ZS4 over seeds}\\\rowcolor{headshade} & & & Mean & SD & Min & Max & Mean & SD & Min & Max\\
+\midrule
+\endhead
+\midrule
+\multicolumn{11}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Base vanilla & -- & 1 & 0.4788 & -- & 0.4788 & 0.4788 & 0.4083 & -- & 0.4083 & 0.4083\\
+Base TS & 1 & 3 & 0.5266 & 0.0232 & 0.5106 & 0.5533 & 0.5242 & 0.0280 & 0.5032 & 0.5560\\
+Base TS & 2 & 3 & 0.5286 & 0.0155 & 0.5109 & 0.5398 & 0.5272 & 0.0191 & 0.5052 & 0.5398\\
+Base TS & 3 & 3 & 0.5435 & 0.0210 & 0.5244 & 0.5660 & 0.5460 & 0.0268 & 0.5215 & 0.5746\\
+Base NV & 1 & 3 & 0.5401 & 0.0052 & 0.5342 & 0.5442 & 0.5505 & 0.0051 & 0.5446 & 0.5537\\
+Base NV & 2 & 3 & 0.5173 & 0.0123 & 0.5031 & 0.5252 & 0.5276 & 0.0119 & 0.5139 & 0.5359\\
+Base NV & 3 & 3 & 0.4943 & 0.0108 & 0.4872 & 0.5067 & 0.5077 & 0.0104 & 0.5009 & 0.5197\\
+Base repair-TS & 1 & 3 & 0.5509 & 0.0106 & 0.5388 & 0.5584 & 0.5530 & 0.0119 & 0.5393 & 0.5610\\
+Base repair-TS & 2 & 3 & 0.5713 & 0.0169 & 0.5543 & 0.5881 & 0.5780 & 0.0192 & 0.5589 & 0.5972\\
+Base repair-TS & 3 & 3 & 0.5856 & 0.0051 & 0.5801 & 0.5901 & 0.5904 & 0.0037 & 0.5867 & 0.5941\\
+Base bestof4 & 1 & 3 & 0.5330 & 0.0141 & 0.5171 & 0.5441 & 0.5308 & 0.0184 & 0.5102 & 0.5455\\
+Base DPO & 1 & 3 & 0.5057 & 0.0209 & 0.4859 & 0.5276 & 0.5051 & 0.0275 & 0.4740 & 0.5263\\
+Base same-data control & 1 & 3 & 0.5385 & 0.0067 & 0.5320 & 0.5454 & 0.5359 & 0.0061 & 0.5300 & 0.5421\\
+Instruct vanilla & -- & 1 & 0.5546 & -- & 0.5546 & 0.5546 & 0.5001 & -- & 0.5001 & 0.5001\\
+Instruct TS & 1 & 3 & 0.6152 & 0.0106 & 0.6070 & 0.6272 & 0.6165 & 0.0100 & 0.6096 & 0.6280\\
+Instruct TS & 2 & 3 & 0.6127 & 0.0172 & 0.5960 & 0.6304 & 0.6176 & 0.0166 & 0.6014 & 0.6346\\
+Instruct TS & 3 & 3 & 0.6069 & 0.0131 & 0.5920 & 0.6169 & 0.6113 & 0.0135 & 0.5961 & 0.6220\\
+Instruct NV & 1 & 1 & 0.6052 & -- & 0.6052 & 0.6052 & 0.6162 & -- & 0.6162 & 0.6162\\
+Instruct NV & 2 & 1 & 0.5954 & -- & 0.5954 & 0.5954 & 0.6094 & -- & 0.6094 & 0.6094\\
+Instruct NV & 3 & 1 & 0.5714 & -- & 0.5714 & 0.5714 & 0.5852 & -- & 0.5852 & 0.5852\\
+Instruct repair-TS & 1 & 3 & 0.6117 & 0.0140 & 0.5955 & 0.6203 & 0.6156 & 0.0187 & 0.5941 & 0.6275\\
+Instruct repair-TS & 2 & 3 & 0.6180 & 0.0026 & 0.6155 & 0.6208 & 0.6241 & 0.0047 & 0.6186 & 0.6269\\
+Instruct repair-TS & 3 & 3 & 0.6054 & 0.0075 & 0.5972 & 0.6118 & 0.6122 & 0.0107 & 0.6009 & 0.6223\\
+Instruct same-data control & 1 & 3 & 0.6231 & 0.0095 & 0.6166 & 0.6340 & 0.6269 & 0.0102 & 0.6184 & 0.6382\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Computed by \fpath{report/tools/build_tables.py} from the per-cell result files; these are recalculated statistics, not values copied from the project log.\par}
+\medskip

@@ -1,0 +1,213 @@
+\chapter{Datasets and Experimental Setup}\label{ch:setup}
+
+\section{Hardware and software}
+
+All experiments ran on one workstation (\cref{tab:env}). The binding resource was the CPU, not the GPU. One Spark-Scala
+program takes 40--46~s in the sandbox, so Algorithm~3 for one round took about 2.0 to 5.1 hours at 36 parallel workers
+(\cref{tab:gen-timings}). The longer values include waiting for the shared validation lock when several seeds ran at
+once. Training and serving fit comfortably on one 24~GB GPU each.
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.6cm}p{11.0cm}@{}}
+\caption{Computing environment. Versions are those installed in the project's virtual environment at the time of
+writing; container images are pinned by digest.}\label{tab:env}\\
+\toprule\rowcolor{headshade}Component & Value\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Component & Value\\\midrule\endhead
+\bottomrule\endfoot
+CPU & Intel Xeon w7-3455, 40 logical CPUs\\
+Memory & 102 GB\\
+GPUs & 2 $\times$ NVIDIA RTX 4500 Ada Generation, 24,570 MiB each (driver 595.97). GPU~1 also drives the display and
+has about 1.75~GB less free memory\\
+Operating system & Ubuntu 24.04 under WSL2 on Windows; all data on the Linux file system\\
+Python stack & Python 3.12.3; PyTorch 2.14.0; vLLM 0.33.0 (serving); Transformers 5.20.2; TRL 1.17.1; PEFT 0.21.2;
+pandas 3.1.0; NumPy 2.3.5; sqlglot 30.29.0; MLflow-skinny 3.18.0 (local tracking, telemetry off)\\
+Code sandboxes & Docker 29.9.3. Spark: \texttt{apache/spark:3.5.7} by digest, open-file limit raised to 4,096.
+Python: \texttt{python:3.11-slim} by digest. R: \texttt{r-base:4.4.2} by digest plus Debian's \texttt{r-cran-dplyr}
+(R 4.6.1, dplyr 1.2.1 after installation). No network, read-only file system, non-root user\\
+SQL & SQLite on the host, read-only connection, SELECT only, 5~s limit per query\\
+Report & TeX Live 2025 in Docker (\texttt{texlive/texlive:TL2025-historic}, pinned by digest)\\
+\end{longtable}
+}
+
+\section{Models}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.4cm}p{2.1cm}p{9.1cm}@{}}
+\caption{Models used. Revisions are pinned Hugging Face commits; all four weight-file checksums were verified after
+download.}\label{tab:models}\\
+\toprule\rowcolor{headshade}Model & Revision & Role\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Model & Revision & Role\\\midrule\endhead
+\bottomrule\endfoot
+Llama-3.1-8B (base)~\cite{grattafiori2024llama3} & \texttt{d04e592} & Base track: questions, SQL and Scala generation,
+training and evaluation, through raw completions\\
+Llama-3.1-8B-Instruct & \texttt{0e9e39f} & Instruct track: all of the above through the repository's chat call.
+Also the repairer in every repair-TS run, including the base track\\
+Qwen2.5-7B-Instruct & \texttt{a09a354} & Pipeline testing only; never reported as a result\\
+\end{longtable}
+}
+
+\section{Training-table corpus}\label{sec:corpus}
+
+\begin{paperbox}[title={Paper}]
+``A large corpus'' of real tables, unreleased. The repository's file names suggest web tables, in 3,000-table slices
+per round.
+\end{paperbox}
+\begin{oursbox}
+We built the corpus from the GitTables 1M licensed subset~\cite{hulsebos2021gittables,gittableszenodo}
+(\fpath{ts/corpus/build.py}; \cref{tab:gen-corpus}). We chose it because it is licensed (CC0 per its Zenodo record),
+large, and from a different source (GitHub CSV files) than the Wikipedia-based test sets.
+\end{oursbox}
+
+\begin{itemize}
+\item \textbf{Shape filters.} We keep tables with 5--30 columns (the repository requires at least 5), 10--200 rows, and
+at most 2,000 serialised tokens.
+\item \textbf{Quality filters.} We drop tables with blank or duplicate headers, or with more than 50\% empty cells.
+\item \textbf{Near-duplicates.} Tables whose header sets have Jaccard similarity $\ge 0.9$ are near-duplicates, and at
+most 5 per group are kept. Headers that differ only by case count as duplicates: SQLite ignores case in column names,
+and such a table crashed a real run.
+\item \textbf{Contamination.} The header set of every kept table is compared with all 1,141 header sets of the four
+test sets at Jaccard 0.9. This removed 38 tables.
+\end{itemize}
+
+The limit of 5 per group was the smallest that yields the 9,000 tables each seed needs (3 rounds $\times$ 3,000). It
+was chosen on table counts alone, before any fine-tuning result existed. Limits of 1, 2, 3, 5 and 10 kept 5,036, 7,430,
+8,751, 10,378 and 12,640 tables. The case-insensitive header rule, added later, reduced 10,378 to the final 10,053.
+
+\begin{observation}
+The corpus is less Wikipedia-like than the paper's (likely) web tables. Its largest topic accounts for 46.5\% of
+tables (\texttt{id\_tables}), and the contamination check compares headers only, so it cannot catch identical data
+under different headers.
+\end{observation}
+
+\input{generated/corpus.tex}
+
+\section{Test sets}\label{sec:testsets}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{1.9cm}p{4.0cm}p{1.5cm}p{1.4cm}p{5.5cm}@{}}
+\caption{Test sets: how we rebuilt each one, and how it compares with the paper's. Every gold answer was re-checked
+against the dataset's own engine.}\label{tab:testsets}\\
+\toprule\rowcolor{headshade}Test set & Our construction & Ours & Paper & Match and checks\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Test set & Our construction & Ours & Paper & Match and checks\\\midrule\endhead
+\bottomrule\endfoot
+WikiSQL~\cite{zhong2017seq2sql,wikisqlrepo} & Test split; first 1,000 of a seed-42 shuffle that fit the prompt limit
+(16 skipped). Cells lowercased in prompt and database & 1,000 & 1,000 & Count only; cases probably differ. 0 gold
+mismatches against WikiSQL's engine\\
+WikiTQ~\cite{pasupat2015wikitq,wikitqrepo} & \texttt{pristine-unseen-tables} (the dataset's test split); same sampling
+(64 skipped) & 1,000 & 1,000 & Count only. Gold is an answer list\\
+Spider~\cite{yu2018spider} & Test split; gold SQL touching one table (1,230), minus 32 over the prompt limit & 1,198 &
+1,198 & \textbf{Count matches exactly}; cases unconfirmed. 0 mismatches, 6 differ only in row order\\
+BIRD~\cite{li2023bird} & Dev split (its test set is hidden); gold SQL touching one table. Prompt shows the first 20,
+10, 5 or 3 rows; SQL runs on the whole table; evidence strings not shown & 363 & 356 & \textbf{7 more than the paper,
+cause unknown}. No single filter gives 7 (empty gold 0, NULL gold 1, failing gold 0, empty tables 0, JOIN in gold 1,
+duplicate gold 3). Cases are not deleted to force the count\\
+Text2Analysis & Not available (``after the company's approval process'') & -- & 271 & Not possible; excluded from all
+averages on both sides\\
+AutoTest ST / RT~\cite{autotestrepo} & Columns whose repository prompt fits 70\% of 4,096 tokens; one ST row whose
+value list cannot be parsed is dropped & 1,126 / 1,081 & 1,126 / 1,081 & \textbf{Counts match exactly}; 42 and 36
+columns contain errors\\
+\end{longtable}
+}
+
+\paragraph{Dev sets.} Hyper-parameter choices for DPO and self-consistency were made on dev sets only
+(\fpath{ts/bench/dev.py}). These are WikiSQL dev (300), Spider dev single-table (575, of which 411 fit the prompt limit)
+and WikiTQ \texttt{random-split-1-dev} (300). None overlaps a test set. BIRD has no unused split, so it is not tuned on.
+
+\paragraph{Prompt-table conventions.}
+\begin{itemize}
+\item Each table is renamed \texttt{"table"} and gold SQL is rewritten to match, as the repository's prompt expects.
+\item WikiSQL cells are lowercased in both prompt and database. WikiSQL stores them lowercase, and the repository
+lowercases gold SQL. Showing original case instead lowered scores sharply (\cref{sec:fail-gate}).
+\end{itemize}
+
+\input{generated/idlists.tex}
+
+\section{Hyper-parameters and settings}\label{sec:hparams}
+
+\Cref{tab:hparams} lists every setting of the core study with its source. The complete configuration file is
+reproduced in \cref{app:config}.
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{4.3cm}p{5.5cm}p{1.4cm}p{3.4cm}@{}}
+\caption{Settings of the NL-to-SQL study and their source: \emph{paper}, \emph{repo} (repository) or \emph{ours} (the
+paper is silent).}\label{tab:hparams}\\
+\toprule\rowcolor{headshade}Setting & Value & Source & Note\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Setting & Value & Source & Note\\\midrule\endhead
+\bottomrule\endfoot
+Arms & vanilla, no-validation, Table-Specialist & paper & Section 6.1\\
+Seeds & 1, 2, 3 & ours & \\
+Rounds & 3 & paper & ``up to 3''\\
+Tables per round & 3,000, new each round & paper / repo & ``e.g.\ 3000''; repo 1st/2nd/3rd 3K files\\
+Restart each round & from vanilla & paper (partly) & Sec.~6.5: restarting better; main-results choice unstated\\
+Training data per round & that round's validated pairs only & paper & Algorithm 1\\
+Generator per round & previous round's adapters (vanilla in round 1) & paper & Algorithm 1\\
+Second-language model & fine-tuned in lockstep & paper allows & Sec.~5: vanilla or lockstep\\
+Question model & vanilla, every round & ours & unstated\\
+Question temperature & 0.7 & ours & \\
+Code temperature & 0 (greedy) & repo default & \\
+Max tokens, base & questions 128, SQL 128, Scala 256 & ours & \\
+Max tokens, Instruct & questions 256, SQL 256, Scala 512 & ours & chat replies add prose\\
+Request API, base & raw completions, no system message & ours & base has no chat template\\
+Request API, Instruct & chat with the repo system message & repo & \fpath{queryWithDeployment.py}\\
+Validation samples & 10 at 50\%, random states 0--9 & repo / paper & \fpath{prepare_exec.py}; Algorithm 3\\
+Agreement & all 10 samples & paper & Algorithm 3\\
+Numeric tolerance (validation) & $10^{-6}$ & ours & \\
+Fine-tuning method & LoRA & paper & \\
+LoRA rank / alpha / dropout & 16 / 32 / 0.05 & ours & \\
+Target modules & all linear layers & ours & \\
+Learning rate, schedule & $2\times10^{-4}$, cosine & ours & paper gives only an OpenAI multiplier\\
+Epochs & 3 & ours & \\
+Batch & 1\% of the examples (gradient accumulation) & paper & \\
+Max sequence length & 4,096 tokens & repo & \\
+Precision & bf16 & ours & \\
+Loss & completion-only & ours & prompts cost no gradient\\
+Validation workers & 36 Spark sandboxes, 1 CPU each & ours & one validation at a time machine-wide\\
+Evaluation prompts & zero-shot (repo default) and few-shot & repo / ours & \\
+Evaluation max tokens & base 128; Instruct 256 & ours & \\
+\end{longtable}
+}
+
+\section{Random seeds}\label{sec:seeds}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{4.6cm}p{10.0cm}@{}}
+\caption{Where randomness enters, and how each source is seeded. ``$s$'' is the study seed (1, 2 or 3); ``$r$'' the
+round.}\label{tab:seeds}\\
+\toprule\rowcolor{headshade}Source of randomness & Seeding\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Source of randomness & Seeding\\\midrule\endhead
+\bottomrule\endfoot
+Table order per seed & \texttt{random.Random($s$).shuffle(corpus)}; round $r$ takes positions $3000(r-1)$ to $3000r$\\
+Question requirements & repository sampler with RNG $1000s+r$\\
+Question sampling (LLM) & request seed $s$, $T=0.7$\\
+Code generation & greedy; request seed $s$ (TS loop), 0 (evaluation)\\
+Validation row samples & \texttt{DataFrame.sample(frac=0.5, random\_state=$k$)}, $k=0..9$ (fixed across seeds)\\
+LoRA training & trainer seed $s$\\
+bestof4 / DPO candidates & request seeds $100s+j$, $j=1,2,3$, $T=0.7$\\
+Repair retries & request seeds $100s+1..3$, $T=0.7$\\
+Same-data control extras & \texttt{random.Random($s$)}; donor seed $s \bmod 3 + 1$\\
+Error-detection columns & \texttt{random.Random($1000s+r$)}; errors at $T=0.7$ with request seed $s$\\
+Error-detection shuffles & \texttt{random.seed($j$)}, $j=0..4$ (repository)\\
+Self-consistency samples & 8 samples at $T=1.0$\\
+Bootstrap & 10,000 draws, fixed RNG seed 0\\
+Corpus sampling, test-set sampling & seed 42\\
+\end{longtable}
+}
+
+Vanilla models are run once with greedy decoding. vLLM's batched greedy decoding is not guaranteed to be bit-identical
+across runs. Every answer is stored in the response cache, and a rerun reuses it, so the reported results are fixed.
+
+\section{Experiment identifiers}\label{sec:runids}
+
+Every run has an identifier checked against one pattern before any GPU time is used (\fpath{ts/tracking.py}):
+\begin{center}
+\texttt{(smoke|final|gate|train|baseline)(\_[a-z0-9]+)+}
+\end{center}
+Training runs are \texttt{train\_<arm>\_<profile>\_seed<s>}, with per-round directories \texttt{round<r>/}. Test cells
+are \texttt{<run>\_round<r>\_<testset>\_<prompt>}. Each cell writes \fpath{results/baseline/<id>.json} (summary and
+interval) and \fpath{runs/<id>/preds.jsonl} (per-case verdicts). \Cref{app:registry} lists every run family, its
+identifiers, seeds and rounds.

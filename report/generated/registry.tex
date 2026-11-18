@@ -1,0 +1,111 @@
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}p{11.2cm}rr@{}}
+\caption{Every result file in \texttt{results/baseline/}, grouped by run family. A ``run'' is one model (one seed and round); each writes one file per test set and prompt.}\label{tab:gen-registry}\\
+\toprule
+\rowcolor{headshade}\makecell{Run family\\(result-file prefix)} & Runs & \makecell{Result\\files}\\
+\midrule
+\endfirsthead
+\multicolumn{3}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}\makecell{Run family\\(result-file prefix)} & Runs & \makecell{Result\\files}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+\texttt{baseline\_spider\_instruct\_test} & 1 & 1\\
+\texttt{baseline\_wikisql\_instruct\_n1000} & 1 & 1\\
+\texttt{baseline\_wikisql\_instruct\_n200} & 1 & 1\\
+\texttt{final\_bird\_base} & 1 & 1\\
+\texttt{final\_ed\_instruct\_vanilla} & 1 & 2\\
+\texttt{final\_nlr\_instruct\_rrepairts\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{final\_nlr\_instruct\_rts\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{final\_nlr\_instruct\_vanilla} & 1 & 8\\
+\texttt{final\_nlscala\_instruct\_repairts\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{final\_nlscala\_instruct\_tablespecialist\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{final\_nlscala\_instruct\_vanilla} & 1 & 8\\
+\texttt{final\_sct10\_instruct\_repairts\_seed<s>} & 3 & 24\\
+\texttt{final\_sct10\_instruct\_tablespecialist\_seed<s>} & 3 & 24\\
+\texttt{final\_sct10\_instruct\_vanilla} & 1 & 8\\
+\texttt{final\_sct10\_repairts\_seed<s>} & 3 & 24\\
+\texttt{final\_sct10\_tablespecialist\_seed<s>} & 3 & 24\\
+\texttt{final\_sct10\_vanilla} & 1 & 8\\
+\texttt{final\_sct10seq\_repairts\_seed<s>} & 3 & 6\\
+\texttt{final\_sct10seq\_tablespecialist\_seed<s>} & 3 & 6\\
+\texttt{final\_sct10seq\_vanilla} & 1 & 2\\
+\texttt{final\_spider\_base} & 1 & 1\\
+\texttt{final\_spider\_instruct} & 1 & 1\\
+\texttt{final\_wikisql\_base} & 1 & 1\\
+\texttt{final\_wikisql\_instruct} & 1 & 1\\
+\texttt{final\_wikitq\_base} & 1 & 1\\
+\texttt{final\_wikitq\_instruct} & 1 & 1\\
+\texttt{gate\_bird\_base\_fewshot} & 1 & 1\\
+\texttt{gate\_instruct} & 1 & 8\\
+\texttt{gate\_scdev\_t<T>\_spider} & 3 & 3\\
+\texttt{gate\_scdev\_t<T>\_wikisql} & 3 & 3\\
+\texttt{gate\_scdev\_t<T>\_wikitq} & 3 & 3\\
+\texttt{gate\_spider\_base\_fewshot} & 1 & 1\\
+\texttt{gate\_spider\_base\_raw} & 1 & 1\\
+\texttt{gate\_spider\_instruct\_system} & 1 & 1\\
+\texttt{gate\_wikisql\_base\_fewshot} & 1 & 1\\
+\texttt{gate\_wikisql\_base\_origcase\_fewshot} & 1 & 1\\
+\texttt{gate\_wikisql\_base\_origcase\_zeroshot} & 1 & 1\\
+\texttt{gate\_wikisql\_base\_raw} & 1 & 1\\
+\texttt{gate\_wikisql\_instruct\_system} & 1 & 1\\
+\texttt{gate\_wikitq\_base\_fewshot} & 1 & 1\\
+\texttt{smoke\_ed\_instruct\_vanilla} & 1 & 2\\
+\texttt{smoke\_nlr\_instruct\_vanilla} & 1 & 8\\
+\texttt{smoke\_nlscala\_instruct\_tablespecialist\_seed<s>\_round<r>} & 1 & 8\\
+\texttt{smoke\_nlscala\_instruct\_vanilla} & 1 & 8\\
+\texttt{smoke\_nlscalar2\_instruct\_tablespecialist\_seed<s>\_round<r>} & 1 & 8\\
+\texttt{smoke\_nlscalar2\_instruct\_vanilla} & 1 & 8\\
+\texttt{smoke\_scdev\_t<T>\_spider} & 1 & 1\\
+\texttt{smoke\_scdev\_t<T>\_wikisql} & 1 & 1\\
+\texttt{smoke\_scdev\_t<T>\_wikitq} & 1 & 1\\
+\texttt{smoke\_sct10\_instruct\_repairts\_seed<s>} & 1 & 8\\
+\texttt{smoke\_sct10\_instruct\_tablespecialist\_seed<s>} & 1 & 8\\
+\texttt{train\_bestof4\_base\_seed<s>\_round<r>} & 3 & 24\\
+\texttt{train\_bestof4\_base\_seed<s>\_smoke\_round<r>} & 1 & 8\\
+\texttt{train\_dpo\_base\_seed<s>\_round<r>} & 3 & 24\\
+\texttt{train\_dpo\_base\_seed<s>\_smoke\_round<r>} & 1 & 8\\
+\texttt{train\_dpotunerefbestof4\_base\_seed<s>\_dev} & 1 & 3\\
+\texttt{train\_dpotunerefdpo\_base\_seed<s>\_dev} & 1 & 3\\
+\texttt{train\_dpotunerefts\_base\_seed<s>\_dev} & 1 & 3\\
+\texttt{train\_dpotunev1gentle\_base\_seed<s>\_dev} & 1 & 3\\
+\texttt{train\_dpotunev2gentlebeta05\_base\_seed<s>\_dev} & 1 & 3\\
+\texttt{train\_dpotunev3gentlerowsdiffer\_base\_seed<s>\_dev} & 1 & 3\\
+\texttt{train\_dpotunev4beta05\_base\_seed<s>\_dev} & 1 & 3\\
+\texttt{train\_dpotunev5verygentle\_base\_seed<s>\_dev} & 1 & 3\\
+\texttt{train\_ed\_eddata\_instruct\_seed<s>\_round<r>} & 3 & 6\\
+\texttt{train\_ed\_eddatasmoke\_instruct\_seed<s>\_round<r>} & 1 & 2\\
+\texttt{train\_ed\_edrepair\_instruct\_seed<s>\_round<r>} & 9 & 18\\
+\texttt{train\_ed\_edrepairsmoke\_instruct\_seed<s>\_round<r>} & 2 & 4\\
+\texttt{train\_ed\_edresample\_instruct\_seed<s>\_round<r>} & 3 & 6\\
+\texttt{train\_ed\_edresamplesmoke\_instruct\_seed<s>\_round<r>} & 1 & 2\\
+\texttt{train\_ed\_edts\_instruct\_seed<s>\_round<r>} & 9 & 18\\
+\texttt{train\_ed\_edtssmoke2\_instruct\_seed<s>\_round<r>} & 2 & 4\\
+\texttt{train\_ed\_edtssmoke\_instruct\_seed<s>\_round<r>} & 1 & 2\\
+\texttt{train\_novalidation\_base\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{train\_novalidation\_base\_seed<s>\_smoke\_round<r>} & 2 & 16\\
+\texttt{train\_novalidation\_instruct\_seed<s>\_round<r>} & 3 & 24\\
+\texttt{train\_repairts\_base\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{train\_repairts\_instruct\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{train\_repairtssmoke\_base\_seed<s>\_round<r>} & 3 & 24\\
+\texttt{train\_repairtssmoke\_instruct\_seed<s>\_round<r>} & 2 & 16\\
+\texttt{train\_tablespecialist\_base\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{train\_tablespecialist\_base\_seed<s>\_test300\_round<r>} & 2 & 16\\
+\texttt{train\_tablespecialist\_instruct\_seed<s>\_round<r>} & 9 & 72\\
+\texttt{train\_tablespecialist\_instruct\_seed<s>\_smoke2\_round<r>} & 2 & 16\\
+\texttt{train\_tablespecialist\_instruct\_seed<s>\_smoke3\_round<r>} & 1 & 8\\
+\texttt{train\_tsdata\_base\_seed<s>\_round<r>} & 3 & 24\\
+\texttt{train\_tsdata\_instruct\_seed<s>\_round<r>} & 3 & 24\\
+\texttt{train\_tsdatasmoke\_base\_seed<s>\_round<r>} & 1 & 8\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Generated by listing the directory; smoke and gate runs are included for completeness.\par}
+\medskip

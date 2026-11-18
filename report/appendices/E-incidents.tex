@@ -1,0 +1,46 @@
+\chapter{Incident Log and Recovery}\label{app:incidents}
+
+Every interruption, what it affected, and how it was recovered. No finished result was lost, and no run directory or
+checkpoint was deleted, moved or overwritten.
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{2.4cm}p{4.3cm}p{4.3cm}p{3.6cm}@{}}
+\caption{Machine and pipeline incidents (IST).}\label{tab:incidents}\\
+\toprule\rowcolor{headshade}When & What happened & Effect & Recovery\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}When & What happened & Effect & Recovery\\\midrule\endhead
+\bottomrule\endfoot
+2026-11-05, 07:48 & The JSONL reader split a row on U+2028 & NV round-2 SQL training stopped & Reader fixed in 3 places,
+regression test; NV restarted from its saved round-2 data\\
+2026-11-05, about 13:45 & Machine crash; the system journal has no entries from 06:04 to 09:29 UTC, so the cause is
+unknown & NV round-2 Scala training stopped at step 277 of 297; TS round-3 SQL training at step 77 of 288 & Checkpoints
+\texttt{checkpoint-275} and \texttt{checkpoint-72} copied to \fpath{runs/_crash_backup_2026-11-05/}, verified
+(load, no NaNs), and resumed\\
+2026-11-14, 19:37 to 03:03 & Machine stall of about 7.5~h; journal restarted on an uncleanly shut-down journal; no
+reboot & 36 Spark runs cached as timed out after about 26,900~s; error-detection smoke round~2 failed to start & Stall
+rule for the cache (\cref{sec:reliability}); scorer relaunched before writing any cell; smoke rerun under a new tag\\
+2026-11-15, about 12:45 & WSL crash (\texttt{Wsl/Service/E\_UNEXPECTED}); the user ran \texttt{wsl --shutdown} & All
+jobs killed. ED seed~1 round-2 training stopped at step 210 of 306; seed~2 round-2 validation not started; seed~3
+round-1 validation at 3,143 of 32,820 requests; a Scala cell left with a partial predictions file & Interrupted round
+folders, the partial file, the response cache and five logs copied to \fpath{backups/crash_20261115_1245/} (1.4~GB,
+verified by diff and cmp); resumed at 13:01 with the user's approval; training resumed from step 210; cached requests
+reused\\
+\end{longtable}
+}
+
+\section*{Integrity checks after the WSL crash}
+\begin{itemize}
+\item All 20,062 execution-cache records and every result file parse, and no temporary files were left.
+\item The response cache passes SQLite's \texttt{quick\_check}.
+\item The file locks left nothing stale.
+\item 36 stopped sandbox containers were removed.
+\end{itemize}
+
+\section*{Operating rules adopted after the incidents}
+\begin{itemize}
+\item Every long job runs in its own detached \texttt{tmux} session with an append-only log (\texttt{tee -a}).
+\item One job per GPU.
+\item Checkpoints are copied aside before any resume.
+\item Run directories are never deleted, moved or overwritten.
+\item Smoke tests precede every new GPU job.
+\end{itemize}

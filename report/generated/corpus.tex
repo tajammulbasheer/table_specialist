@@ -1,0 +1,43 @@
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lp{9.5cm}@{}}
+\caption{Training-table corpus built from GitTables (\texttt{ts/corpus/build.py}).}\label{tab:gen-corpus}\\
+\toprule
+\rowcolor{headshade}Property & Value\\
+\midrule
+\endfirsthead
+\multicolumn{2}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Property & Value\\
+\midrule
+\endhead
+\midrule
+\multicolumn{2}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Source & GitTables 1M licensed subset, version 0.0.6, DOI \texttt{10.5281/zenodo.6517052}, licence cc-zero\\
+Files / bytes & 96 zips / 16,253,928,856\\
+Tables examined & 1,018,649\\
+Tables kept & 10,053 (target 20,000; sampling seed 42)\\
+Columns & 5--30\\
+Rows & 10--200\\
+Serialised size & at most 2,000 tokens\\
+De-duplication & header Jaccard $\geq$ 0.9, at most 5 tables per header group\\
+Contamination check & 1,141 test-set header sets\\
+Topics used / largest topic share & 68 / 46.5\%\\
+Rejected: too many tokens & 447,282\\
+Rejected: columns & 272,371\\
+Rejected: rows & 147,845\\
+Rejected: duplicate of kept & 78,872\\
+Rejected: blank header & 36,823\\
+Rejected: mostly empty & 21,402\\
+Rejected: duplicate header & 3,958\\
+Rejected: matches benchmark & 38\\
+Rejected: unreadable & 5\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Source: \fpath{results/corpus_manifest.json}. Rejection counts are first-failing filter, so they do not sum to the examined total minus the kept total exactly when a table is counted under its first failing rule.\par}
+\medskip

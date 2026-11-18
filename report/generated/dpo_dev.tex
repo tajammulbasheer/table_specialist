@@ -1,0 +1,32 @@
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lrrrrr@{}}
+\caption{DPO tuning on dev sets only (zero-shot; WikiSQL 300, Spider single-table 411 within the prompt limit, WikiTQ 300). Selection rule fixed beforehand: test a variant only if its dev mean exceeds bestof4's.}\label{tab:gen-dpo-dev}\\
+\toprule
+\rowcolor{headshade}\makecell{Model\\(seed 1)} & \makecell{WikiSQL\\dev} & \makecell{Spider\\dev} & \makecell{WikiTQ\\dev} & Mean & $-$ bestof4\\
+\midrule
+\endfirsthead
+\multicolumn{6}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}\makecell{Model\\(seed 1)} & \makecell{WikiSQL\\dev} & \makecell{Spider\\dev} & \makecell{WikiTQ\\dev} & Mean & $-$ bestof4\\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+TS round 1 (reference) & 0.6900 & 0.7591 & 0.2733 & 0.5741 & +0.0123\\
+bestof4 (reference) & 0.6667 & 0.7421 & 0.2767 & 0.5618 & +0.0000\\
+first DPO: LR 2e-5, $\beta$ 0.1, 2 epochs & 0.6700 & 0.7129 & 0.2400 & 0.5410 & -0.0209\\
+v1: LR 5e-6, 1 epoch & 0.6733 & 0.7324 & 0.2667 & 0.5575 & -0.0044\\
+v2: v1 + $\beta$ 0.5 & 0.6767 & 0.7299 & 0.2733 & 0.5600 & -0.0019\\
+v3: v1 + rows-differ only & 0.6600 & 0.7397 & 0.2700 & 0.5566 & -0.0053\\
+v4: $\beta$ 0.5 & 0.6633 & 0.7056 & 0.2433 & 0.5374 & -0.0244\\
+v5: LR 1e-6, 2 epochs & 0.6567 & 0.7372 & 0.2733 & 0.5557 & -0.0061\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} No variant passed the rule. Source: \fpath{results/baseline/train_dpotune*_dev_*.json}.\par}
+\medskip

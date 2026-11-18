@@ -1,0 +1,162 @@
+\chapter{Discussion and Interpretation}\label{ch:discussion}
+
+This chapter interprets the results. Measured observations, interpretations and untested hypotheses are kept apart
+throughout.
+
+\section{Why Table-Specialist works, and when}
+
+\begin{observation}
+\begin{itemize}
+\item Fine-tuning on validated pairs raises zero-shot accuracy substantially on both checkpoints: \ZSiv{} $+0.138$ on
+base and $+0.111$ on Instruct.
+\item The gain concentrates on the test sets whose failures are formatting and quoting: WikiSQL, and WikiTQ to a lesser
+degree.
+\item With the few-shot prompt, the gain shrinks to near zero or turns negative (\cref{tab:gen-prompt}).
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+Much of what self-generated training teaches an 8B model is \emph{how to answer the zero-shot prompt}: a well-formed,
+quoted, single SQL block. The few-shot prompt teaches the same thing by example. The specialist's further gains are
+smaller and test-set-specific. This reading fits the observation that few-shot vanilla Instruct matches zero-shot TS
+(\cref{sec:ext-fewshot}). It does not mean fine-tuning is useless: the zero-shot prompt is about 2,000 tokens shorter,
+and the vote gains on top of TS.
+\end{interpretation}
+
+\section{Validation, volume and rounds}
+
+\begin{observation}
+\begin{itemize}
+\item NV beats TS in round~1, then falls every round.
+\item TS rises on base and is flat on Instruct.
+\item Validation discards 75--89\% of generated pairs (\cref{tab:gen-validation}).
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+Validation trades volume for precision. The trade pays off only when a model's own errors feed back into its training,
+that is, from round~2 onward. That is exactly when NV declines. In round~1, both arms' data come from the same vanilla
+model, and NV's sixfold volume wins.
+\end{interpretation}
+
+\begin{hypothesis}
+Instruct does not gain from rounds because its round-1 adapter already captures most of what this corpus can teach
+through about 500 validated pairs. Restarting from vanilla means a later round's model sees no more data than an
+earlier one, only data written by a better generator. Testing this needs either cumulative data across rounds or
+continued training. Neither was run.
+\end{hypothesis}
+
+\section{When does repairing rejected data help?}
+
+The central new finding is that repair-TS's value depends on the setting:
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.0cm}p{2.1cm}p{2.4cm}p{3.3cm}p{3.6cm}@{}}
+\caption{Repair-TS across settings, at round~3 unless stated.}\label{tab:repair-summary}\\
+\toprule\rowcolor{headshade}Setting & Generator & Repairer & Effect & Recovery\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Setting & Generator & Repairer & Effect & Recovery\\\midrule\endhead
+\bottomrule\endfoot
+NL-to-SQL, base & Base & Instruct (stronger) & $+0.0421$, $p<0.0001$ & +52\% (round 1), about +20\% later\\
+NL-to-SQL, Instruct & Instruct & Instruct (same) & $-0.0014$, $p=0.55$ & +15--23\%\\
+NL-to-Scala, Instruct & Instruct & Instruct (same) & $+0.0167$, $p<0.0001$ & the same pairs\\
+NL-to-R, Instruct & Instruct & Instruct (same) & $+0.0244$, $p<0.0001$ & +25--31\% (round 1), +16--23\% later\\
+Error detection, Instruct & Vanilla Instruct & Vanilla Instruct & $+0.011$, $p=0.58$ (round~1: $+0.027$, $p=0.03$) &
+about 490--700 errors per round\\
+\end{longtable}
+}
+
+\begin{interpretation}
+Two readings fit the SQL rows; our experiments do not separate them.
+\begin{enumerate}
+\item \textbf{Repair as distillation.} On base, the repairer is a stronger model than the generator, and the repaired
+programs carry its knowledge. On Instruct, generator and repairer are the same model, so repaired programs add nothing
+new. Recovered pairs then concentrate on easy failure types (\texttt{disagree}, not \texttt{always\_empty}), which is
+why they are worth less than fresh first-pass pairs.
+\item \textbf{Repair as recovery of the weak side.} Repair helps where first-pass data is the bottleneck. That is base
+SQL (14.7\% kept) and Scala on Instruct (vanilla \ZSiv{} 0.19), but not Instruct SQL, which is already strong and keeps
+enough pairs.
+\end{enumerate}
+The Scala row favours reading~2. Repair helps Scala on Instruct with the same model as repairer, which reading~1 alone
+does not predict. It is also consistent with reading~1 to the extent that the Instruct \emph{repairer}, prompted with
+execution feedback, writes better Scala than the Instruct \emph{generator} does on the first pass.
+\end{interpretation}
+
+\begin{hypothesis}
+The value of recovered data is set by the gap between the repairer's ability and the trained model's ability, in the
+language being trained. Testing this would need:
+\begin{itemize}
+\item base repairing itself with a prompt that works;
+\item Instruct writing fresh pairs for base, a distillation control without repair;
+\item a weaker and a stronger model of another family.
+\end{itemize}
+\end{hypothesis}
+
+\section{Why DPO failed while repair succeeded on base}
+
+Both use the rejected data, but in opposite ways. DPO lowers the probability of plausible-but-wrong programs. With
+LoRA at $2\times10^{-5}$, it moved the policy far from the reference: reward margins of 3--5, and execution errors up
+to fourfold. Repair turns the same rejected data into new \emph{positive} examples that pass the unchanged validator.
+The evidence favours using the validator to \emph{select} better data rather than to define negatives. Whether a better
+preference method (another loss, KL anchoring, or many more pairs) would change this is open.
+
+\section{Sensitivity to seeds and stability across rounds}
+
+\begin{itemize}
+\item \textbf{Seed spread.} Spreads of \Mviii{} reach 0.02 for TS. That is as large as several method differences we
+examined.
+\item \textbf{What is robust.} Every claim in this report that we call consistent has the same sign on all three seeds.
+Claims with mixed seeds are reported as such (bestof4, Instruct repair-TS, the same-data control's volume effect on
+base).
+\item \textbf{Stability.} Repair-TS is markedly more stable across seeds than TS on both tasks (base SD 0.0051 against
+0.0210; Scala \ZSiv{} SD 0.0031 against 0.0129).
+\end{itemize}
+
+\begin{hypothesis}
+Recovered data makes each seed's training set larger and more representative, which damps seed-specific quirks of
+small first-pass sets.
+\end{hypothesis}
+
+\section{Reproducibility considerations}
+
+\begin{itemize}
+\item \textbf{Within this project}, everything is reproducible from saved artefacts:
+  \begin{itemize}
+  \item every generation is cached;
+  \item every adapter and per-case verdict is saved;
+  \item every table in this report is generated from result files;
+  \item the cross-check in \cref{app:crosscheck} confirms 24 of 24 headline values.
+  \end{itemize}
+\item \textbf{Across projects}, three factors limit exact reproduction:
+  \begin{itemize}
+  \item GitTables sampling depends on our filters, which are fully specified;
+  \item vLLM's batched greedy decoding is not guaranteed bit-identical across runs;
+  \item the model weights are pinned by revision.
+  \end{itemize}
+\item \textbf{The paper itself} cannot be reproduced exactly by anyone without its corpus, case lists and settings.
+\end{itemize}
+
+\section{What is established and what remains uncertain}
+
+\begin{keypoint}
+\textbf{Established} (consistent across seeds, $p<0.0001$, controls where relevant):
+\begin{itemize}
+\item Instruct TS approximately reproduces the paper's NL-to-SQL results.
+\item TS beats vanilla and NV at round~3.
+\item NV declines over rounds.
+\item Repair-TS helps base NL-to-SQL and Instruct NL-to-Scala, and does not help Instruct NL-to-SQL.
+\item On base, repaired data is worth more than as many first-pass pairs.
+\item DPO on validator labels harms.
+\item Execution voting helps every model.
+\end{itemize}
+\textbf{Uncertain:}
+\begin{itemize}
+\item why base does not reproduce the vanilla scores;
+\item why Spider is offset;
+\item why our Scala and error-detection TS exceed the paper's figures;
+\item whether repair's base gain is distillation;
+\item why rounds do not help Instruct;
+\item how much of repair-TS-R's NL-to-R gain is data volume (no same-data control for R);
+\item whether repair-ED's round-1 gain comes from the feedback or from the second sample.
+\end{itemize}
+\end{keypoint}

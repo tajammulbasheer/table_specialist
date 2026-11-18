@@ -1,0 +1,12 @@
+\chapter{Cross-Check of Headline Values}\label{app:crosscheck}
+
+Every results table in this report is generated from the result files, so the tables cannot disagree with the files.
+To check the project log against the files, the generator also recomputes the headline values stated in
+\fpath{docs/RESULTS.md} and compares them here.
+
+\input{generated/crosscheck.tex}
+
+Expected result files that the generator looked for and did not find (an empty list means every expected file
+existed):
+
+\input{generated/missing.tex}

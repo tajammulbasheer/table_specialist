@@ -1,0 +1,116 @@
+\chapter{Ablation and Sensitivity Studies}\label{ch:ablations}
+
+This chapter collects every controlled comparison in the project. Each isolates one factor, and the results are
+grouped by the factor varied.
+
+\section{Ablations of the method}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.3cm}p{3.6cm}p{2.5cm}p{2.7cm}p{2.5cm}@{}}
+\caption{Ablations: the factor varied, the comparison, and the effect on \Mviii{} (paired bootstrap; per-seed
+differences in \cref{tab:gen-significance}).}\label{tab:ablations}\\
+\toprule\rowcolor{headshade}Factor & Comparison & $\Delta$ \Mviii{} [95\% CI] & $p$; seeds & Conclusion\\\midrule
+\endfirsthead
+\toprule\rowcolor{headshade}Factor & Comparison & $\Delta$ \Mviii{} [95\% CI] & $p$; seeds & Conclusion\\\midrule
+\endhead
+\bottomrule\endfoot
+Validation (paper's ablation) & Base TS r3 vs NV r3 & $+0.0492$ [$+0.0426$, $+0.0557$] & $<$0.0001; 3/3 positive &
+Validation helps by round 3\\
+Validation, Instruct & TS r3 vs NV r3 (seed 1) & $+0.0403$ [$+0.0308$, $+0.0499$] & $<$0.0001; 1 seed & Same direction;
+one seed\\
+Validation, round 1 & Base TS r1 vs NV r1 & $-0.0135$ (seed means) & not tested; NV higher on 17 of 24 seed-cells &
+NV wins early\\
+Fine-tuning at all & Base TS r3 vs vanilla & $+0.0647$ [$+0.0554$, $+0.0738$] & $<$0.0001; 3/3 & Helps\\
+Fine-tuning, Instruct & TS r3 vs vanilla & $+0.0523$ [$+0.0424$, $+0.0622$] & $<$0.0001; 3/3 & Helps\\
+Rounds, Instruct & TS r3 vs TS r1 & $-0.0083$ [$-0.0133$, $-0.0032$] & 0.0012; 2/3 negative & No gain from rounds\\
+Recovered data: repair & Base repair-TS r1 vs TS r1 & $+0.0243$ [$+0.0197$, $+0.0290$] & $<$0.0001; 3/3 & Helps\\
+Recovered data: volume only & Base control r1 vs TS r1 & $+0.0119$ [$+0.0075$, $+0.0163$] & $<$0.0001; 2/3 & About
+half\\
+Repaired vs fresh data & Base repair-TS r1 vs control r1 & $+0.0124$ [$+0.0079$, $+0.0170$] & $<$0.0001; 3/3 &
+Repaired data worth more\\
+Feedback vs sampling & Base repair-TS r1 vs bestof4 r1 & $+0.0180$ [$+0.0134$, $+0.0227$] & $<$0.0001; 3/3 & Repair
+beats sampling\\
+Learning from negatives & Base DPO r1 vs TS r1 & $-0.0209$ [$-0.0262$, $-0.0156$] & $<$0.0001; 2/3 negative &
+Harms\\
+Repair on Instruct & repair-TS r3 vs TS r3 & $-0.0014$ [$-0.0062$, $+0.0033$] & 0.55; mixed & No effect\\
+Volume, Instruct & control r1 vs TS r1 & $+0.0079$ [$+0.0038$, $+0.0120$] & 0.0006; 3/3 & Helps\\
+Repaired vs fresh, Instruct & repair-TS r1 vs control r1 & $-0.0114$ [$-0.0155$, $-0.0074$] & $<$0.0001; 2/3 negative
+& Repaired data worth less\\
+Repair, Scala (Instruct) & repair-TS r3 vs TS r3 & $+0.0167$ [$+0.0119$, $+0.0216$] & $<$0.0001; 3/3 & Helps\\
+Test-time vote & every model, vote vs greedy & $+0.0156$ to $+0.0248$ & $<$0.0001 & Helps\\
+\end{longtable}
+}
+
+\section{Repairer strength}
+
+The only variable in the repair pilot (\cref{tab:gen-repair-pilot}) is the repairer: the rejected pairs, diagnoses,
+retries and validator are the same. Base recovered 7 of 237 pairs; Instruct recovered 23. Repairer quality therefore
+determines how much data repair recovers, and, as \cref{sec:ext-control} suggests, possibly what that data is worth.
+
+\section{Hyper-parameter sensitivity}
+
+\paragraph{DPO} (\cref{tab:gen-dpo-dev}). Five settings were compared on dev. The learning rate dominates: at
+$2\times10^{-5}$, raising $\beta$ from 0.1 to 0.5 changes nothing ($-0.0208$ and $-0.0244$ against bestof4). Lowering
+the rate to $5\times10^{-6}$ or $10^{-6}$ removes most of the damage. No setting improves on bestof4.
+
+\paragraph{Self-consistency temperature} (\cref{tab:gen-sc-dev}). The vote's dev gain rises with temperature: $+0.0218$
+at 0.5, $+0.0260$ at 0.7 and $+0.0295$ at 1.0. Higher temperatures give more diverse samples to vote among.
+
+\section{Prompt sensitivity}
+
+\input{generated/prompt_sensitivity.tex}
+
+\begin{observation}
+Vanilla models gain 0.11--0.15 from the few-shot prompt. Every fine-tuned model scores slightly \emph{lower} with it
+($-0.005$ to $-0.027$). The fine-tuned adapters are trained on the zero-shot format, and the four extra worked examples
+no longer help them.
+\end{observation}
+
+\section{Scoring sensitivity}
+
+\input{generated/scoring_sensitivity.tex}
+
+\begin{observation}
+\begin{itemize}
+\item On NL-to-SQL, the corrected score moves the zero-shot mean of 4 by at most $+0.0071$. Almost all of the change
+is on Spider (up to $+0.0284$, base vanilla), where models add or omit \texttt{ORDER BY} and the repository compares
+row order.
+\item On NL-to-Scala, the correction is larger, $+0.021$ to $+0.025$ on the mean, and up to $+0.099$ on Spider.
+Spark returns rows in no fixed order, and the repository's Scala comparison is order-sensitive.
+\end{itemize}
+No conclusion of this report changes sign under the corrected score.
+\end{observation}
+
+\section{Seed sensitivity}
+
+\begin{observation}
+Seed-to-seed standard deviations of \Mviii{} are 0.003--0.023 (\cref{tab:gen-round-stats}).
+\begin{itemize}
+\item Base TS is the most seed-sensitive at round~3 (SD 0.0210, range 0.5244--0.5660).
+\item Base repair-TS is the least (SD 0.0051, range 0.5801--0.5901), as is Instruct repair-TS at round~2 (SD 0.0026).
+\item Single-seed differences between methods are often of the size of the seed spread. For example, bestof4 against
+TS round~1 is $+0.0065$, $+0.0282$ and $-0.0156$ by seed.
+\end{itemize}
+This is why every comparison reports per-seed differences, and why only consistent signs across all three seeds are
+called consistent.
+\end{observation}
+
+\begin{interpretation}
+Three seeds are enough to detect the large effects in this report: TS against NV at round~3, repair-TS on base, and
+DPO. They are not enough to rank methods whose differences are below about 0.01, such as Instruct repair-TS against
+Instruct TS, or bestof4 against TS. The paired case bootstrap gives narrow intervals ($\pm0.005$) but measures only
+test-set sampling; it says nothing about how a different training seed would behave.
+\end{interpretation}
+
+\section{Round sensitivity}
+
+The paper does not say which round it reports, so the choice of round is itself a sensitivity.
+\begin{itemize}
+\item Base: every arm except NV is best at round~3.
+\item Instruct TS: best at round~2 on 2 of 3 seeds. The mean of the best round per seed is 0.6245 \ZSiv{}, against
+0.6113 for round~3.
+\item Instruct repair-TS: best at round~2 on the mean (\ZSiv{} 0.6241).
+\item NL-to-Scala repair-TS: flat from round~2 to round~3.
+\end{itemize}
+Reporting the last round, as we do in the headline tables, is the conservative choice for Instruct.

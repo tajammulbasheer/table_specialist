@@ -1,0 +1,209 @@
+\chapter{Results: Extensions Beyond the Paper}\label{ch:results-ext}
+
+None of the experiments in this chapter is in the paper. Each section restates its question, gives the complete
+results, and separates what was measured from how we read it.
+
+\section{Extension 2: best-of-4 sampling and DPO}\label{sec:ext2}
+
+\textbf{Question.} TS keeps one greedy pair per question and discards the rest. Does sampling more candidates recover
+validated data? Can rejected programs serve as negatives?
+
+\input{generated/ext2_labels.tex}
+
+\begin{observation}
+\begin{itemize}
+\item \textbf{More validated data.} Sampling three more candidates per question raises the number of questions with a
+validated program by 52--62\% (\cref{tab:gen-ext2-labels}). For example, seed~1 goes from 426 to 673.
+\item \textbf{TS's own pair is sometimes wrong.} For 75, 89 and 73 questions (seeds 1--3), a sampled program
+validated while TS's greedy SQL gives different rows. These greedy programs became DPO negatives.
+\item \textbf{DPO pairs.} 397--438 pairs per seed. About three quarters have a rejected program that runs but returns
+different rows.
+\end{itemize}
+\end{observation}
+
+\input{generated/ext2_scores.tex}
+
+\begin{observation}
+Round-1 \Mviii{} over 3 seeds:
+\begin{itemize}
+\item TS 0.5266, bestof4 0.5330 ($+0.0064$), DPO 0.5057 ($-0.0209$, $p<0.0001$), NV 0.5401.
+\item bestof4's gain is not stable across seeds: $+0.0065$, $+0.0282$, $-0.0156$.
+\item DPO is below bestof4 on every seed: 1 cell higher and 7 lower on seed~1, 2/6 on seed~2, 0/8 on seed~3.
+\end{itemize}
+DPO multiplies invalid SQL. Compile or execution errors from bestof4 to DPO, zero-shot:
+\begin{itemize}
+\item WikiTQ: 15 $\to$ 58 (seed~1) and 17 $\to$ 55 (seed~2);
+\item BIRD: 9 $\to$ 11 and 9 $\to$ 28.
+\end{itemize}
+Training ended with reward margins of 3.40, 5.35 and 3.19, and reward accuracy of 0.98--1.00, on 397--438 pairs over 2
+epochs.
+\end{observation}
+
+\input{generated/dpo_dev.tex}
+
+\begin{observation}
+\begin{itemize}
+\item Gentler DPO (lower learning rate or one epoch: v1, v2, v3, v5) removes most of the damage on dev:
+$-0.0018$ to $-0.0061$ against bestof4, compared with $-0.0208$ for the first settings.
+\item Raising $\beta$ to 0.5 at the original learning rate (v4) does not help ($-0.0244$), and ends with the same
+reward margin (3.40). The learning rate, not $\beta$, drives the loss.
+\item The differences among v1--v3 (at most 0.0034) are smaller than one question in 300.
+\item No variant exceeds bestof4's dev mean (best: v2, 0.5600 against 0.5618), so under the rule fixed beforehand DPO
+was not re-tested on the test sets.
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+DPO's large reward margins and near-perfect reward accuracy show that the policy separated chosen from rejected
+programs easily, and moved far from the reference in doing so. The SFT term did not prevent it.
+
+The rejected programs are mostly \emph{plausible} SQL that returns different rows. Pushing their likelihood down also
+pushes down nearby correct SQL; the rise in execution errors is consistent with this, but was not tested directly.
+
+Best-of-4's small gain, despite 52--62\% more data, suggests that the extra validated programs are mostly easy
+questions the model already answers.
+\end{interpretation}
+
+\section{Extension 3: repair-TS}\label{sec:ext-repair}
+
+\textbf{Question.} Can rejected pairs be recovered by one execution-feedback repair, under an unchanged validator, and
+does the recovered data improve the specialist?
+
+\subsection{Pilot: which repairer}
+
+\input{generated/repair_pilot.tex}
+
+\begin{observation}
+\begin{itemize}
+\item \textbf{Base as its own repairer}: recovered 7 of 237 rejected pairs (+17.1\%), below the pre-set +30\%, so the
+pilot was no-go. Base copied the failed code back in 85 of 169 Scala repairs and 42 of 158 SQL repairs, even after 3
+samples at $T=0.7$. 49 of 60 always-empty SQL programs stayed empty after repair.
+\item \textbf{Instruct as repairer}: recovered 23 (+56.1\%) and wrote new code in 314 of 327 repairs (base: 200 of
+327).
+\item \textbf{Hand check} of all 23, each against its full table: 21 correct, 2 doubtful, 0 wrong (91.3\%), so go. The
+doubtful cases were \texttt{gt\_08669} (the maximum of random string IDs; the question is ill-posed) and
+\texttt{gt\_02705} (``average dwarf star mass'' answered with the column \texttt{mdeg/keV}).
+\item 18 of the 23 were recovered by repairing the Scala, so the SQL training label is TS's own original SQL.
+\end{itemize}
+\end{observation}
+
+\subsection{Recovery in the full runs}
+
+\input{generated/repair.tex}
+
+\begin{observation}
+\begin{itemize}
+\item \textbf{Base}: repair adds +48.2\% to +55.9\% kept pairs in round~1, and 18--25\% in rounds 2--3.
+\item \textbf{Instruct}: it adds +15--23\% in every round.
+\item On both models, most recoveries are \texttt{disagree} pairs (\cref{tab:gen-repair}).
+\item \textbf{Which side is rewritten.} In round~1 most recovered pairs pass with a new Scala program and the
+original SQL: base 147--172 of 204--224, Instruct 46--53 of 65--75. In rounds 2--3, a new SQL program is about as
+common. Over all nine Instruct runs, 450 of 744 recovered pairs carry a repairer-written Scala program, 259 a
+repairer-written SQL program and 35 both.
+\item \texttt{always\_empty} pairs, the largest rejected group on Instruct (about 1,000 per round), are almost never
+recovered: for example, 7 of 1,048 for Instruct seed~1, round~2.
+\end{itemize}
+\end{observation}
+
+\subsection{Test results}
+
+\input{generated/perseed_repair_base.tex}
+\input{generated/perseed_repair_instruct.tex}
+
+\begin{observation}
+\textbf{Base} (\cref{tab:gen-perseed_repair_base}, \cref{fig:rounds-sql}):
+\begin{itemize}
+\item Repair-TS rises every round: \Mviii{} 0.5509, 0.5713, $0.5856\pm0.0051$.
+\item Round~3 against TS round~3: $+0.0421$ [$+0.0367$, $+0.0476$], $p<0.0001$, all seeds positive ($+0.0204$,
+$+0.0557$, $+0.0501$), and 19 of 24 (seed, cell) pairs higher.
+\item Round~1 against TS round~1: $+0.0243$, $p<0.0001$, all seeds positive.
+\item The gains are on Spider ($+0.081$ zero-shot), WikiTQ ($+0.073$) and BIRD ($+0.038$). WikiSQL is slightly lower
+($-0.014$).
+\item Repair-TS has the smallest seed spread of any fine-tuned approach (SD 0.0051 against TS's 0.0210).
+\end{itemize}
+
+\textbf{Instruct} (\cref{tab:gen-perseed_repair_instruct}):
+\begin{itemize}
+\item Round~1: $-0.0035$ ($p=0.13$).
+\item Round~2: $+0.0053$ ($p=0.021$; seeds $-0.0149$, $+0.0062$, $+0.0248$).
+\item Round~3: $-0.0014$ [$-0.0062$, $+0.0033$] ($p=0.55$; seeds $-0.0044$, $+0.0052$, $-0.0050$).
+\item No round shows a consistent effect.
+\end{itemize}
+\end{observation}
+
+\section{Same-data control}\label{sec:ext-control}
+
+\textbf{Question.} Is repair-TS's round-1 gain on base simply the effect of training on more pairs?
+
+\input{generated/samedata.tex}
+
+\begin{observation}
+\textbf{Base}, \Mviii{} over 3 seeds: TS round~1 0.5266, control 0.5385, repair-TS round~1 0.5509.
+\begin{itemize}
+\item Control against TS: $+0.0119$ [$+0.0075$, $+0.0163$], $p<0.0001$. Seeds: $+0.0214$, $+0.0296$, $-0.0153$.
+\item Repair-TS against control: $+0.0124$ [$+0.0079$, $+0.0170$], $p<0.0001$. Seeds: $+0.0067$, $+0.0130$,
+$+0.0176$, all positive.
+\end{itemize}
+\textbf{Instruct}: TS round~1 0.6152, control 0.6231, repair-TS round~1 0.6117.
+\begin{itemize}
+\item Control against TS: $+0.0079$, $p=0.0006$, all seeds positive.
+\item Repair-TS against control: $-0.0114$, $p<0.0001$; 2 of 3 seeds negative.
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+On base, the repair gain splits about evenly between \emph{more} data and \emph{different} data. The repaired pairs are
+worth more than the same number of extra first-pass pairs, on every seed.
+
+On Instruct the opposite holds. Extra first-pass pairs help, while repaired pairs are worth less than first-pass pairs.
+Repair-TS's value on Instruct is therefore at most its data volume.
+
+One caveat applies to base: the repaired pairs were written by a stronger model (Instruct). ``Different data'' may mean
+\emph{better-written} data rather than \emph{repaired} data, a distillation effect. The control does not separate the
+two (\cref{ch:discussion}).
+\end{interpretation}
+
+\section{Execution-based self-consistency}\label{sec:ext-sc}
+
+\input{generated/sc_dev.tex}
+\input{generated/sc_test.tex}
+
+\begin{observation}
+\begin{itemize}
+\item \textbf{Temperature on dev.} $T=1.0$ beat $T=0.5$ and $T=0.7$ (dev mean 0.6520 against greedy 0.6225).
+\item \textbf{Every model gains on the test sets} (\cref{tab:gen-sc-test}), by $+0.0141$ to $+0.0248$ \Mviii{}, all
+$p<0.0001$ (\cref{tab:gen-significance}).
+\item \textbf{Answers changed by the vote}, summed over cells, wrong$\to$right against right$\to$wrong:
+  \begin{itemize}
+  \item base: vanilla 278 / 82, TS 462 / 109, repair-TS 514 / 134;
+  \item Instruct: vanilla 171 / 36, TS 504 / 98.
+  \end{itemize}
+\item Only 2 of 56 base cells and 2 of 32 Instruct cells fall.
+\item The largest gains are on WikiSQL ($+0.03$ to $+0.08$), the smallest on Spider.
+\item With the vote, the zero-shot means of 4 are: base repair-TS 0.6067, Instruct TS 0.6277, Instruct repair-TS
+0.6300. All are above the paper's 0.5983.
+\item Instruct repair-TS + vote against Instruct TS + vote: $-0.0000$ [$-0.0045$, $+0.0046$], $p=0.997$, a tie, with a
+smaller seed spread (SD 0.0044 against 0.0086 \Mviii{}).
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+Self-consistency is an established method~\cite{wang2022selfconsistency}, so this confirms rather than discovers. It is
+useful here as a reference: TS's gain over vanilla (base, \Mviii{} $+0.0647$) is about 2.6 times the vote's gain on
+vanilla ($+0.0248$), at no extra cost at test time. The vote costs 9 generations per case.
+\end{interpretation}
+
+\section{Few-shot vanilla against zero-shot Table-Specialist}\label{sec:ext-fewshot}
+
+\begin{observation}
+On Instruct, the repository's few-shot prompt with the \emph{vanilla} model gives a mean of 4 of 0.6090 (vote: 0.6341).
+That is as high as TS round~3 with the zero-shot prompt (0.6113; vote: 0.6277). On base the corresponding figures are
+0.5493 (few-shot vanilla) against 0.5460 (zero-shot TS round~3).
+\end{observation}
+
+\begin{interpretation}
+Table-Specialist's gain is a \emph{zero-shot} gain. Fine-tuning mainly teaches the model to answer the zero-shot
+prompt as well as the few-shot prompt already lets it answer. The paper does not state its test prompt. If its
+Table~3 were few-shot, its vanilla scores would likely be higher than the ones it reports (as ours are), so Table~3 is
+most consistent with a zero-shot protocol. This is a reading of the evidence, not a confirmation.
+\end{interpretation}

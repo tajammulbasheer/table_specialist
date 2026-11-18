@@ -1,0 +1,31 @@
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lccrrrrrrrr@{}}
+\caption{NL-to-Scala summary statistics over seeds (repo-faithful).}\label{tab:gen-scala-stats}\\
+\toprule
+\rowcolor{headshade}Approach & Rd & Seeds & \multicolumn{4}{c}{M8 over seeds} & \multicolumn{4}{c}{ZS4 over seeds}\\\rowcolor{headshade} & & & Mean & SD & Min & Max & Mean & SD & Min & Max\\
+\midrule
+\endfirsthead
+\multicolumn{11}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Approach & Rd & Seeds & \multicolumn{4}{c}{M8 over seeds} & \multicolumn{4}{c}{ZS4 over seeds}\\\rowcolor{headshade} & & & Mean & SD & Min & Max & Mean & SD & Min & Max\\
+\midrule
+\endhead
+\midrule
+\multicolumn{11}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Vanilla & -- & 1 & 0.2661 & -- & 0.2661 & 0.2661 & 0.1936 & -- & 0.1936 & 0.1936\\
+TS & 1 & 3 & 0.3910 & 0.0138 & 0.3763 & 0.4037 & 0.3860 & 0.0093 & 0.3773 & 0.3958\\
+TS & 2 & 3 & 0.4385 & 0.0257 & 0.4094 & 0.4577 & 0.4410 & 0.0298 & 0.4066 & 0.4589\\
+TS & 3 & 3 & 0.4603 & 0.0082 & 0.4516 & 0.4679 & 0.4666 & 0.0129 & 0.4575 & 0.4813\\
+Repair-TS & 1 & 3 & 0.4051 & 0.0133 & 0.3964 & 0.4204 & 0.4015 & 0.0174 & 0.3861 & 0.4204\\
+Repair-TS & 2 & 3 & 0.4722 & 0.0136 & 0.4624 & 0.4878 & 0.4824 & 0.0098 & 0.4753 & 0.4936\\
+Repair-TS & 3 & 3 & 0.4771 & 0.0017 & 0.4754 & 0.4789 & 0.4817 & 0.0031 & 0.4781 & 0.4835\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Recalculated from the per-cell files.\par}
+\medskip

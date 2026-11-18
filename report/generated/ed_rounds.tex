@@ -1,0 +1,48 @@
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lccrrrrrr@{}}
+\caption{Error-detection data per round: Algorithm~2 outcomes (kept / candidates; all 5 shuffles must agree), recovered errors for the repair and resample arms, and training examples.}\label{tab:gen-ed-rounds}\\
+\toprule
+\rowcolor{headshade}Arm & S & R & Typo kept & \makecell{Semantic\\kept} & \makecell{Clean\\kept} & \makecell{Recovered\\(typo + sem.)} & Examples & \makecell{Training\\h}\\
+\midrule
+\endfirsthead
+\multicolumn{9}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Arm & S & R & Typo kept & \makecell{Semantic\\kept} & \makecell{Clean\\kept} & \makecell{Recovered\\(typo + sem.)} & Examples & \makecell{Training\\h}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{9}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+TS & 1 & 1 & 477/2007 & 663/2569 & 1048/2000 & -- & 2188 & 2.61\\
+TS & 1 & 2 & 491/1983 & 1393/2573 & 1653/2000 & -- & 3537 & 0.85\\
+TS & 1 & 3 & 541/1993 & 1649/2580 & 1746/2000 & -- & 3936 & 2.69\\
+TS & 2 & 1 & 513/2075 & 727/2578 & 1056/2000 & -- & 2296 & 2.56\\
+TS & 2 & 2 & 785/2066 & 1582/2574 & 1703/2000 & -- & 4070 & 3.15\\
+TS & 2 & 3 & 698/2056 & 1793/2569 & 1786/2000 & -- & 4277 & 3.13\\
+TS & 3 & 1 & 475/1993 & 696/2571 & 1085/2000 & -- & 2256 & 1.94\\
+TS & 3 & 2 & 423/1991 & 1368/2582 & 1740/2000 & -- & 3531 & 3.06\\
+TS & 3 & 3 & 476/2003 & 1585/2577 & 1884/2000 & -- & 3945 & 3.39\\
+Repair-ED & 1 & 1 & 477/2007 & 663/2569 & 1048/2000 & 178 + 328 & 2694 & 2.31\\
+Repair-ED & 1 & 2 & 480/1983 & 1283/2573 & 1700/2000 & 184 + 307 & 3954 & 3.45\\
+Repair-ED & 1 & 3 & 543/1993 & 1433/2580 & 1823/2000 & 201 + 452 & 4452 & 2.55\\
+Repair-ED & 2 & 1 & 513/2075 & 727/2578 & 1056/2000 & 175 + 316 & 2787 & 1.49\\
+Repair-ED & 2 & 2 & 672/2066 & 1514/2574 & 1728/2000 & 207 + 366 & 4487 & 2.47\\
+Repair-ED & 2 & 3 & 553/2056 & 1554/2569 & 1838/2000 & 267 + 385 & 4597 & 2.32\\
+Repair-ED & 3 & 1 & 475/1993 & 696/2571 & 1085/2000 & 151 + 367 & 2774 & 1.27\\
+Repair-ED & 3 & 2 & 468/1991 & 1596/2582 & 1744/2000 & 253 + 443 & 4504 & 2.21\\
+Repair-ED & 3 & 3 & 591/2003 & 1678/2577 & 1827/2000 & 284 + 402 & 4782 & 2.42\\
+Best-of-2 & 1 & 1 & 477/2007 & 663/2569 & 1048/2000 & 168 + 278 & 2634 & 1.76\\
+Best-of-2 & 2 & 1 & 513/2075 & 727/2578 & 1056/2000 & 199 + 247 & 2742 & 1.49\\
+Best-of-2 & 3 & 1 & 475/1993 & 696/2571 & 1085/2000 & 165 + 266 & 2687 & 1.45\\
+Same-data & 1 & 1 & -- & -- & -- & 506 & 2694 & 1.53\\
+Same-data & 2 & 1 & -- & -- & -- & 491 & 2787 & 1.51\\
+Same-data & 3 & 1 & -- & -- & -- & 518 & 2774 & 1.42\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Clean columns come from the first 1,000 tables of the round, 2 per table. Source: \fpath{runs/train_ed*_instruct_seed<s>/round<r>/summary.json}.\par}
+\medskip

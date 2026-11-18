@@ -1,0 +1,62 @@
+\chapter{Limitations}\label{ch:limitations}
+
+\section{Limitations inherited from the paper and its repository}
+
+\begin{itemize}
+\item \textbf{Unreleased data.} The training corpus, Text2Analysis and the test-case lists are not available. Absolute
+scores cannot be compared exactly, and averages exclude one of five test sets.
+\item \textbf{Unstated settings.} The checkpoint, test prompt, round reported, restart choice, question model and every
+LoRA setting except the batch fraction are not given. Each gap is filled by a documented choice (\cref{tab:hparams}),
+and any of them could move scores.
+\item \textbf{Incomplete validator.} The repository runs both languages but never compares them, so our kept-pair
+counts depend on our comparator, which was audited by hand but not against labelled data.
+\item \textbf{Scoring defects.} The repository's comparison is order-sensitive and has two numeric defects. The
+repo-faithful scores carry these, deliberately.
+\item \textbf{Paper averages over five sets.} The paper's averages include Text2Analysis, which is not public, so our
+means of 4 are recomputed from its per-set values.
+\end{itemize}
+
+\section{Limitations of our own set-up}
+
+\begin{itemize}
+\item \textbf{Seeds.} Three seeds per arm, and one seed for Instruct NV. Effects below about 0.01 cannot be ranked
+reliably.
+\item \textbf{Late check of targets.} The paper's non-SQL figures were first read through a summary; all were checked
+against the published Table~3 on 2026-11-18 and match. The NL-to-R per-set figures were added then.
+\item \textbf{Confounded repairer.} The repairs in the base track are written by a second, stronger model, so base
+repair-TS is not pure self-training.
+\item \textbf{Error-detection design.} Our loop's choices (who writes errors and who validates) are ours. The error-
+detection results are adaptations, not reproductions.
+\item \textbf{Controls not run.} The error-detection controls cover round~1 only, NL-to-R has no same-data control,
+and Instruct NV has seed~1 only.
+\item \textbf{Small error-detection test sets.} 42 and 36 columns with errors; one column moves F1 by about 0.01--0.02.
+\item \textbf{One machine.} Three incidents interrupted runs. All were recovered from checkpoints and caches, and
+resumed rounds record partial timings only.
+\item \textbf{No repository history.} By the user's decision, the project has no git commits. Provenance rests on dated
+logs, run directories and the project's records.
+\item \textbf{Corpus.} GitTables is more numeric and less Wikipedia-like than the paper's likely corpus, and our
+contamination check compares headers only. The planned web-table comparison was not run.
+\end{itemize}
+
+\section{Claims we do not make}
+
+\begin{itemize}
+\item That the paper used Llama-3.1-8B-Instruct: this is supported, not proven.
+\item That any of our methods is better than the paper's: our improvements are measured against our own TS under
+identical conditions.
+\item That repair-TS improves self-trained specialists in general: it is null on Instruct NL-to-SQL.
+\item That our error-detection or Scala results show the paper under-reports: the cause of the difference is
+unattributed.
+\end{itemize}
+
+\section{Open questions}\label{sec:open-questions}
+
+These were recorded on 2026-11-04 for the authors. Contacting them was not possible.
+\begin{enumerate}
+\item Which prompt and API produced the paper's vanilla scores? Base gives 0.326 (zero-shot) and 0.685 (few-shot) on
+WikiSQL, against 0.525.
+\item Which checkpoint did the paper use? The paper never says base or Instruct; the README's link is the only evidence.
+\item What removes 7 BIRD cases?
+\item Were WikiSQL cells lowercased in the paper's prompts?
+\item Which exact test cases did the paper use?
+\end{enumerate}

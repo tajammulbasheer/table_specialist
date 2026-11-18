@@ -1,0 +1,114 @@
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}llcclrrrrrrc@{}}
+\caption{LoRA training runs of the NL-to-SQL study (one row per adapter). Batch = 1\% of the round's examples, built by gradient accumulation of single examples; 3 epochs.}\label{tab:gen-training}\\
+\toprule
+\rowcolor{headshade}Model & Arm & S & R & Adapter & Examples & Accum. & Steps & \makecell{Train\\loss} & Minutes & \makecell{Peak\\VRAM (GB)} & Resumed\\
+\midrule
+\endfirsthead
+\multicolumn{12}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Model & Arm & S & R & Adapter & Examples & Accum. & Steps & \makecell{Train\\loss} & Minutes & \makecell{Peak\\VRAM (GB)} & Resumed\\
+\midrule
+\endhead
+\midrule
+\multicolumn{12}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Base & TS & 1 & 1 & SQL & 426 & 4 & 321 & 0.0315 & 24.7 & 19.5 & \\
+Base & TS & 1 & 1 & Scala & 426 & 4 & 321 & 0.0349 & 25.4 & 19.4 & \\
+Base & TS & 1 & 2 & SQL & 608 & 6 & 306 & 0.0290 & 36.3 & 19.3 & \\
+Base & TS & 1 & 2 & Scala & 608 & 6 & 306 & 0.0263 & 37.6 & 19.4 & \\
+Base & TS & 1 & 3 & SQL & 672 & 7 & 288 & 0.0164 & 28.8 & 19.9 & yes\\
+Base & TS & 1 & 3 & Scala & 672 & 7 & 288 & 0.0226 & 39.9 & 19.9 & \\
+Base & TS & 2 & 1 & SQL & 388 & 4 & 291 & 0.0390 & 23.9 & 19.5 & \\
+Base & TS & 2 & 1 & Scala & 388 & 4 & 291 & 0.0359 & 24.5 & 19.8 & \\
+Base & TS & 2 & 2 & SQL & 655 & 7 & 282 & 0.0878 & 39.0 & 19.3 & \\
+Base & TS & 2 & 2 & Scala & 655 & 7 & 282 & 0.0250 & 40.3 & 19.5 & \\
+Base & TS & 2 & 3 & SQL & 777 & 8 & 294 & 0.0317 & 45.7 & 19.5 & \\
+Base & TS & 2 & 3 & Scala & 777 & 8 & 294 & 0.0218 & 47.5 & 19.9 & \\
+Base & TS & 3 & 1 & SQL & 423 & 4 & 318 & 0.0357 & 24.9 & 19.1 & \\
+Base & TS & 3 & 1 & Scala & 423 & 4 & 318 & 0.0337 & 25.6 & 19.5 & \\
+Base & TS & 3 & 2 & SQL & 618 & 6 & 309 & 0.0329 & 36.9 & 19.2 & \\
+Base & TS & 3 & 2 & Scala & 618 & 6 & 309 & 0.0255 & 38.0 & 19.5 & \\
+Base & TS & 3 & 3 & SQL & 729 & 7 & 315 & 0.0274 & 43.0 & 20.5 & \\
+Base & TS & 3 & 3 & Scala & 729 & 7 & 315 & 0.0241 & 44.5 & 20.5 & \\
+Base & NV & 1 & 1 & SQL & 2797 & 28 & 300 & 0.0420 & 174.1 & 19.6 & \\
+Base & NV & 1 & 1 & Scala & 2797 & 28 & 300 & 0.0408 & 175.8 & 20.0 & \\
+Base & NV & 1 & 2 & SQL & 2863 & 29 & 297 & 0.0454 & 170.1 & 19.6 & \\
+Base & NV & 1 & 2 & Scala & 2863 & 29 & 297 & 0.0076 & 12.9 & 19.4 & yes\\
+Base & NV & 1 & 3 & SQL & 2854 & 29 & 297 & 0.0509 & 176.0 & 19.5 & \\
+Base & NV & 1 & 3 & Scala & 2854 & 29 & 297 & 0.0347 & 176.3 & 20.1 & \\
+Base & NV & 2 & 1 & SQL & 2788 & 28 & 300 & 0.0420 & 168.6 & 19.4 & \\
+Base & NV & 2 & 1 & Scala & 2788 & 28 & 300 & 0.0395 & 176.1 & 20.0 & \\
+Base & NV & 2 & 2 & SQL & 2852 & 29 & 297 & 0.0439 & 166.7 & 19.2 & \\
+Base & NV & 2 & 2 & Scala & 2852 & 29 & 297 & 0.0346 & 182.4 & 19.3 & \\
+Base & NV & 2 & 3 & SQL & 2832 & 28 & 306 & 0.0440 & 181.0 & 19.7 & \\
+Base & NV & 2 & 3 & Scala & 2832 & 28 & 306 & 0.0331 & 177.0 & 20.1 & \\
+Base & NV & 3 & 1 & SQL & 2797 & 28 & 300 & 0.0429 & 174.9 & 19.3 & \\
+Base & NV & 3 & 1 & Scala & 2797 & 28 & 300 & 0.0410 & 169.8 & 19.0 & \\
+Base & NV & 3 & 2 & SQL & 2819 & 28 & 303 & 0.0453 & 166.1 & 20.1 & \\
+Base & NV & 3 & 2 & Scala & 2819 & 28 & 303 & 0.0344 & 172.5 & 20.0 & \\
+Base & NV & 3 & 3 & SQL & 2840 & 28 & 306 & 0.0522 & 166.9 & 20.2 & \\
+Base & NV & 3 & 3 & Scala & 2840 & 28 & 306 & 0.0353 & 173.6 & 20.3 & \\
+Base & repair-TS & 1 & 1 & SQL & 650 & 6 & 327 & 0.0357 & 41.4 & 19.6 & \\
+Base & repair-TS & 1 & 2 & SQL & 830 & 8 & 312 & 0.0455 & 53.7 & 19.7 & \\
+Base & repair-TS & 1 & 2 & Scala & 830 & 8 & 312 & 0.0382 & 55.8 & 19.4 & \\
+Base & repair-TS & 1 & 3 & SQL & 922 & 9 & 309 & 0.0467 & 60.0 & 19.8 & \\
+Base & repair-TS & 1 & 3 & Scala & 922 & 9 & 309 & 0.0374 & 60.9 & 20.1 & \\
+Base & repair-TS & 2 & 1 & SQL & 605 & 6 & 303 & 0.0363 & 39.1 & 19.4 & \\
+Base & repair-TS & 2 & 2 & SQL & 869 & 9 & 291 & 0.0365 & 57.4 & 19.3 & \\
+Base & repair-TS & 2 & 2 & Scala & 869 & 9 & 291 & 0.0373 & 59.2 & 19.4 & \\
+Base & repair-TS & 2 & 3 & SQL & 980 & 10 & 294 & 0.0350 & 64.9 & 19.5 & \\
+Base & repair-TS & 2 & 3 & Scala & 980 & 10 & 294 & 0.0316 & 66.6 & 19.2 & \\
+Base & repair-TS & 3 & 1 & SQL & 627 & 6 & 315 & 0.0389 & 37.0 & 19.2 & \\
+Base & repair-TS & 3 & 2 & SQL & 879 & 9 & 294 & 0.0363 & 57.9 & 19.4 & \\
+Base & repair-TS & 3 & 2 & Scala & 879 & 9 & 294 & 0.0355 & 58.2 & 19.7 & \\
+Base & repair-TS & 3 & 3 & SQL & 1064 & 11 & 291 & 0.0381 & 63.4 & 19.4 & \\
+Base & repair-TS & 3 & 3 & Scala & 1064 & 11 & 291 & 0.0349 & 66.5 & 19.4 & \\
+Instruct & TS & 1 & 1 & SQL & 319 & 3 & 321 & 0.0428 & 20.5 & 19.3 & \\
+Instruct & TS & 1 & 1 & Scala & 319 & 3 & 321 & 0.0470 & 21.3 & 19.9 & \\
+Instruct & TS & 1 & 2 & SQL & 499 & 5 & 300 & 0.0292 & 35.4 & 19.2 & \\
+Instruct & TS & 1 & 2 & Scala & 499 & 5 & 300 & 0.0343 & 36.0 & 19.5 & \\
+Instruct & TS & 1 & 3 & SQL & 522 & 5 & 315 & 0.0302 & 36.5 & 19.4 & \\
+Instruct & TS & 1 & 3 & Scala & 522 & 5 & 315 & 0.0334 & 37.6 & 19.5 & \\
+Instruct & TS & 2 & 1 & SQL & 332 & 3 & 333 & 0.0436 & 23.0 & 19.5 & \\
+Instruct & TS & 2 & 1 & Scala & 332 & 3 & 333 & 0.0474 & 23.4 & 19.5 & \\
+Instruct & TS & 2 & 2 & SQL & 486 & 5 & 294 & 0.0362 & 34.9 & 18.9 & \\
+Instruct & TS & 2 & 2 & Scala & 486 & 5 & 294 & 0.0361 & 35.7 & 19.4 & \\
+Instruct & TS & 2 & 3 & SQL & 529 & 5 & 318 & 0.0301 & 36.4 & 19.4 & \\
+Instruct & TS & 2 & 3 & Scala & 529 & 5 & 318 & 0.0314 & 34.2 & 19.8 & \\
+Instruct & TS & 3 & 1 & SQL & 332 & 3 & 333 & 0.0457 & 21.1 & 19.2 & \\
+Instruct & TS & 3 & 1 & Scala & 332 & 3 & 333 & 0.0463 & 22.3 & 19.3 & \\
+Instruct & TS & 3 & 2 & SQL & 486 & 5 & 294 & 0.0271 & 35.2 & 19.5 & \\
+Instruct & TS & 3 & 2 & Scala & 486 & 5 & 294 & 0.0317 & 34.5 & 19.6 & \\
+Instruct & TS & 3 & 3 & SQL & 526 & 5 & 318 & 0.0240 & 33.2 & 19.7 & \\
+Instruct & TS & 3 & 3 & Scala & 526 & 5 & 318 & 0.0292 & 34.7 & 20.1 & \\
+Instruct & NV & 1 & 1 & SQL & 2881 & 29 & 300 & 0.0531 & 198.6 & 20.3 & \\
+Instruct & NV & 1 & 1 & Scala & 2881 & 29 & 300 & 0.0554 & 197.2 & 19.9 & \\
+Instruct & NV & 1 & 2 & SQL & 2899 & 29 & 300 & 0.0488 & 203.6 & 19.6 & \\
+Instruct & NV & 1 & 2 & Scala & 2899 & 29 & 300 & 0.0484 & 208.7 & 20.5 & \\
+Instruct & NV & 1 & 3 & SQL & 2861 & 29 & 297 & 0.0499 & 203.8 & 19.0 & \\
+Instruct & NV & 1 & 3 & Scala & 2861 & 29 & 297 & 0.0445 & 203.8 & 19.7 & \\
+Instruct & repair-TS & 1 & 1 & SQL & 393 & 4 & 297 & 0.0428 & 28.3 & 19.6 & \\
+Instruct & repair-TS & 1 & 2 & SQL & 595 & 6 & 300 & 0.0370 & 44.0 & 19.5 & \\
+Instruct & repair-TS & 1 & 2 & Scala & 595 & 6 & 300 & 0.0385 & 45.2 & 19.8 & \\
+Instruct & repair-TS & 1 & 3 & SQL & 596 & 6 & 300 & 0.0331 & 46.6 & 19.9 & \\
+Instruct & repair-TS & 1 & 3 & Scala & 596 & 6 & 300 & 0.0368 & 47.7 & 20.0 & \\
+Instruct & repair-TS & 2 & 1 & SQL & 407 & 4 & 306 & 0.0411 & 29.1 & 19.5 & \\
+Instruct & repair-TS & 2 & 2 & SQL & 569 & 6 & 285 & 0.0385 & 41.8 & 19.7 & \\
+Instruct & repair-TS & 2 & 2 & Scala & 569 & 6 & 285 & 0.0390 & 42.9 & 20.0 & \\
+Instruct & repair-TS & 2 & 3 & SQL & 621 & 6 & 312 & 0.0338 & 39.5 & 19.3 & \\
+Instruct & repair-TS & 2 & 3 & Scala & 621 & 6 & 312 & 0.0363 & 40.8 & 19.6 & \\
+Instruct & repair-TS & 3 & 1 & SQL & 397 & 4 & 300 & 0.0435 & 28.5 & 19.7 & \\
+Instruct & repair-TS & 3 & 2 & SQL & 571 & 6 & 288 & 0.0312 & 43.0 & 19.7 & \\
+Instruct & repair-TS & 3 & 2 & Scala & 571 & 6 & 288 & 0.0385 & 39.2 & 19.7 & \\
+Instruct & repair-TS & 3 & 3 & SQL & 612 & 6 & 306 & 0.0303 & 47.4 & 19.7 & \\
+Instruct & repair-TS & 3 & 3 & Scala & 612 & 6 & 306 & 0.0334 & 48.9 & 19.4 & \\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Resumed runs report timings and loss for the part after the restart only. Source: \fpath{train} field of each round's summary.\par}
+\medskip

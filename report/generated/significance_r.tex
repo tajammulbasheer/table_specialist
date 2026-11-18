@@ -1,0 +1,33 @@
+\begin{landscape}
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}p{6.2cm}clrlrp{4.0cm}@{}}
+\caption{NL-to-R: paired bootstrap tests over test cases (10,000 draws, fixed seed). Per case, correctness is averaged over the seeds both models have; the statistic is the mean over cells of A $-$ B with equal cell weights. Per-seed differences show seed variation, which the case bootstrap does not cover.}\label{tab:gen-significance_r}\\
+\toprule
+\rowcolor{headshade}\makecell{Comparison\\(A vs B)} & Seeds & M8: $\Delta$ [95\% CI] & $p$ & ZS4: $\Delta$ [95\% CI] & $p$ & \makecell{Per\\seed (M8)}\\
+\midrule
+\endfirsthead
+\multicolumn{7}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}\makecell{Comparison\\(A vs B)} & Seeds & M8: $\Delta$ [95\% CI] & $p$ & ZS4: $\Delta$ [95\% CI] & $p$ & \makecell{Per\\seed (M8)}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+R: TS r1 vs vanilla & 3 & +0.0809 [+0.0723, +0.0898] & $<$0.0001 & +0.1072 [+0.0946, +0.1202] & $<$0.0001 & +0.0966, +0.0780, +0.0682\\
+R: TS r2 vs vanilla & 3 & +0.1091 [+0.1001, +0.1181] & $<$0.0001 & +0.1311 [+0.1177, +0.1447] & $<$0.0001 & +0.1231, +0.1114, +0.0929\\
+R: TS r3 vs vanilla & 3 & +0.1280 [+0.1184, +0.1374] & $<$0.0001 & +0.1494 [+0.1351, +0.1633] & $<$0.0001 & +0.1566, +0.1025, +0.1248\\
+R: TS r3 vs TS r1 & 3 & +0.0470 [+0.0412, +0.0528] & $<$0.0001 & +0.0422 [+0.0341, +0.0501] & $<$0.0001 & +0.0600, +0.0245, +0.0566\\
+R: repair-TS r1 vs TS r1 & 3 & +0.0110 [+0.0064, +0.0155] & $<$0.0001 & +0.0096 [+0.0034, +0.0159] & 0.0024 & +0.0029, +0.0120, +0.0181\\
+R: repair-TS r2 vs TS r2 & 3 & +0.0202 [+0.0151, +0.0254] & $<$0.0001 & +0.0228 [+0.0157, +0.0300] & $<$0.0001 & +0.0096, +0.0228, +0.0282\\
+R: repair-TS r3 vs TS r3 & 3 & +0.0244 [+0.0190, +0.0299] & $<$0.0001 & +0.0282 [+0.0205, +0.0363] & $<$0.0001 & +0.0137, +0.0364, +0.0232\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Source: \fpath{results/analysis/significance_r.json}, written by \fpath{ts/analysis/significance.py}.\par}
+\medskip
+\end{landscape}

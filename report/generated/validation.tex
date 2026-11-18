@@ -1,0 +1,56 @@
+\begin{landscape}
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}llccrrrrrrrrrrrr@{}}
+\caption{Algorithm~3 outcomes for every validated round (3,000 tables per round). Each question yields one SQL--Scala pair; a pair is kept only if both programs run and agree on all 10 row samples. Rejection reasons are mutually exclusive and are assigned in the order the validator checks them.}\label{tab:gen-validation}\\
+\toprule
+\rowcolor{headshade}Model & Arm & S & R & Questions & SQL code & \makecell{Scala\\code} & Kept & Kept \% & \makecell{Always\\empty} & Disagree & \makecell{Scala\\failed} & \makecell{SQL\\failed} & No code & Error & \makecell{Scala\\runs}\\
+\midrule
+\endfirsthead
+\multicolumn{16}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Model & Arm & S & R & Questions & SQL code & \makecell{Scala\\code} & Kept & Kept \% & \makecell{Always\\empty} & Disagree & \makecell{Scala\\failed} & \makecell{SQL\\failed} & No code & Error & \makecell{Scala\\runs}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{16}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Base & TS & 1 & 1 & 2904 & 2844 & 2848 & 426 & 14.7 & 621 & 840 & 855 & 53 & 105 & 4 & 6172\\
+Base & TS & 1 & 2 & 2918 & 2900 & 2900 & 608 & 20.8 & 608 & 952 & 658 & 59 & 32 & 1 & 7926\\
+Base & TS & 1 & 3 & 2918 & 2874 & 2888 & 672 & 23.0 & 622 & 900 & 559 & 95 & 67 & 3 & 8614\\
+Base & TS & 2 & 1 & 2888 & 2846 & 2820 & 388 & 13.4 & 660 & 820 & 857 & 61 & 100 & 2 & 5769\\
+Base & TS & 2 & 2 & 2916 & 2880 & 2873 & 655 & 22.5 & 621 & 942 & 538 & 83 & 73 & 4 & 8284\\
+Base & TS & 2 & 3 & 2911 & 2891 & 2875 & 777 & 26.7 & 585 & 954 & 502 & 38 & 53 & 2 & 9576\\
+Base & TS & 3 & 1 & 2893 & 2848 & 2837 & 423 & 14.6 & 656 & 781 & 876 & 57 & 96 & 4 & 6088\\
+Base & TS & 3 & 2 & 2890 & 2875 & 2857 & 618 & 21.4 & 620 & 941 & 565 & 98 & 46 & 2 & 7921\\
+Base & TS & 3 & 3 & 2908 & 2894 & 2849 & 729 & 25.1 & 618 & 951 & 485 & 52 & 70 & 3 & 9037\\
+Base & repair-TS & 1 & 2 & 2918 & 2898 & 2838 & 690 & 23.6 & 583 & 906 & 537 & 108 & 93 & 1 & 8604\\
+Base & repair-TS & 1 & 3 & 2918 & 2882 & 2842 & 761 & 26.1 & 612 & 817 & 545 & 74 & 106 & 3 & 9316\\
+Base & repair-TS & 2 & 2 & 2916 & 2902 & 2874 & 713 & 24.5 & 688 & 889 & 515 & 56 & 51 & 4 & 8808\\
+Base & repair-TS & 2 & 3 & 2911 & 2899 & 2849 & 829 & 28.5 & 556 & 833 & 568 & 53 & 70 & 2 & 10001\\
+Base & repair-TS & 3 & 2 & 2890 & 2857 & 2837 & 701 & 24.3 & 633 & 890 & 530 & 53 & 81 & 2 & 8714\\
+Base & repair-TS & 3 & 3 & 2908 & 2879 & 2821 & 896 & 30.8 & 579 & 772 & 478 & 76 & 104 & 3 & 10509\\
+Instruct & TS & 1 & 1 & 2978 & 2923 & 2932 & 319 & 10.7 & 1007 & 626 & 691 & 234 & 97 & 4 & 4710\\
+Instruct & TS & 1 & 2 & 2976 & 2960 & 2932 & 499 & 16.8 & 1050 & 586 & 580 & 205 & 55 & 1 & 6377\\
+Instruct & TS & 1 & 3 & 2974 & 2947 & 2935 & 522 & 17.6 & 993 & 601 & 591 & 203 & 61 & 3 & 6692\\
+Instruct & TS & 2 & 1 & 2983 & 2917 & 2949 & 332 & 11.1 & 1028 & 605 & 702 & 216 & 98 & 2 & 4827\\
+Instruct & TS & 2 & 2 & 2980 & 2945 & 2934 & 486 & 16.3 & 956 & 562 & 641 & 257 & 75 & 3 & 6310\\
+Instruct & TS & 2 & 3 & 2973 & 2948 & 2909 & 529 & 17.8 & 938 & 625 & 537 & 256 & 86 & 2 & 6675\\
+Instruct & TS & 3 & 1 & 2982 & 2913 & 2942 & 332 & 11.1 & 1034 & 587 & 719 & 204 & 102 & 4 & 4845\\
+Instruct & TS & 3 & 2 & 2966 & 2927 & 2907 & 486 & 16.4 & 1009 & 581 & 572 & 227 & 89 & 2 & 6216\\
+Instruct & TS & 3 & 3 & 2967 & 2943 & 2871 & 526 & 17.7 & 967 & 555 & 556 & 245 & 115 & 3 & 6596\\
+Instruct & repair-TS & 1 & 2 & 2976 & 2955 & 2936 & 500 & 16.8 & 1048 & 600 & 569 & 203 & 55 & 1 & 6396\\
+Instruct & repair-TS & 1 & 3 & 2974 & 2952 & 2919 & 507 & 17.0 & 1005 & 654 & 521 & 212 & 73 & 2 & 6550\\
+Instruct & repair-TS & 2 & 2 & 2980 & 2949 & 2954 & 492 & 16.5 & 979 & 574 & 601 & 276 & 54 & 4 & 6350\\
+Instruct & repair-TS & 2 & 3 & 2973 & 2951 & 2929 & 525 & 17.7 & 989 & 649 & 533 & 211 & 64 & 2 & 6628\\
+Instruct & repair-TS & 3 & 2 & 2966 & 2935 & 2917 & 479 & 16.1 & 1009 & 619 & 519 & 268 & 70 & 2 & 6145\\
+Instruct & repair-TS & 3 & 3 & 2967 & 2944 & 2897 & 531 & 17.9 & 997 & 621 & 532 & 196 & 87 & 3 & 6738\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} ``Error'' counts pairs stopped by an unexpected exception (all were SQLite integer overflows). Repair-TS round~1 reuses TS round~1's validation, so it has no row of its own. Sources: \fpath{runs/train_<arm>_<profile>_seed<s>/round<r>/{summary,result}.json}.\par}
+\medskip
+\end{landscape}

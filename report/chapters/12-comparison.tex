@@ -1,0 +1,158 @@
+\chapter{Comparative Analysis: The Paper and Our Work}\label{ch:comparison}
+
+\section{Method, architecture and algorithms}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.0cm}p{4.9cm}p{4.9cm}p{1.8cm}@{}}
+\caption{The paper's method against ours, component by component. Type: C = forced by a constraint, M = a
+methodological correction, O = our choice where the paper is silent, X = our extension.}\label{tab:adaptations}\\
+\toprule\rowcolor{headshade}Component & Paper / repository & Ours & Type\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Component & Paper / repository & Ours & Type\\\midrule\endhead
+\bottomrule\endfoot
+Model architecture & Llama-3.1-8B with LoRA adapters & Same; base and Instruct as two tracks & C\\
+Query path & Chat call with a fixed system message (repo) & Instruct: same. Base: raw completions, first code block
+& C\\
+Loop & Algorithm 1, up to 3 rounds & 3 rounds, 3 seeds, restart from vanilla, new data each round & O\\
+Question model & Unstated & Vanilla every round & O\\
+Dual language & Spark-Scala & Spark-Scala (first plan: Pandas, reversed) & --\\
+Validation sampling & 10 $\times$ 50\% samples (repo) & Same & --\\
+Validation comparison & ``$r \neq r'$'', undefined; the repo never compares & Order- and name-insensitive, typed,
+tolerant; always-empty rejected & M\\
+Rejected pairs & Discarded & Discarded (TS); repaired once (repair-TS); sampled (bestof4); used as negatives (DPO) &
+X\\
+Error-detection loop & Algorithm 2; generator and validator per round unstated & Vanilla writes errors; previous
+adapter validates & O\\
+NL-to-R validation & Not released & SQL--R agreement & O\\
+Test-time inference & Greedy (presumably) & Greedy; self-consistency reported separately & X\\
+\end{longtable}
+}
+
+\section{Data}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.0cm}p{5.4cm}p{6.2cm}@{}}
+\caption{Data differences.}\label{tab:data-diff}\\
+\toprule\rowcolor{headshade}Data & Paper & Ours\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Data & Paper & Ours\\\midrule\endhead
+\bottomrule\endfoot
+Training tables & ``A large corpus'', likely web tables; unreleased & GitTables 1M licensed subset, filtered to 10,053
+tables; 9,000 used per seed\\
+WikiSQL & 1,000 cases; sampling unstated & 1,000 from a seed-42 shuffle; lowercase cells\\
+WikiTQ & 1,000; split unstated & 1,000 from \texttt{pristine-unseen-tables}\\
+Spider & 1,198 & 1,198 single-table test questions (count matches)\\
+BIRD & 356 & 363 single-table dev questions (7 more; cause unknown)\\
+Text2Analysis & 271 & Not available\\
+AutoTest ST / RT & 1,126 / 1,081 & 1,126 / 1,081 (prompt-length filter; counts match)\\
+\end{longtable}
+}
+
+\section{Training, evaluation and hyper-parameters}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.6cm}p{4.6cm}p{6.4cm}@{}}
+\caption{Training and evaluation differences.}\label{tab:train-diff}\\
+\toprule\rowcolor{headshade}Setting & Paper & Ours\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Setting & Paper & Ours\\\midrule\endhead
+\bottomrule\endfoot
+Fine-tuning & LoRA; batch 1\%; LR multiplier 0.5 & LoRA r16, $\alpha$32, dropout 0.05, all linear layers; LR
+$2\times10^{-4}$ cosine; 3 epochs; batch 1\% by accumulation; bf16\\
+Training prompt format & Unrecorded (the repo's defaults error) & Repo zero-shot prompt classes; chat form on Instruct\\
+Rounds reported & Unstated & Every round; last round in headline tables\\
+Test prompt & Unstated & Zero-shot (repo default) and few-shot\\
+Scoring & Repo evaluators (assumed) & Repo-faithful (patched for pandas 3) and corrected\\
+Seeds & Unreported & 3\\
+Statistics & None reported & Wilson intervals; paired bootstrap; per-seed differences\\
+Compute & Unstated (GPT-3.5 via the OpenAI API; Llama hardware unstated) & 2 $\times$ RTX 4500 Ada, 40 CPUs, 14 days
+wall clock\\
+\end{longtable}
+}
+
+\section{Performance}\label{sec:perf-compare}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{2.6cm}p{1.5cm}rrrrrp{2.8cm}@{}}
+\caption{Every result that can be compared with the paper. ``Ours'' is the mean over seeds 1--3 at round~3 for
+fine-tuned models. Paper values: published Table~3, Llama-3.1-8B.}\label{tab:perf-compare}\\
+\toprule\rowcolor{headshade}Task, set & Model & \makecell{Paper\\vanilla} & \makecell{Our\\vanilla} &
+\makecell{Paper\\TS} & \makecell{Our\\TS} & \makecell{TS\\diff.} & Status\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Task, set & Model & \makecell{Paper\\vanilla} & \makecell{Our\\vanilla} &
+\makecell{Paper\\TS} & \makecell{Our\\TS} & \makecell{TS\\diff.} & Status\\\midrule\endhead
+\bottomrule\endfoot
+NL-to-SQL, WikiSQL & Instruct & 0.525 & 0.518 & 0.816 & 0.7843 & $-0.032$ & Approximate\\
+NL-to-SQL, WikiTQ & Instruct & 0.300 & 0.289 & 0.449 & 0.4233 & $-0.026$ & Approximate\\
+NL-to-SQL, Spider & Instruct & 0.670 & 0.7913 & 0.690 & 0.8058 & $+0.116$ & Offset in all models\\
+NL-to-SQL, BIRD & Instruct & 0.388 & 0.4022 & 0.438 & 0.4316 & $-0.006$ & Approximate\\
+NL-to-SQL, \ZSiv{} & Instruct & 0.4708 & 0.5001 & 0.5983 & 0.6113 & $+0.013$ & Approximate\\
+NL-to-SQL, WikiSQL & Base & 0.525 & 0.326 & 0.816 & 0.7790 & $-0.037$ & Vanilla not reproduced\\
+NL-to-SQL, WikiTQ & Base & 0.300 & 0.219 & 0.449 & 0.3217 & $-0.127$ & Not reproduced\\
+NL-to-SQL, Spider & Base & 0.670 & 0.7245 & 0.690 & 0.7031 & $+0.013$ & Within gate\\
+NL-to-SQL, BIRD & Base & 0.388 & 0.3636 & 0.438 & 0.3802 & $-0.058$ & Not reproduced\\
+NL-to-SQL, \ZSiv{} & Base & 0.4708 & 0.4083 & 0.5983 & 0.5460 & $-0.052$ & Direction only\\
+NL-to-Scala, WikiSQL & Instruct & 0.359 & 0.341 & 0.728 & 0.671 & $-0.057$ & Approximate
+vanilla\\
+NL-to-Scala, WikiTQ & Instruct & 0.043 & 0.042 & 0.188 & 0.315 & $+0.127$ & TS above paper\\
+NL-to-Scala, Spider & Instruct & 0.249 & 0.3005 & 0.356 & 0.5765 & $+0.221$ & TS above paper\\
+NL-to-Scala, BIRD & Instruct & 0.100 & 0.0909 & 0.228 & 0.3039 & $+0.076$ & TS above paper\\
+NL-to-Scala, \ZSiv{} & Instruct & 0.1878 & 0.1936 & 0.3750 & 0.4666 & $+0.092$ & Vanilla
+approximate\\
+Error detection, ST & Instruct & 0.071 & 0.0659 & 0.136 & 0.2785 & $+0.143$ & Vanilla
+approximate\\
+Error detection, RT & Instruct & 0.108 & 0.1111 & 0.161 & 0.2979 & $+0.137$ & Vanilla
+approximate\\
+NL-to-R, WikiSQL & Instruct & 0.331 & 0.326 & 0.409 & 0.5057 & $+0.097$ & TS above paper\\
+NL-to-R, WikiTQ & Instruct & 0.138 & 0.150 & 0.257 & 0.3147 & $+0.058$ & TS above paper\\
+NL-to-R, Spider & Instruct & 0.503 & 0.5993 & 0.536 & 0.7156 & $+0.180$ & Offset; TS above\\
+NL-to-R, BIRD & Instruct & 0.225 & 0.2314 & 0.261 & 0.3682 & $+0.107$ & TS above paper\\
+NL-to-R, \ZSiv{} & Instruct & 0.2993 & 0.3267 & 0.3658 & 0.4760 & $+0.110$ & TS above paper\\
+\end{longtable}
+}
+
+\section{What explains the differences}
+
+For each difference, the candidate causes below are listed with the evidence for each.
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Base vanilla far below the paper (WikiSQL $-0.199$).]
+\emph{Most likely cause:} the model and query path. Instruct through the repository's chat call closes the gap on
+three sets, while base fails under six settings. \emph{Not the cause:} WikiSQL letter case, which was tested and makes
+it worse.
+\item[Spider above the paper for every model (+0.055 to +0.121).]
+\emph{Most likely cause:} the case set or the scoring, because the offset is the same for vanilla and fine-tuned
+models. Our count matches the paper's, but the paper's case list is unpublished. The corrected score moves Spider by at
+most +0.028, so order-sensitivity explains only part of it.
+\item[Instruct TS slightly below the paper on WikiSQL, WikiTQ and BIRD (0.006--0.032).]
+\emph{Candidates:} training corpus, training settings and the round reported. Our gains over vanilla are 0.005--0.025
+smaller than the paper's. That is within the spread between our own seeds and rounds (for example, WikiSQL SD 0.031
+across seeds).
+\item[Our Scala, R and error-detection TS well above the paper's figures.]
+\emph{Unattributed.} Vanilla matches the paper, so the difference arises in fine-tuning. Candidates are the corpus, our
+loop choices (who writes errors, who validates), the model and the round reported. Our design does not separate them.
+(The paper's own averages, such as 0.343 for Scala, include Text2Analysis; over the four public sets its Scala TS is
+0.375.)
+\item[Repair-TS above TS.]
+This is attributable to the method within our setting: a paired comparison, same questions and tables, with a
+same-data control. It is \emph{not} a comparison with the paper, which has no repair.
+\end{description}
+
+\begin{keypoint}
+We make no claim of superiority over the paper. Where our numbers are higher (Spider; Scala and error-detection TS),
+the cause is unattributed or lies in the test protocol. Our methodological contribution is measured only against our
+own reproduction of TS, under identical conditions.
+\end{keypoint}
+
+\section{Computational and implementation constraints}
+
+\begin{itemize}
+\item \textbf{CPU-bound validation.} Spark validation, at 40--46~s per program with 36 workers, took 2.0--5.1~h per
+round, and became the bottleneck once several seeds ran at once.
+\item \textbf{Two GPUs.} Training and serving had to share them with strict one-job-per-GPU rules. GPU pools and a
+validation lock kept both GPUs busy while one seed validated.
+\item \textbf{Same budget for every arm.} No-validation trains on about 6.6 times more data per round, so it was the
+most GPU-expensive arm despite skipping validation.
+\item \textbf{Repository gaps cost engineering time.} The missing comparator, the broken evaluator and the sandbox limit
+cost engineering effort, but did not limit what could be run.
+\end{itemize}

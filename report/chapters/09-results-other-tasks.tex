@@ -1,0 +1,206 @@
+\chapter{Results: The Paper's Other Tasks}\label{ch:results-other}
+
+\section{NL-to-Scala}\label{sec:results-scala}
+
+All 152 cells are scored: 19 Instruct models $\times$ 4 test sets $\times$ 2 prompts. Scoring finished on 2026-11-16
+at 06:04. The Scala adapters were trained inside the NL-to-SQL runs of \cref{ch:results-sql,ch:results-ext}, on the
+Scala side of the same validated (and, for repair-TS, recovered) pairs.
+
+\input{generated/scala.tex}
+\input{generated/scala_stats.tex}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.62\textwidth,height=6.0cm,xmin=0.7,xmax=3.3,xtick={1,2,3},xlabel={Round},
+  ylabel={\ZSiv{} (zero-shot mean of 4)},ymin=0.15,ymax=0.52,ymajorgrids,grid style={headshade},
+  legend style={font=\scriptsize,at={(0.97,0.03)},anchor=south east,draw=none},tick label style={font=\scriptsize}]
+  \addplot[navy,thick,mark=*,error bars/.cd,y dir=both,y explicit] coordinates {\plotScalaTS};
+  \addplot[sea,thick,mark=triangle*,error bars/.cd,y dir=both,y explicit] coordinates {\plotScalaRTS};
+  \addplot[slate,dashed,domain=0.7:3.3] {\valScalaVanilla};
+  \addplot[amber,thick,dotted,domain=0.7:3.3] {0.3750};
+  \addplot[amber!60!black,densely dashed,domain=0.7:3.3] {0.1878};
+  \legend{TS,repair-TS,our vanilla,paper TS,paper vanilla}
+\end{axis}
+\end{tikzpicture}
+\caption{NL-to-Scala \ZSiv{} by round (mean over seeds, one-SD error bars), against the paper's Llama
+figures (horizontal lines; published Table~3, mean of the 4 public sets).}
+\label{fig:scala}
+\end{figure}
+
+\begin{observation}
+\begin{itemize}
+\item \textbf{Vanilla} has \ZSiv{} 0.1936 against the paper's 0.1878. It is within 0.018 on WikiSQL
+(0.341), WikiTQ (0.042) and BIRD (0.091), and $+0.052$ on Spider (0.3005).
+\item \textbf{TS} improves every round with both prompts: \ZSiv{} 0.3860, 0.4410, 0.4666. At round~3 it is 0.0916
+above the paper's TS (0.3750). It is higher on WikiTQ ($+0.127$), Spider ($+0.221$) and BIRD ($+0.076$),
+and 0.057 lower on WikiSQL.
+\item \textbf{Repair-TS} is ahead of TS at every round on \Mviii{}: $+0.0141$, $+0.0337$ and $+0.0167$, all
+$p<0.0001$, and all 9 seed-round differences positive (\cref{tab:gen-significance_scala}).
+\item On \ZSiv{}, repair-TS peaks by round~2 (0.4824) and is flat at round~3 (0.4817), with a quarter of TS's seed
+spread (SD 0.0031 against 0.0129).
+\item Its gains are on WikiTQ and Spider. BIRD at round~3 is $-0.019$.
+\item \textbf{Few-shot} helps vanilla most (\ZSiv{} 0.1936; few-shot mean of 4 0.3386) and slightly lowers the
+fine-tuned models: TS 0.4541 and repair-TS 0.4726 few-shot, against 0.4666 and 0.4817 zero-shot.
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+Two results stand out.
+\begin{itemize}
+\item \textbf{TS on Scala is well above the paper's figure.} We cannot attribute this: corpus, model
+checkpoint and the paper's round choice are all candidate causes.
+\item \textbf{Repair-TS helps Scala even on Instruct, where it does not help SQL} (\cref{sec:ext-repair}). On
+Instruct, 60\% of recovered pairs (450 of 744) carry a Scala program written by the repairer, against 35\% for SQL
+(259). Repair therefore adds more new Scala than new SQL to the training sets. Scala is also the weaker language:
+vanilla scores 0.19 against 0.50 for SQL (\ZSiv{}). Both facts are consistent with the result, but neither is tested
+as its cause.
+\end{itemize}
+\end{interpretation}
+
+\section{Error detection}\label{sec:results-ed}
+
+\input{generated/ed_summary.tex}
+\input{generated/ed.tex}
+\input{generated/ed_rounds.tex}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1,horizontal sep=1.5cm},width=0.47\textwidth,height=5.8cm,
+  xmin=0.7,xmax=3.3,xtick={1,2,3},xlabel={Round},ymin=0,ymax=0.4,ymajorgrids,grid style={headshade},
+  legend style={font=\tiny,at={(0.97,0.03)},anchor=south east,draw=none,fill=white,fill opacity=0.85},
+  tick label style={font=\scriptsize},title style={font=\small\bfseries}]
+\nextgroupplot[title={ST-bench (F1, repo metric)},ylabel={F1}]
+  \addplot[navy,thick,mark=*] coordinates {\plotEDTSSTsa};
+  \addplot[navy!60,thick,mark=square*] coordinates {\plotEDTSSTsb};
+  \addplot[navy!35,thick,mark=diamond*] coordinates {\plotEDTSSTsc};
+  \addplot[coral,thick,mark=triangle*] coordinates {\plotEDREDSTsa};
+  \addplot[coral!60,thick,mark=triangle] coordinates {\plotEDREDSTsb};
+  \addplot[slate,dashed,domain=0.7:3.3] {0.0659};
+  \addplot[amber,dotted,thick,domain=0.7:3.3] {0.136};
+  \legend{TS s1,TS s2,TS s3,repair-ED s1,repair-ED s2,our vanilla,paper TS\textsuperscript{\dag}}
+\nextgroupplot[title={RT-bench (F1, repo metric)}]
+  \addplot[navy,thick,mark=*] coordinates {\plotEDTSRTsa};
+  \addplot[navy!60,thick,mark=square*] coordinates {\plotEDTSRTsb};
+  \addplot[navy!35,thick,mark=diamond*] coordinates {\plotEDTSRTsc};
+  \addplot[coral,thick,mark=triangle*] coordinates {\plotEDREDRTsa};
+  \addplot[coral!60,thick,mark=triangle] coordinates {\plotEDREDRTsb};
+  \addplot[slate,dashed,domain=0.7:3.3] {0.1111};
+  \addplot[amber,dotted,thick,domain=0.7:3.3] {0.161};
+\end{groupplot}
+\end{tikzpicture}
+\caption{Error-detection F1 per seed and round. Repair-ED lines show the rounds finished when the tables were
+generated.}
+\label{fig:ed}
+\end{figure}
+
+\begin{observation}
+\textbf{Vanilla} (Instruct, repo zero-shot prompt) has F1 0.0659 (ST) and 0.1111 (RT), against the paper's 0.071 and
+0.108: within 0.006. It flags about 40\% of columns, almost all of them clean (precision 0.036 and 0.061),
+and finds about half of the real errors (recall 0.43 and 0.58). 36 ST and 46 RT answers had no parseable JSON, which
+counts as no prediction.
+
+\textbf{TS}, round~3 means over 3 seeds: ST 0.2785, RT 0.2979. That is about twice the paper's
+0.136 and 0.161.
+\begin{itemize}
+\item ST rises every round on every seed.
+\item RT rises every round on seed~1 only. Seeds 2 and 3 fall from round~2 to round~3 (0.3009 $\to$ 0.2857 and 0.3265
+$\to$ 0.2889).
+\end{itemize}
+
+\textbf{The validator becomes more lenient each round} (\cref{tab:gen-ed-rounds}). For seed~1:
+\begin{itemize}
+\item semantic errors kept: 663, then 1,393, then 1,649;
+\item clean columns kept: 1,048, then 1,653, then 1,746 (of 2,000);
+\item training examples: 2,188, then 3,537, then 3,936.
+\end{itemize}
+\end{observation}
+
+\begin{observation}
+\textbf{Repair-ED and its controls} (\cref{tab:gen-ed-summary}; tests in \cref{tab:gen-significance-ed}). Each round
+recovered 491--696 rejected errors (\cref{tab:gen-ed-rounds}).
+\begin{itemize}
+\item \textbf{Round~1:} repair-ED averages 0.2369 against TS's 0.2096, $+0.027$ ($p=0.03$, all three seeds positive).
+\item \textbf{Same-data control} (as many extra kept errors from another seed's TS round~1): 0.2138, only $+0.004$ over
+TS ($p=0.69$). Repair-ED beats it by $+0.023$ ($p=0.03$; RT $+0.038$, $p=0.009$), so the round-1 gain is not data
+volume alone.
+\item \textbf{Best-of-2 control} (a second sample without feedback, then the same validation): 0.2311, $+0.022$ over TS
+($p=0.12$). Repair-ED is only $+0.006$ above it ($p=0.71$), with seeds split in sign.
+\item \textbf{Rounds 2 and 3:} the gain over TS shrinks to $+0.006$ ($p=0.70$) and $+0.011$ ($p=0.58$). At round~3
+repair-ED is lower on ST ($-0.020$) and higher on RT ($+0.042$), and seed~1 is below TS.
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+Retrying rejected errors helps the first round, but the evidence does not show that the execution feedback is what
+helps: a plain second sample does about as well. The effect does not accumulate over rounds, unlike repair-TS on
+NL-to-Scala and NL-to-R. The test sets are small (42 and 36 columns with errors), so differences of 0.02--0.04 F1
+are within one or two columns, and every interval except round~1's crosses zero.
+\end{interpretation}
+
+\begin{interpretation}
+Our error-detection TS exceeds the paper's TS figure by a wide margin, from a vanilla that matches it.
+Two of our loop choices are not in the paper: vanilla writes the errors, and the previous round's adapter validates.
+Either could raise the result, as could our corpus. The round-3 RT decline on two seeds coincides with a validator that
+keeps more columns each round. One possible reading is that later validators accept less obvious errors, which makes
+the training signal noisier. This is a hypothesis, not tested.
+\end{interpretation}
+
+\section{NL-to-R}\label{sec:results-r}
+
+NL-to-R was approved on 2026-11-16 at 08:40. It was built the same day, under the user's instruction not to slow the
+running error-detection experiments.
+
+\begin{itemize}
+\item \textbf{R sandbox.} Our \fpath{sandbox/Dockerfile.r} is the repository's recipe (r-base by digest, user 65534)
+plus Debian's \texttt{r-cran-dplyr}, which every repository NL-to-R prompt loads. Installing it upgraded R from 4.4.2
+to 4.6.1 (dplyr 1.2.1). One R program takes about 2.3--2.7~s in the sandbox, against about 40--46~s for Spark.
+\item \textbf{Code.} Validation (\fpath{ts/validate/r_agree.py}), the loop (\fpath{ts/r_loop.py}, TS and repair-TS
+arms) and scoring (\fpath{ts/eval/r_eval.py}, the repository's \texttt{nr\_evaluator} rules). 9 unit tests; the full
+suite passes.
+\item \textbf{CPU checks.}
+  \begin{itemize}
+  \item Hand-written R for three WikiSQL test cases scored as expected in the real sandbox: two correct, one deliberately
+  wrong.
+  \item A real TS pair with a deliberately wrong R program was correctly rejected (\texttt{disagree} on the first
+  sample), and its repair feedback was correctly formed.
+  \end{itemize}
+\item \textbf{Schedule.} GPU runs use GPU~0 only until error detection finishes, with the user's approval of
+2026-11-16 10:05.
+\end{itemize}
+
+\textbf{Runs.} TS-R and repair-TS-R, 3 seeds $\times$ 3 rounds each, 3,000 tables per round, finished on
+2026-11-17. The smoke test exposed a bug before the full runs: repair feedback kept only the first line of dplyr's
+errors (\texttt{Error in filter():}) and dropped the cause on the following lines; it was fixed and unit-tested
+(\cref{sec:fail-r-feedback}). Validation kept 321--579 pairs per round (about 11--19\% of questions); repair recovered
+84--126 more: 25--31\% on top in round~1 and 16--23\% in rounds 2--3.
+
+\input{generated/nlr.tex}
+\input{generated/nlr_stats.tex}
+
+\begin{observation}
+\begin{itemize}
+\item \textbf{Vanilla} has \ZSiv{} 0.3267 (few-shot 0.3746). Most failures are code that does not run, typically column
+names containing spaces left unquoted in \texttt{dplyr} calls. The paper's Table~3 gives 0.331, 0.138, 0.503 and
+0.225 on WikiSQL, WikiTQ, Spider and BIRD (mean of 4: 0.2993; its 0.260 average includes Text2Analysis). Ours is within
+0.012 on WikiSQL, WikiTQ and BIRD, and $+0.096$ on Spider, the same Spider offset seen for NL-to-SQL.
+\item \textbf{TS-R} improves every round: \ZSiv{} 0.4339, 0.4578, 0.4760. At round~3 it is $+0.128$ over vanilla on
+\Mviii{} ($p<0.0001$, every seed), and round~3 beats round~1 by $+0.047$ ($p<0.0001$, every seed). The largest gains
+are on WikiTQ (0.150 $\to$ 0.315) and WikiSQL (0.326 $\to$ 0.506).
+\item \textbf{Against the paper's TS} (0.409, 0.257, 0.536, 0.261; mean of 4 0.3658), our round-3 TS-R is higher on all
+four sets: WikiSQL $+0.097$, WikiTQ $+0.058$, Spider $+0.180$, BIRD $+0.107$, and $+0.110$ on the mean of 4. The paper's
+own gain over vanilla is $+0.067$ on the same four sets; ours is $+0.149$.
+\item \textbf{Repair-TS-R} beats TS-R at every round on every seed: \Mviii{} $+0.0110$, $+0.0202$, $+0.0244$, all
+$p<0.0001$ (\cref{tab:gen-significance_r}). Its round-3 \ZSiv{} is 0.5043 $\pm$ 0.0128, the best NL-to-R model, with
+half TS-R's seed SD. The gain comes mostly from WikiSQL ($+0.097$ zero-shot at round~3) and WikiTQ; Spider and BIRD
+are flat.
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+NL-to-R behaves like NL-to-Scala, not like Instruct NL-to-SQL: the trained language's first-pass data is weak (only
+11\% of round-1 questions pass validation), rounds help, and recovered data helps more each round. This fits the
+conditional claim of \cref{sec:novelty}. No same-data control was run for R, so the share of the gain due to the extra
+16--31\% of pairs, rather than to their repaired content, is not measured.
+\end{interpretation}

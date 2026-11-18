@@ -1,0 +1,30 @@
+\begin{tikzpicture}[
+  box/.style={draw=sea,fill=oursbg,rounded corners=3pt,thick,align=center,font=\sffamily\scriptsize,minimum height=1.05cm,text width=2.5cm},
+  repo/.style={box,draw=amber,fill=paperbg},
+  arr/.style={-{Stealth[length=4.5pt]},thick,color=slate},
+  lab/.style={font=\sffamily\scriptsize,text=slate,fill=white,inner sep=1.5pt}]
+  % row 1: questions
+  \node[box]  (corpus) at (0,0)    {GitTables corpus\\10,053 tables\\\fpath{ts/corpus/build.py}};
+  \node[repo] (qp)     at (3.3,0)  {Question prompt and\\requirement sampler\\(repo, read by AST)};
+  \node[box]  (qgen)   at (6.6,0)  {Vanilla writes\\questions, $T=0.7$};
+  \node[repo] (cp)     at (9.9,0)  {Few-shot SQL and\\Scala prompts (repo)};
+  % row 2: code, validation, training
+  \node[box]  (train)  at (0,-2.1)   {LoRA SFT from vanilla:\\SQL and Scala\\adapters};
+  \node[box]  (val)    at (6.6,-2.1) {Algorithm 3 with\\our comparator\\\fpath{exec_agree.py}};
+  \node[box]  (code)   at (9.9,-2.1) {Previous adapters\\write SQL and Scala;\\greedy, first block};
+  % row 3: evaluation and execution
+  \node[box]  (eval)   at (0,-4.3)   {Score SQL adapter:\\4 test sets $\times$\\2 prompts};
+  \node[repo] (evrepo) at (3.3,-4.3) {NSEvaluator (repo,\\patched) and our\\corrected comparator};
+  \node[repo] (sbx)    at (6.6,-4.3) {Spark sandbox (repo;\\open-file patch only)};
+  \node[box]  (next)   at (9.9,-4.3) {Adapters become\\the next round's\\generators};
+  % shared services band
+  \node[draw=slate,fill=rowshade,rounded corners=2pt,align=center,font=\sffamily\scriptsize,text width=12.3cm,minimum height=0.6cm]
+    (infra) at (4.95,-5.75) {Shared services: vLLM server $\cdot$ SQLite response cache $\cdot$ GPU locks $\cdot$ Spark validation lock $\cdot$ resume from files};
+  \draw[arr] (corpus) -- (qp); \draw[arr] (qp) -- (qgen); \draw[arr] (qgen) -- (cp);
+  \draw[arr] (cp) -- (code); \draw[arr] (code) -- (val);
+  \draw[arr] (val) -- node[lab,above=1pt]{kept pairs (TS) / all pairs (NV)} (train);
+  \draw[arr] (sbx) -- (val);
+  \draw[arr] (train) -- (eval); \draw[arr] (evrepo) -- (eval);
+  \draw[arr] ($(train.south)+(0.75,0)$) |- ($(next.north)+(-0.6,0.42)$) -- ($(next.north)+(-0.6,0)$);
+  \draw[arr,dashed] (next.east) -- ++(0.35,0) |- (code.east);
+\end{tikzpicture}

@@ -1,0 +1,37 @@
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lccrrrrrrrrrrr@{}}
+\caption{Core study on Llama-3.1-8B-Instruct: TS on seeds 1--3 and NV on seed~1, every round.}\label{tab:gen-perseed_core_instruct}\\
+\toprule
+\rowcolor{headshade}Arm & Seed & Rd & \multicolumn{2}{c}{WikiSQL} & \multicolumn{2}{c}{WikiTQ} & \multicolumn{2}{c}{Spider} & \multicolumn{2}{c}{BIRD} & M8 & ZS4 & Kept\\\rowcolor{headshade} & & & z & f & z & f & z & f & z & f & & &\\
+\midrule
+\endfirsthead
+\multicolumn{14}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Arm & Seed & Rd & \multicolumn{2}{c}{WikiSQL} & \multicolumn{2}{c}{WikiTQ} & \multicolumn{2}{c}{Spider} & \multicolumn{2}{c}{BIRD} & M8 & ZS4 & Kept\\\rowcolor{headshade} & & & z & f & z & f & z & f & z & f & & &\\
+\midrule
+\endhead
+\midrule
+\multicolumn{14}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+TS & 1 & 1 & 0.8010 & 0.8030 & 0.4220 & 0.4350 & 0.8180 & 0.8155 & 0.4711 & 0.4518 & 0.6272 & 0.6280 & 319\\
+TS & 1 & 2 & 0.8140 & 0.7960 & 0.4450 & 0.4540 & 0.8222 & 0.8114 & 0.4573 & 0.4435 & 0.6304 & 0.6346 & 499\\
+TS & 1 & 3 & 0.7790 & 0.7530 & 0.4260 & 0.4360 & 0.8139 & 0.8047 & 0.4435 & 0.4380 & 0.6118 & 0.6156 & 522\\
+TS & 2 & 1 & 0.8080 & 0.7980 & 0.4110 & 0.4250 & 0.7980 & 0.7788 & 0.4215 & 0.4160 & 0.6070 & 0.6096 & 332\\
+TS & 2 & 2 & 0.7940 & 0.7860 & 0.4220 & 0.4270 & 0.8022 & 0.7830 & 0.4490 & 0.4298 & 0.6116 & 0.6168 & 486\\
+TS & 2 & 3 & 0.7560 & 0.7630 & 0.4220 & 0.4260 & 0.7988 & 0.7713 & 0.4077 & 0.3912 & 0.5920 & 0.5961 & 529\\
+TS & 3 & 1 & 0.7640 & 0.7720 & 0.4020 & 0.4210 & 0.8130 & 0.8013 & 0.4683 & 0.4490 & 0.6113 & 0.6118 & 332\\
+TS & 3 & 2 & 0.7640 & 0.7530 & 0.4130 & 0.4220 & 0.7988 & 0.7796 & 0.4298 & 0.4077 & 0.5960 & 0.6014 & 486\\
+TS & 3 & 3 & 0.8180 & 0.7890 & 0.4220 & 0.4230 & 0.8047 & 0.7938 & 0.4435 & 0.4408 & 0.6169 & 0.6220 & 526\\
+\midrule
+NV & 1 & 1 & 0.7810 & 0.7590 & 0.4230 & 0.4240 & 0.8063 & 0.7863 & 0.4545 & 0.4077 & 0.6052 & 0.6162 & 2881\\
+NV & 1 & 2 & 0.7860 & 0.7540 & 0.4270 & 0.4070 & 0.7922 & 0.7654 & 0.4325 & 0.3994 & 0.5954 & 0.6094 & 2899\\
+NV & 1 & 3 & 0.7260 & 0.6930 & 0.4130 & 0.3920 & 0.7805 & 0.7487 & 0.4215 & 0.3967 & 0.5714 & 0.5852 & 2861\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Repo-faithful execution accuracy; z = zero-shot, f = few-shot prompt. M8 = mean of the 8 cells, ZS4 = mean of the 4 zero-shot cells. Kept = training pairs (validated pairs; every pair with code for NV; kept plus recovered for repair-TS). Source: \fpath{results/baseline/train_<arm>_<profile>_seed<s>_round<r>_*.json} and \fpath{runs/.../summary.json}.\par}
+\medskip

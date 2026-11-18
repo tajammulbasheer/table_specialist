@@ -1,0 +1,61 @@
+\chapter{Reproducing the Experiments}\label{app:reproduce}
+
+The commands below reproduce the study from a fresh clone, in the order it was run. They assume a Linux machine with
+two 24~GB GPUs, Docker, and Hugging Face access to the two Llama checkpoints. Every step resumes from its files, so an
+interrupted command can simply be run again. Long commands should run in their own \texttt{tmux} session.
+
+\section*{1. Environment and data}
+\begin{lstlisting}[language=bash]
+git submodule update --init                     # third_party/Table-Specialist at af1921f
+python3.12 -m venv .venv && .venv/bin/pip install -r configs/requirements.lock
+scripts/download_data.sh                         # WikiSQL, WikiTQ, AutoTest, BIRD dev, GitTables (96 zips)
+# build the sandbox images from the repository's Dockerfiles and sandbox/Dockerfile.r with the base digests
+# recorded in configs/sandbox.env, then:
+set -a; . configs/sandbox.env; . configs/runtime.env; set +a
+.venv/bin/python -m ts.corpus.build              # 10,053 tables, results/corpus_manifest.json
+.venv/bin/python -m ts.bench.wikisql && .venv/bin/python -m ts.bench.wikitq \
+  && .venv/bin/python -m ts.bench.spider && .venv/bin/python -m ts.bench.bird
+\end{lstlisting}
+
+\section*{2. NL-to-SQL core study and extensions}
+\begin{lstlisting}[language=bash]
+scripts/run_study.sh table_specialist 0 8000     # base TS, seeds 1-3, rounds 1-3
+scripts/run_study.sh no_validation 1 8001        # base NV
+.venv/bin/python -m ts.ext2 --seed 1 --gpu 0 --port 8000           # bestof4 + DPO (seeds 1-3)
+.venv/bin/python -m ts.repair_ts --seed 1 --gpu 0 --port 8000      # repair-TS round 1 (seeds 1-3)
+.venv/bin/python -m ts.repair_loop --seed 1                        # repair-TS rounds 2-3 (seeds 1-3)
+TS_PROFILE=base .venv/bin/python -m ts.data_control --seeds 1 2 3
+.venv/bin/python -m ts.sc_run dev && .venv/bin/python -m ts.sc_run test --temperature 1.0
+# Instruct track: the same modules with TS_PROFILE=instruct, e.g.
+TS_PROFILE=instruct .venv/bin/python -m ts.loop --arm table_specialist --seed 1 --gpu-pool
+\end{lstlisting}
+
+\section*{3. Other tasks}
+\begin{lstlisting}[language=bash]
+TS_PROFILE=instruct .venv/bin/python -m ts.eval.scala_eval generate
+TS_PROFILE=instruct .venv/bin/python -m ts.eval.scala_eval score
+TS_PROFILE=instruct .venv/bin/python -m ts.eval.ed_eval            # vanilla error detection
+TS_PROFILE=instruct .venv/bin/python -m ts.ed_loop --seed 1        # seeds 1-3
+TS_PROFILE=instruct .venv/bin/python -m ts.repair_ed --variant repair --seeds 1 2 3
+TS_PROFILE=instruct .venv/bin/python -m ts.repair_ed --variant resample --seeds 1 2 3 --rounds 1
+TS_PROFILE=instruct .venv/bin/python -m ts.repair_ed --variant samedata --seeds 1 2 3
+TS_PROFILE=instruct TS_R_GPUS=0 TS_R_HOLD_GPU=1 .venv/bin/python -m ts.r_loop --arm ts --seeds 1 2 3
+TS_PROFILE=instruct TS_R_GPUS=1 TS_R_HOLD_GPU=1 .venv/bin/python -m ts.r_loop --arm repairts --seeds 1 2 3
+TS_PROFILE=instruct .venv/bin/python -m ts.eval.r_eval generate     # all 19 models, then:
+TS_PROFILE=instruct .venv/bin/python -m ts.eval.r_eval score
+\end{lstlisting}
+
+\section*{4. Analysis and this report}
+\begin{lstlisting}[language=bash]
+.venv/bin/python -m ts.analysis.significance && .venv/bin/python -m ts.analysis.significance --task scala
+.venv/bin/python -m ts.analysis.significance --task r && .venv/bin/python -m ts.analysis.ed_significance
+.venv/bin/python -m ts.analysis.results_table > results/analysis/results_table.md
+report/build.sh            # regenerates every table, then compiles main.pdf in a pinned TeX Live image
+\end{lstlisting}
+
+\section*{What cannot be reproduced exactly}
+\begin{itemize}
+\item vLLM's batched greedy decoding is not guaranteed to be bit-identical across runs and hardware. Our generations
+are cached in \fpath{runs/llm_cache.sqlite}, which makes reruns on this machine exact.
+\item The paper's own corpus, case lists and settings are unpublished (\cref{ch:limitations}).
+\end{itemize}

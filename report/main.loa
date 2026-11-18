@@ -1,0 +1,29 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {algocf}{\numberline {1}{\ignorespaces Table-Specialist iterative generator--validator fine-tuning (paper Algorithm~1, restated)}}{6}{algocf.1}%
+\contentsline {algocf}{\numberline {2}{\ignorespaces Execution-based validation for NL-to-SQL (paper Algorithm~3, restated)}}{6}{algocf.2}%
+\contentsline {algocf}{\numberline {3}{\ignorespaces Permutation-based validation for error detection (paper Algorithm~2, restated)}}{6}{algocf.3}%
+\addvspace {10\p@ }
+\contentsline {algocf}{\numberline {4}{\ignorespaces One round of our TS / NV loop for NL-to-SQL (\fpath {ts/loop.py: run_round})}}{13}{algocf.4}%
+\contentsline {algocf}{\numberline {5}{\ignorespaces Our validation of one pair (\fpath {ts/validate/exec_agree.py: validate_pair})}}{14}{algocf.5}%
+\contentsline {algocf}{\numberline {6}{\ignorespaces Repair-TS for one round (\fpath {ts/repair.py}, \fpath {ts/repair_loop.py})}}{18}{algocf.6}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }

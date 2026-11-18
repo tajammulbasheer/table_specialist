@@ -1,0 +1,147 @@
+\chapter{Implementation}\label{ch:impl}
+
+The authors' repository is used unedited, as a git submodule at \fpath{third_party/Table-Specialist/} (commit
+\texttt{af1921f}); \texttt{git status} in the submodule is clean. Everything that runs is our code: 6,437 lines under
+\fpath{ts/}, \fpath{scripts/} and \fpath{sandbox/}, plus 23 test files with 205 tests passing and 1 skipped. Repository
+code enters our pipeline in only three ways (\cref{sec:provenance}), each through one module, \fpath{ts/repo.py}, or a
+syntax-tree reader.
+
+\section{Architecture}
+
+\begin{figure}[htbp]
+\centering
+\begin{adjustbox}{max width=\linewidth}\input{figures/architecture.tex}\end{adjustbox}
+\caption{Module structure, with the main calls shown as arrows. Amber marks repository code, used either through
+imports or as patched source; the generators and scorers reach it through \fpath{ts/repo.py}. Every long job runs in its own detached \texttt{tmux} session and takes GPUs and the
+validation slot through file locks.}
+\label{fig:architecture}
+\end{figure}
+
+\section{Provenance: what is inherited and what is ours}\label{sec:provenance}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.6cm}p{4.0cm}p{3.6cm}p{3.4cm}@{}}
+\caption{Repository components used by our pipeline, how they enter it, and what was changed.}\label{tab:prov-repo}\\
+\toprule\rowcolor{headshade}Component & Repository path & How used & Modification\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Component & Repository path & How used & Modification\\\midrule\endhead
+\bottomrule\endfoot
+Prompt classes and task descriptors (NL-to-SQL, Scala, R, error detection) &
+\fpath{Finetune/data_generator/{nl_to_sql,nl_to_sparkscala,nl_to_r,error_detection}/} & Imported from a path added at
+run time, for zero-shot test prompts and training formats & None\\
+Generation prompts (questions, SQL, Scala, R, typo, semantic error, error validation) &
+\fpath{Generation/NL2DSL/*}, \fpath{Generation/ErrorDetection/*}, \fpath{Validation/ErrorDetection/*} & Prompt
+strings extracted from each script's syntax tree; scripts never executed (they run on import and hard-code paths) &
+None\\
+NL-to-SQL evaluator & \fpath{Evaluete/evaluate/ns_evaluator.py} & Class and function definitions compiled from source
+(\fpath{ts/repo.py: load_ns_module}) & Patches in \cref{lst:patches}; read-only SQLite\\
+Code sandbox & \fpath{table_specialist_sandbox.py}, \fpath{sandbox/Dockerfile.{python,spark}} & Loaded from source
+(\fpath{ts/repo.py: load_sandbox}); images built from the repository's Dockerfiles with pinned base digests &
+Open-file limit 256 $\to$ 4,096; nothing else\\
+Sampling rules & \fpath{Validation/NL2DSL/NL2SQL_SparkScala/prepare_exec.py}, \fpath{execute.py} & Re-implemented to
+the same rules & ours, following the repo\\
+Scala, R, error-detection evaluators & \fpath{Evaluete/evaluate/{nss,nr,ed}_evaluator.py} & Rules re-implemented
+(extraction, reading, equality, metric) & ours, following the repo\\
+R sandbox recipe & \fpath{sandbox/Dockerfile.r} & Not used directly; our \fpath{sandbox/Dockerfile.r} adds
+\texttt{dplyr} & new file in our tree\\
+\end{longtable}
+}
+
+\begin{lstlisting}[language=Python,caption={Evaluator patches applied when compiling the repository's
+\texttt{ns\_evaluator.py} (\texttt{ts/repo.py}). Loading fails if any pattern stops matching, so an upstream change
+cannot silently change the repo-faithful score.},label={lst:patches}]
+# pandas 3 removed applymap and errors="ignore"; object dtype keeps fillna("None") working as before.
+".applymap(lambda x: pd.to_numeric(x, errors='ignore')).fillna(\"None\")"
+    -> ".map(to_numeric_or_keep).astype(object).fillna(\"None\")"
+# Fill in the repo's path placeholders (<PATH-TO-TableSpecialist>/...) with our rebuilt test-set folders:
+#   WikiSQL cases and databases, Spider, BIRD, WikiTQ cases and databases.
+"[[pd.to_numeric(x, errors='ignore')] for x in y_true_sql.split('|')]"
+    -> "[[to_numeric_or_keep(x)] for x in y_true_sql.split('|')]"
+# sqlite3 is replaced by a wrapper that opens databases read-only.
+\end{lstlisting}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.0cm}p{5.6cm}p{6.0cm}@{}}
+\caption{Components we wrote. Line counts are for the files listed.}\label{tab:prov-ours}\\
+\toprule\rowcolor{headshade}Area & Files & Purpose\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Area & Files & Purpose\\\midrule\endhead
+\bottomrule\endfoot
+Corpus & \fpath{ts/corpus/build.py} & GitTables filtering, de-duplication, contamination check, manifest\\
+Test sets & \fpath{ts/bench/{wikisql,wikitq,spider,bird,dev}.py} & Rebuild test and dev sets in the repository's folder
+format; check gold against each dataset's engine\\
+Model access & \fpath{ts/llm/client.py} & OpenAI-compatible client for vLLM with retries and a SQLite response cache
+(\fpath{runs/llm_cache.sqlite})\\
+Generation & \fpath{ts/gen/{questions,prompts,code}.py} & Repository prompts; code extraction for SQL, Scala and R\\
+Validation & \fpath{ts/validate/exec_agree.py}, \fpath{ts/validate/r_agree.py} & Algorithm 3 for SQL--Scala and
+SQL--R, with the comparator\\
+Training & \fpath{ts/train/sft.py}, \fpath{ts/train/dpo.py} & LoRA SFT with resumable checkpoints; DPO (RPO loss)\\
+Core loop & \fpath{ts/loop.py} & Algorithm 1 for TS and NV; base and Instruct profiles; GPU pool; resume from files\\
+NL-to-SQL scoring & \fpath{ts/eval/run_baseline.py}, \fpath{ts/eval/compare.py} & Repo-faithful and corrected scores,
+Wilson intervals\\
+Other-task scoring & \fpath{ts/eval/{scala_eval,r_eval,ed_eval}.py} & Repository rules for Scala, R and error
+detection; deduplicated execution caches\\
+Error-detection loop & \fpath{ts/ed_loop.py} & Algorithm 1 with Algorithm 2\\
+NL-to-R loop & \fpath{ts/r_loop.py} & Algorithm 1 with SQL--R agreement; TS and repair-TS\\
+Extensions & \fpath{ts/ext2.py}, \fpath{ts/ext2_tune.py}, \fpath{ts/repair.py}, \fpath{ts/repair_ts.py},
+\fpath{ts/repair_loop.py}, \fpath{ts/data_control.py}, \fpath{ts/repair_ed.py}, \fpath{ts/eval/self_consistency.py},
+\fpath{ts/sc_run.py} & bestof4 and DPO; DPO dev tuning; repair-TS rounds 1--3; same-data control; repair-ED and
+controls; self-consistency\\
+Analysis & \fpath{ts/analysis/{results_table,significance,scala_table}.py} & Results tables and paired bootstrap tests\\
+Tracking and set-up & \fpath{ts/tracking.py}, \fpath{ts/a1_instruct_gate.py}, \fpath{scripts/} & MLflow, run-ID
+scheme, downloads, smoke tests, throughput measurement\\
+Report & \fpath{report/} & This document; \fpath{report/tools/build_tables.py} generates every results table\\
+\end{longtable}
+}
+
+\section{Reliability engineering}\label{sec:reliability}
+
+The study ran for fourteen days on one machine. In that time the machine crashed once, stalled for 7.5 hours, and lost
+its WSL virtual machine once (\cref{app:incidents}). Each mechanism below was added in response to a concrete failure,
+and none lost a finished result.
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Resume from files.] Every stage writes its output file last, so the presence of the file marks the stage as
+done (questions, code, validation, examples, adapter, scores, summary). A finished round is never rewritten.
+\item[Journalled validation.] Each validated pair is appended to a journal and flushed to disk at once (with
+\texttt{fsync}), so a power cut loses only the pairs in flight. A truncated last line is skipped.
+\item[Frequent checkpoints.] Each run takes about 12 checkpoints, or one every 5 minutes on large runs. Resuming was
+tested with hard kills: training resumed from \texttt{checkpoint-55} and finished; validation kept 45 of 58 saved
+pairs and finished the rest.
+\item[Response cache.] Every LLM request is cached in SQLite, keyed on the model name, prompt and parameters.
+Interrupted generation resumes from the cache, and adapters are named by a weight hash so that keys cannot collide
+across arms.
+\item[File locks.] GPU slots (\fpath{runs/.gpu{0,1}.lock}) and the single CPU validation slot use \texttt{flock}. A
+crash leaves no stale lock. One job runs per GPU, and one 36-worker Spark validation runs at a time.
+\item[Stall-aware execution cache.] Spark results that timed out after more than 600~s (the limit is 120~s) can only
+come from a machine stall. They are re-run and stored beside the original record, which is never overwritten.
+\item[Robust JSONL.] Rows are split only on \texttt{\textbackslash n}, because \texttt{str.splitlines} also breaks on
+U+2028, which broke a training file.
+\item[Operating rules.] Long jobs run in their own detached \texttt{tmux} session with an append-only log. Checkpoints
+are copied aside before any resume, and run directories are never deleted, moved or overwritten.
+\end{description}
+
+\section{Security of generated code}
+
+Model-written Scala, Python and R run only inside the repository's Docker sandbox:
+\begin{itemize}
+\item no network, a read-only file system and a non-root user;
+\item resource limits;
+\item a fresh container per program.
+\end{itemize}
+Only \texttt{data.csv} and the code file enter the container, and only one result CSV leaves it. Model-written SQL
+runs in SQLite on the host through a read-only connection, with SELECT statements only and a 5~s limit.
+
+\section{Testing}
+
+The test suite (\fpath{tests/}, 23 files) covers:
+\begin{itemize}
+\item prompt extraction against the repository scripts;
+\item the comparator, including a 20,000-row speed test;
+\item corpus filters, test-set builders and repo-evaluator loading;
+\item resumption logic, with fake models;
+\item the repair, repair-ED, Scala, R and error-detection scorers.
+\end{itemize}
+At the time of writing, 205 tests pass and 1 is skipped. The suite needs no GPU. Real-sandbox checks were run
+separately, for example the repository's own sandbox integration tests (5 passed, 1 skipped) and hand-written R
+programs scored in the R sandbox.

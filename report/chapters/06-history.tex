@@ -1,0 +1,177 @@
+\chapter{Experimental History}\label{ch:history}
+
+This chapter tells the research story in order. Each phase is described by what motivated it, what was done, what was
+found, and what it led to. Dates come from the dated entries of \fpath{docs/TASKS.md}, \fpath{docs/DECISIONS.md} and
+\fpath{docs/RESULTS.md}. Work before 2026-11-04 (the original blueprint, environment and data set-up) was recorded only
+as completed tasks, without dates. The mid-semester presentation that proposed the first extension ideas is dated
+2026-10-12.
+
+\begin{figure}[htbp]
+\centering
+\begin{adjustbox}{max width=\linewidth}\input{figures/timeline.tex}\end{adjustbox}
+\caption{Project timeline, 2026-11-04 to 2026-11-17 (IST). Upper lane: decisions and results; lower lane: experiments
+and their durations; red markers: machine incidents.}
+\label{fig:timeline}
+\end{figure}
+
+\section{Phase 0: the blueprint and its reversal (before and on 2026-11-04)}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Plan.] The first plan, written under a deadline, was deliberately reduced in scope:
+  \begin{itemize}
+  \item Llama-3.1-8B-Instruct trained with QLoRA (4-bit weights), estimated to fit 24~GB with margin;
+  \item Pandas as the second language, because the repository has an NL-to-Pandas generator and a fast Python sandbox;
+  \item two rounds;
+  \item error detection and ablations only if time remained.
+  \end{itemize}
+\item[Reversal (2026-11-04).] The deadline was removed, so every choice made to save time or memory was reopened in
+favour of faithfulness:
+  \begin{itemize}
+  \item \textbf{LoRA} as in the paper, measured at 20.0~GB at about 4,000 tokens: it fits.
+  \item \textbf{Spark-Scala} as in the paper, at a measured cost of about 50 times Pandas' run time per program.
+  \item \textbf{Three rounds.}
+  \item \textbf{Base checkpoint}, because the README links it (\cref{sec:design}).
+  \end{itemize}
+\item[Environment results.]
+  \begin{itemize}
+  \item LoRA on base peaked at 19.8~GB at 4,000 tokens.
+  \item vLLM served base at 7,417 prefill and 262 decode tokens/s.
+  \item The Spark sandbox first ran 0 of 32 programs: Spark's JVM hit the sandbox's 256 open-file limit. With the limit
+  raised to 4,096, it ran 48 of 48.
+  \item Spark throughput was 2,133 programs/h at 24 workers and 2,714 at 36.
+  \end{itemize}
+\end{description}
+
+\section{Phase 1: the baseline gate fails on base (2026-11-04)}\label{sec:hist-gate}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Motivation.] Before any fine-tuning, check that vanilla scores are within $\pm0.05$ of the paper's. Otherwise
+fine-tuned gains cannot be compared.
+\item[Result.] Base with raw completions and the zero-shot prompt met the gate only on BIRD (0.3636 against 0.388).
+  \begin{itemize}
+  \item WikiSQL: 0.326 against 0.525. 507 of 1,000 answers were SQL that fails to run, often from unquoted multi-word
+  column names.
+  \item WikiTQ: 0.219 against 0.300.
+  \item Spider: 0.7245 against 0.670, too high.
+  \end{itemize}
+Six setting combinations were tried in all (\cref{sec:fail-gate}); none reproduced the paper.
+\item[Decision.] Stop searching and proceed with the gate failed, recording the gaps as unexplained. Further
+combinations would eventually land near 0.525 by chance. The report would compare the ordering of the arms, not
+absolute scores. The authors could not be contacted, so the questions for them stay open (\cref{sec:open-questions}).
+\end{description}
+
+\section{Phase 2: building and auditing the validator (2026-11-04)}\label{sec:hist-validator}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Motivation.] The repository's validation never compares SQL with Scala results, so the comparator is ours, and a
+silent bug in it would decide every training set.
+\item[Action.] A 300-table, 2-round test run, followed by a hand inspection of 50 kept and 24 rejected pairs. All 160
+\texttt{scala\_failed} pairs were re-run for their error text.
+\item[Findings.] Five comparator defects (\cref{sec:comparator}). After the fixes, a second 300-table run and a fresh
+inspection of 50 kept and 50 rejected pairs found:
+  \begin{itemize}
+  \item about 8 in 10 kept pairs fit their question;
+  \item about 1 in 3 rejected pairs may have held usable SQL.
+  \end{itemize}
+\item[Consequence.] The core study ran on the corrected validator. The inspection's second finding later motivated
+both extensions.
+\end{description}
+
+\section{Phase 3: the core study on base (2026-11-04 to 2026-11-07)}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Action.] TS and NV, 3 seeds $\times$ 3 rounds, one arm per GPU, started 2026-11-04 at about 23:25.
+\item[Incidents.] On 2026-11-05, a U+2028 character in a training file stopped NV, and the machine crashed while both
+arms were training. Both runs resumed from checkpoints. These incidents produced the project's standing operating
+rules: \texttt{tmux}, append-only logs, one job per GPU, checkpoint copies, and no commits (\cref{app:incidents}).
+\item[Result.] Both arms finished on 2026-11-07. TS beat NV on all 8 round-3 cells; NV beat TS in round~1 in 17 of 24
+seed--cell comparisons (\cref{sec:sql-core}).
+\item[Consequence.] The paper's qualitative claim was reproduced on base. The user chose Extension~2 as the first
+contribution beyond the paper.
+\end{description}
+
+\section{Phase 4: Extension 2 fails, Extension 3 succeeds (2026-11-07 to 2026-11-10)}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Extension 2 (bestof4, DPO).]
+  \begin{itemize}
+  \item Sampling 3 extra candidates per question found a validated program for 52--62\% more questions, yet moved the
+  test mean by only $+0.0064$.
+  \item DPO lowered it by $-0.0209$.
+  \item Tuning five gentler DPO variants on dev sets under a pre-set rule could not beat bestof4 (\cref{sec:ext2}).
+  \item The remaining rounds of Extension~2 were put on hold.
+  \end{itemize}
+\item[Extension 3 (repair).] The user chose repair from a list of proposed ideas.
+  \begin{itemize}
+  \item \textbf{Base repairer pilot}: +17.1\% kept pairs, below the pre-set +30\% threshold, so no-go. Base copied the
+  failed code back in half of Scala repairs.
+  \item \textbf{Instruct repairer pilot}: +56.1\%, with 21 of 23 recovered pairs correct by hand, so go.
+  \item \textbf{Full round~1}: beat TS round~1 on every seed.
+  \item \textbf{Rounds 2--3}: reached a mean of 8 of 0.5856 against TS's 0.5435.
+  \end{itemize}
+\end{description}
+
+\section{Phase 5: matching the paper with Instruct (2026-11-10 to 2026-11-12)}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Motivation.] A plan analysing the paper, the repository and our own results (\fpath{docs/PLAN_NEXT.md}) observed
+three things:
+  \begin{itemize}
+  \item the repository's only query path is chat with a fixed system message;
+  \item earlier Instruct scores through that path were within 0.011 of the paper on WikiSQL and WikiTQ;
+  \item base cannot use that path at all.
+  \end{itemize}
+The plan was approved on 2026-11-10.
+\item[Result.] Instruct vanilla passed the gate on 3 of 4 sets, all within 0.015. Instruct TS (3 seeds $\times$ 3
+rounds) and Instruct NV (seed~1) finished on 2026-11-12. TS reproduced the paper's Table~3 within 0.032 per set,
+Spider excepted (\cref{sec:sql-instruct}).
+\item[Alongside.] Self-consistency, an established test-time method, was tuned on dev and applied to every final model
+(\cref{sec:ext-sc}). A BIRD scoring artefact was found and fixed (\cref{sec:fail-bird}).
+\end{description}
+
+\section{Phase 6: repair-TS on Instruct and the controls (2026-11-12 to 2026-11-14)}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Motivation.] Does repair-TS's base gain carry over to the model that matches the paper? And how much of it is
+just more data?
+\item[Result.]
+  \begin{itemize}
+  \item Instruct repair-TS showed no gain at any round (round~3: $-0.0014$, $p=0.55$).
+  \item The same-data control split base repair-TS's round-1 gain about in half between volume and content.
+  \item On Instruct, extra first-pass pairs helped while repaired pairs did not (\cref{sec:ext-control}).
+  \end{itemize}
+\item[Consequence.] Repair-TS was reframed from a method into a conditional finding.
+\end{description}
+
+\section{Phase 7: the paper's other tasks (2026-11-14 to 2026-11-17)}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Motivation.] Extend the reproduction to other tasks, ranked by feasibility. NL-to-Scala needed no new training.
+Error detection had downloadable test data. NL-to-R needed new data generation and an R sandbox.
+\item[NL-to-Scala.] 19 models $\times$ 8 cells were scored, finishing on 2026-11-16. Vanilla matched the paper's
+scores on 3 of 4 sets. Repair-TS beat TS at every round (\cref{sec:results-scala}). A quadratic
+comparison discovered while scoring BIRD was fixed with no change to any verdict (\cref{sec:fail-quadratic}).
+\item[Error detection.] The vanilla gate passed within 0.006. TS ran 3 seeds $\times$ 3 rounds. Repair-ED (3 seeds $\times$
+3 rounds) and its two round-1 controls ran from 2026-11-15 to 2026-11-17 (\cref{sec:results-ed}).
+\item[NL-to-R.] Approved and built on 2026-11-16, smoke-tested the same day (which exposed truncated R error feedback,
+fixed before the full runs), and finished on 2026-11-17: TS-R and repair-TS-R, 3 seeds $\times$ 3 rounds, 19 models
+scored (\cref{sec:results-r}).
+\item[Incidents.] A 7.5-hour machine stall on 2026-11-14 and a WSL crash on 2026-11-15. Both were recovered with no
+lost result (\cref{app:incidents}).
+\end{description}
+
+\section{How each phase led to the next}
+
+\begin{enumerate}
+\item The \textbf{failed gate} (phase 1) made absolute comparisons with the paper unreliable on base. Phase 3
+therefore focused on the paper's \emph{relative} claim (TS versus NV versus vanilla), and it later motivated trying
+the repository's own query path on Instruct (phase 5).
+\item The \textbf{validator audit} (phase 2) found that about a third of rejections might be recoverable. This
+motivated both extensions (phase 4).
+\item \textbf{DPO's failure} (phase 4) showed that penalising rejected programs drifts the model. It redirected effort
+from learning \emph{against} rejected data to \emph{recovering} it.
+\item \textbf{Base's failure as a repairer} (phase 4) led to the Instruct repairer. That introduced a second model
+into the base track, and the distillation confound discussed in \cref{ch:discussion}.
+\item \textbf{Instruct matching the paper} (phase 5) raised the question of whether repair-TS still helps on that
+model (phase 6). It did not for SQL, but it did for Scala (phase 7).
+\end{enumerate}

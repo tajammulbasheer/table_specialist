@@ -1,0 +1,309 @@
+\chapter{Failed, Abandoned and Underperforming Approaches}\label{ch:failures}
+
+This chapter records every approach that failed, was abandoned, or did less than expected, together with
+infrastructure failures that affected results or schedules. Each entry states:
+\begin{itemize}
+\item what was attempted and why;
+\item what was found;
+\item whether the explanation is \emph{verified} (checked by a further experiment or inspection) or a
+\emph{hypothesis};
+\item what changed as a result.
+\end{itemize}
+Entries are in chronological order.
+
+\section{Method and modelling}
+
+\subsection{F1. Reproducing the vanilla scores with the base checkpoint (2026-11-04)}\label{sec:fail-gate}
+\begin{failbox}{}
+\textbf{Attempt.} Llama-3.1-8B base, the checkpoint the README links, on the four rebuilt test sets.
+
+\textbf{Why.} The paper names ``Llama-3.1-8B''. The vanilla gate ($\pm0.05$) must pass before fine-tuned gains can be
+compared with the paper.
+
+\textbf{Configurations tried} (\cref{tab:gen-vanilla-sql}). Six settings, tried on WikiSQL or more, against the
+paper's 0.525:
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{tabular}{@{}lll@{}}
+\toprule\rowcolor{headshade}Setting & Model & WikiSQL result\\\midrule
+Chat, no system message & Instruct & 0.552 (975 cases)\\
+Chat, repo system message & Instruct & 0.519 (975 cases)\\
+Raw completions, zero-shot & Base & 0.326\\
+Raw completions, few-shot & Base & 0.685\\
+Original-case tables, zero-shot & Base & 0.142\\
+Original-case tables, few-shot & Base & 0.287\\
+\bottomrule
+\end{tabular}
+}
+
+\textbf{Result.} No base setting reproduced the paper on all four sets. Zero-shot met the gate only on BIRD; few-shot
+met it on WikiTQ and BIRD.
+
+\textbf{Against expectation.} We expected the README's checkpoint to reproduce its own paper.
+
+\textbf{Explanation} (partly verified). The repository can query only through chat, which base Llama cannot serve.
+Instruct through that chat call does reproduce the vanilla scores (\cref{sec:sql-vanilla}): this part is verified.
+That the paper used Instruct is a hypothesis.
+
+\textbf{Lesson and influence.} We stopped after six settings, because further combinations would eventually hit 0.525
+by chance. The base gaps were recorded as unexplained. This later motivated the Instruct track.
+\end{failbox}
+
+\subsection{F2. The first validator (2026-11-04)}\label{sec:fail-validator}
+\begin{failbox}{}
+\textbf{Attempt.} A first 300-table, two-round TS run with our first comparator.
+
+\textbf{Result.} It kept 42 and 31 pairs. A hand inspection of 50 kept and 24 rejected pairs, plus a re-run of all
+160 \texttt{scala\_failed} pairs, found five defects:
+\begin{enumerate}
+\item SQL ran on all-text columns, so \texttt{MAX("Weight")} and \texttt{"n" < 50} compared strings;
+\item a one-column NULL result was counted as a disagreement;
+\item booleans did not match their 0/1 encoding;
+\item Spark's \texttt{\textbackslash"} escaping was misread;
+\item a fixed adapter name would have shared cached answers across arms.
+\end{enumerate}
+
+\textbf{Verified.} Each defect was reproduced on named cases (\texttt{gt\_05606}, \texttt{gt\_02180}, and others).
+All 160 \texttt{scala\_failed} pairs exited with Spark code~2: 89 named a column that does not resolve and 51 called a
+method the type lacks. None needed a validator change.
+
+\textbf{Influence.} All five were fixed before the core study, and the first run was superseded
+(\fpath{runs/old_test300_before_comparator_fix}). The corrected run's inspection of 50 kept and 50 rejected pairs
+found that about 1 in 3 rejected pairs may hold usable SQL. That finding motivated Extensions~2 and~3.
+\end{failbox}
+
+\subsection{F3. The reduced-scope blueprint (abandoned 2026-11-04)}
+\begin{failbox}{}
+\textbf{Attempt.} Instruct with QLoRA, Pandas as the dual language, 2 rounds.
+
+\textbf{Why abandoned.} The deadline was removed, so the scope-saving choices were reversed in favour of the paper's:
+\begin{itemize}
+\item LoRA: measured at 20.0~GB at 4,000 tokens, so it fits;
+\item Spark-Scala: about 11~h per round estimated at the time, against 0.8~h for Pandas;
+\item 3 rounds.
+\end{itemize}
+The model choice moved to base, by the README.
+
+\textbf{Lesson.} Resource estimates in the blueprint were wrong in both directions. LoRA fit, but Spark was about 50
+times slower per program than assumed. Measuring early let both reversals rest on data.
+\end{failbox}
+
+\subsection{F4. DPO on validator-labelled pairs (2026-11-07 to 2026-11-08)}
+\begin{failbox}{}
+\textbf{Attempt.} DPO with an SFT term (RPO), from the bestof4 adapter, on 397--438 (chosen, rejected) pairs per seed
+(\cref{sec:method-ext2}).
+
+\textbf{Why.} Rejected programs carry information about what not to write.
+
+\textbf{Result.} $-0.0209$ against TS round~1, and below bestof4 on all 3 seeds (\cref{sec:ext2}). Five gentler variants
+were tuned on dev under a rule fixed beforehand; none beat bestof4 there.
+
+\textbf{Explanation} (partly verified).
+\begin{itemize}
+\item Verified: execution errors multiply (for example WikiTQ 15 $\to$ 58), and reward margins of 3.2--5.4 show strong
+drift from the reference.
+\item Verified on dev: the learning rate, not $\beta$, drives the damage.
+\item Hypothesis: lowering the likelihood of plausible-but-wrong SQL also lowers nearby correct SQL.
+\end{itemize}
+
+\textbf{Influence.} DPO was dropped and reported as not helping. Effort moved from penalising rejected data to
+recovering it.
+\end{failbox}
+
+\subsection{F5. Best-of-4 sampling: more data, little gain (2026-11-08)}
+\begin{failbox}{}
+\textbf{Result.} 52--62\% more validated questions, but only $+0.0064$ \Mviii{}, with seed differences of $+0.0282$
+to $-0.0156$.
+
+\textbf{Explanation} (hypothesis). The extra validated programs are mostly for questions that the greedy program
+already answers, or nearly so.
+
+\textbf{Influence.} Rounds 2--3 of bestof4 were put on hold. The same-data control was designed later to separate
+volume from content.
+\end{failbox}
+
+\subsection{F6. Base Llama as its own repairer (2026-11-08)}\label{sec:fail-baserepair}
+\begin{failbox}{}
+\textbf{Attempt.} The first repair smoke test (12 pairs), then a pilot on 237 rejected pairs, with base as repairer
+and the repository's correction phrase as prompt.
+
+\textbf{Result.}
+\begin{itemize}
+\item In the smoke test, 6 of 10 greedy repairs copied the failed code exactly. Up to 3 retries at $T=0.7$ were added
+in response.
+\item In the pilot, base still copied the failed code in 85 of 169 Scala and 42 of 158 SQL repairs.
+\item It recovered only 7 pairs (+17.1\%, against the required +30\%), so no-go.
+\end{itemize}
+
+\textbf{Explanation} (verified by the copy counts). A base model continues the text pattern rather than following a
+repair request.
+
+\textbf{Influence.} Instruct became the repairer (+56.1\%, go). This adds a second, stronger model to the base track,
+which confounds repair with distillation (\cref{ch:discussion}).
+\end{failbox}
+
+\subsection{F7. Repair-TS on Instruct NL-to-SQL (2026-11-12 to 2026-11-14)}
+\begin{failbox}{}
+\textbf{Attempt.} The same repair-TS, with Instruct as both generator and repairer, 3 seeds $\times$ 3 rounds.
+
+\textbf{Expectation.} Base had gained $+0.0421$, so we expected a positive effect.
+
+\textbf{Result.} No effect at any round (round~3: $-0.0014$, $p=0.55$). Repaired pairs were worse than the same number
+of extra first-pass pairs ($-0.0114$, $p<0.0001$).
+
+\textbf{Explanation} (partly verified).
+\begin{itemize}
+\item Verified: recovery is lower than on base (+15--23\% against +52\% in round~1), and the largest rejected group,
+\texttt{always\_empty}, is almost never recovered.
+\item Hypothesis: when the generator and repairer are the same model, repair adds nothing the model does not already
+know. On base, the stronger repairer added such knowledge.
+\end{itemize}
+
+\textbf{Influence.} Repair-TS was reframed as a conditional finding. The Scala scoring of the same runs then showed a
+gain (\cref{sec:results-scala}).
+\end{failbox}
+
+\subsection{F8. Rounds on Instruct (2026-11-12)}
+\begin{failbox}{}
+\textbf{Expectation.} The paper says later rounds help, and base TS improved over rounds.
+
+\textbf{Result.} Instruct TS is flat or declining: \ZSiv{} 0.6165, 0.6176, 0.6113. Round~3 against round~1 is
+$-0.0083$ on \Mviii{} ($p=0.0012$). Seeds 1--2 peak at round~2.
+
+\textbf{Explanation.} Not established. Instruct's round-1 adapter is already strong (\ZSiv{} 0.6165), and round sizes
+stay small (486--529 pairs). Restarting from vanilla each round discards earlier rounds' data, so a later round sees
+no more data than an earlier one. These are hypotheses.
+
+\textbf{Influence.} Both the last-round and best-round means are reported against the paper.
+\end{failbox}
+
+\section{Pipeline and infrastructure}
+
+\subsection{F9. Repository code that could not run as shipped}\label{sec:fail-repo}
+\begin{failbox}{}
+\begin{itemize}
+\item \textbf{Evaluator.} \fpath{ns_evaluator.py} uses pandas APIs removed in pandas~3 (\texttt{applymap},
+\texttt{errors="ignore"}) and placeholder paths. Fixed by compiling it with checked patches (\cref{lst:patches}).
+\item \textbf{Sandbox.} The open-file limit of 256 stops Spark's JVM (\texttt{tzdb.dat (Too many open files)}; 0 of
+32 programs ran). Fixed by raising it to 4,096 at load time, with no other limit changed.
+\item \textbf{Training defaults.} The repository's defaults (\texttt{num\_few\_shot\_samples=10},
+\texttt{sample\_method="random"}) raise an error in \texttt{generate\_train\_one\_dataset}. The authors must
+therefore have trained either with \texttt{random-Gen} or with no few-shot examples; this is not recorded. We train
+zero-shot prompts only, which is an unavoidable difference.
+\end{itemize}
+\end{failbox}
+
+\subsection{F10. U+2028 in training data stopped a run (2026-11-05)}
+\begin{failbox}{}
+\textbf{What happened.} The no-validation arm stopped when round-2 SQL training started. Our JSONL reader used
+\texttt{str.splitlines}, which also splits on U+2028, and 2 of 2,863 rows contained that character.
+
+\textbf{Verified fix.} Split only on \texttt{\textbackslash n}, applied to all three readers, with a regression test.
+The arm restarted from its saved round-2 data. Table-Specialist was unaffected (its files hold no U+2028).
+\end{failbox}
+
+\subsection{F11. Parallel BIRD scoring undercounted 3 cases (found 2026-11-11, fixed 2026-11-12)}\label{sec:fail-bird}
+\begin{failbox}{}
+\textbf{Symptom.} Greedy BIRD scores in the self-consistency runs were exactly 3 cases (0.0082) below the baseline
+scorer, on every BIRD cell.
+
+\textbf{Verified cause.} The 3 cases return 20,198--49,729 rows and hit the 5~s SQL limit while 16 scoring threads
+run. The baseline scorer uses one thread.
+
+\textbf{Fix.} BIRD is scored on one thread. The 14 base BIRD cells were re-scored under new identifiers
+(\texttt{final\_sct10seq\_*}), keeping the old files. Greedy BIRD now matches the baseline exactly.
+\end{failbox}
+
+\subsection{F12. A void NL-to-Scala smoke test (2026-11-14)}
+\begin{failbox}{}
+\textbf{What happened.} The first smoke test's \texttt{tmux} command did not source the sandbox settings, so all 132
+programs failed in 0.02~s with ``Set TABLE\_SPECIALIST\_SPARK\_IMAGE'', and those failures were cached.
+
+\textbf{Fix.}
+\begin{itemize}
+\item The scorer calls \texttt{ensure\_sandbox} before running anything, so a missing setting stops the run instead of
+being cached.
+\item The cache moved to a new directory; the old one, holding only those 132 records, is never read.
+\item The rerun used a new tag, so the void results were not overwritten.
+\end{itemize}
+\end{failbox}
+
+\subsection{F13. Error-detection smoke test: a collapsed validator (2026-11-15)}
+\begin{failbox}{}
+\textbf{What happened.} Round~2 of the smoke run first failed because its vLLM server was not ready within 20 minutes
+during the machine stall. The rerun completed, but its 5-step adapter answered NULL for every column. As validator it
+rejected every injected error, and as a model it predicted nothing (F1 0.0).
+
+\textbf{Reading.} A smoke-scale artefact of 5 training steps on 18 examples, flagged as the risk to watch: a validator
+that never flags errors would leave later rounds only clean columns to train on.
+
+\textbf{Verified at full scale.} The round-1 adapters still flag errors: seed~1 predicts on 187 of 1,126 ST columns.
+\end{failbox}
+
+\subsection{F14. Machine stall and stalled timeouts (2026-11-14, 19:37--03:03)}
+\begin{failbox}{}
+\textbf{What happened.} Nothing progressed for about 7.5~h. The journal shows systemd-journald restarting on an
+uncleanly shut-down journal, and uptime shows no reboot. The likely cause, not certain, is that the Windows host paused
+the WSL virtual machine.
+
+\textbf{Effect.} 36 Spark programs in flight were cached as ``timed out'' after 26,891--26,955~s, although the limit is
+120~s. These were the only timeouts among 1,758 cache records at the time.
+
+\textbf{Fix.} A cached timeout longer than 600~s is treated as missing and re-run, with the result stored beside the
+original record. The scorer holding those records in memory was stopped before writing any cell, and relaunched.
+\end{failbox}
+
+\subsection{F15. A quadratic comparison (found and fixed 2026-11-15)}\label{sec:fail-quadratic}
+\begin{failbox}{}
+\textbf{Symptom.} Writing one TS BIRD Scala cell took about 43~minutes, against about 1 minute for vanilla.
+
+\textbf{Verified cause.} The order-insensitive comparison rebuilt two row-count differences for every row: quadratic in
+the result size, about 10~minutes for the 49,729-row BIRD gold. TS triggers it often, because its results have the
+gold's row count.
+
+\textbf{Fix.} The value is computed once. All 51 cells written so far (45,930 cases) were rescored read-only with the
+new code: 0 differences in any verdict, in 149~s in total. A new test checks a 20,000-row comparison runs in under 5~s.
+Published NL-to-SQL corrected scores are unaffected for the same reason.
+\end{failbox}
+
+\subsection{F16. Instruct smoke tests keep very few pairs (2026-11-10)}
+\begin{failbox}{}
+\textbf{What happened.} The first Instruct TS smoke test (20 tables) kept 0 of 20 pairs (always-empty 11, disagree 4,
+Scala failed 4, SQL failed 1), so training had no examples and the run exited with an error. A 60-table rerun kept 4
+and 3 pairs (5--7\%).
+
+\textbf{Reading.} Possibly chance at this size (base kept 14.7\% in round~1). Always-empty at 55\% was flagged to
+watch.
+
+\textbf{Verified at full scale.} Instruct keeps 10.7--11.1\% in round~1, and \texttt{always\_empty} is indeed its
+largest rejection reason (\cref{tab:gen-validation}).
+\end{failbox}
+
+\subsection{F17. R repair feedback lost the cause of the error (found and fixed 2026-11-16)}\label{sec:fail-r-feedback}
+\begin{failbox}{}
+\textbf{Symptom.} In the NL-to-R smoke test, repair recovered 0 of 26 rejected pairs. For 4 of the 6 R programs that
+failed, the feedback shown to the model was only \texttt{Error in filter():} or \texttt{Error in summarise():}.
+
+\textbf{Verified cause.} \texttt{dplyr} (through \texttt{rlang}) prints the cause on the lines after the first, for
+example \texttt{Caused by error: ! object 'Access' not found}. Our extractor kept only indented continuation lines,
+which is R's base-error format, so the cause was dropped.
+
+\textbf{Fix.} A message is now the error line plus every following line up to the backtrace, capped at 300
+characters. A unit test uses a real dplyr error. Recomputed on the smoke test's six failures, every message carries its
+cause (e.g.\ \texttt{could not find function "year"}). Only the repair arm reads this text, so TS-R was unaffected; the
+full repair-TS-R runs started with the fix and recovered 84--126 pairs per round.
+\end{failbox}
+
+\subsection{F18. One experiment took another's GPU (2026-11-16)}
+\begin{failbox}{}
+\textbf{Symptom.} TS-R seed~1 round~2 took about 1.8~h longer than round~1, while GPU~1 sat idle.
+
+\textbf{Verified cause.} The GPU lock takes the first free GPU, trying GPU~0 first. TS-R released GPU~0 for its
+11-minute, CPU-only validation step; the running repair-ED started its next step in that window, took GPU~0 and held it
+for about 2~h.
+
+\textbf{Fix.} NL-to-R can keep its GPU through validation (\texttt{TS\_R\_HOLD\_GPU=1}), and repair-ED can be limited to
+given GPUs (\texttt{TS\_ED\_GPUS}). TS-R was restarted with the setting during a cached generation step, losing nothing.
+No result was affected: each step is self-contained; only time was lost.
+\end{failbox}

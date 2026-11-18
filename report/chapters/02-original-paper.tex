@@ -1,0 +1,334 @@
+\chapter{The Original Method: Table-Specialist}\label{ch:paper}
+
+This chapter explains the method of Xing et al.~\cite{xing2024tablellmspecialist} and its released code
+\cite{tablespecialistrepo}. It covers how the method is meant to work, why each part is needed, and exactly which
+details the paper and code leave unspecified, because those gaps shaped every later decision. The paper was first read
+verbatim from its arXiv HTML version~2 for Sections~1--5, while its Section~6 tables for tasks other than NL-to-SQL could
+at first be read only through a summary. On 2026-11-18 the published EMNLP 2025 version~\cite{xing2025emnlp} was read
+in full, and every figure below was checked against its Table~3. Section and figure numbers below refer to arXiv
+version~2 unless marked as the published version.
+The mathematical notation below is ours; it formalises the paper's algorithms as the paper and repository describe them.
+
+\section{Background and motivation}
+
+A \emph{generalist} model such as an instruction-tuned LLM can be prompted for any table task. A \emph{specialist}
+fine-tuned for one task is usually more accurate and cheaper to run, but needs labelled training data. Table tasks are
+expensive to label, because a label is often a program (SQL, Scala, R), a cell, or a mapping between columns.
+Table-Specialist replaces the human labeller with two models that check each other.
+
+The key observation is that many table tasks come in \emph{dual} pairs:
+\begin{itemize}
+\item a \emph{generative} form, which produces an answer for an input, and
+\item a \emph{classificative} or checking form, which judges whether an answer is right.
+\end{itemize}
+Sometimes the second form is simply a different program for the same question. If both forms can be run, their
+agreement is evidence of correctness that needs no human label. The method then fine-tunes the generator on its own
+validated outputs and repeats.
+
+\section{Problem formulation}\label{sec:formulation}
+
+Let $\mathcal{T}$ be a corpus of real, unlabelled tables, and let a task map an input $x$ (a table, a question) to an
+output $y$ (a program, a set of cells). We want parameters $\theta$ of a model $M_\theta$ that maximise accuracy on
+held-out benchmarks of that task, using only $\mathcal{T}$ and no labels.
+
+\paragraph{Generator and validator.} A round of the method uses three components.
+\begin{itemize}
+\item A \emph{question model} $Q$ writes an input for a table: $x = Q(t)$, $t\in\mathcal{T}$.
+\item A \emph{generator} $M_G$ writes the task output, $y = M_G(x)$.
+\item A \emph{validator} $M_C$ writes the dual output $y' = M_C(x)$, or checks $y$ directly.
+\end{itemize}
+A validation function $V(x, y, y') \in \{0,1\}$ accepts or rejects the example. The round's training set is
+\begin{equation}
+  \mathcal{D}_r \;=\; \bigl\{\, (x, y) \;:\; t \in \mathcal{T}_r,\; x = Q(t),\; y = M_G^{(r-1)}(x),\;
+  y' = M_C^{(r-1)}(x),\; V(x,y,y') = 1 \,\bigr\},
+  \label{eq:dataset}
+\end{equation}
+where $\mathcal{T}_r$ is the round's slice of tables and $M^{(0)}$ is the vanilla model. Training on $\mathcal{D}_r$
+gives $M^{(r)}$, which generates in round $r+1$. The paper runs ``up to 3'' rounds.
+
+\paragraph{Execution validation (NL-to-SQL).} For NL-to-SQL, $y$ is SQL and $y'$ is a Spark-Scala program for the same
+question. Let $S_1,\dots,S_K$ be random row samples of table $t$, each holding a fraction $\phi$ of the rows. Let
+$\operatorname{run}(p, S)$ be the result of program $p$ on sample $S$. Then
+\begin{equation}
+  V_{\text{exec}}(x,y,y') \;=\; \prod_{k=1}^{K} \mathbb{1}\!\left[\operatorname{run}(y,S_k) \equiv
+  \operatorname{run}(y',S_k)\right],
+  \label{eq:vexec}
+\end{equation}
+with $K=10$ and $\phi=0.5$ in the repository's sampling script (\fpath{prepare_exec.py}). The paper's Algorithm~3
+writes the test as ``$r \neq r'$''. The equivalence $\equiv$ is not further defined, which matters because SQL and
+Spark name columns differently and return rows in different orders (\cref{sec:comparator}).
+
+\paragraph{Permutation validation (error detection).} For error detection, the generator injects an error $e$ into a
+column whose distinct values are $U$. The validator must find it regardless of the order in which the values are shown.
+With permutations $\pi_1,\dots,\pi_J$ ($J=5$, seeds $0$--$4$ in the repository),
+\begin{equation}
+  V_{\text{perm}}(U,e) \;=\; \prod_{j=1}^{J} \mathbb{1}\!\left[\, M_C\bigl(\pi_j(U \cup \{e\})\bigr) = \{e\} \,\right],
+  \qquad
+  V_{\text{perm}}^{\text{clean}}(U) \;=\; \prod_{j=1}^{J} \mathbb{1}\!\left[\, M_C\bigl(\pi_j(U)\bigr) = \varnothing
+  \,\right].
+  \label{eq:vperm}
+\end{equation}
+A positive example passes if the validator names exactly the injected value under every order. A clean column passes
+if it names nothing under every order. Kept positives are labelled with $e$, kept clean columns with ``NULL''.
+
+\paragraph{Why each component is needed.}
+\begin{itemize}
+\item The \emph{dual check} is the only source of supervision; without it the model trains on its own mistakes.
+The paper's no-validation ablation tests exactly this.
+\item \emph{Sampling} several sub-tables (\cref{eq:vexec}) guards against chance agreement on one table. Two wrong
+programs may agree on the full table, but rarely on ten random halves.
+\item \emph{Permutation} (\cref{eq:vperm}) guards against position bias: a validator that always names the last value
+would otherwise agree with an error placed last.
+\item \emph{Iteration} lets a better model generate better data, and a better validator keep more of it.
+\end{itemize}
+
+\section{The algorithms}\label{sec:paper-algorithms}
+
+\Cref{alg:paper-loop,alg:paper-exec,alg:paper-perm} restate the paper's Algorithms~1--3 in our notation. Comments mark
+where a detail comes from the repository rather than the paper.
+
+\begin{algorithm}[htbp]
+\caption{Table-Specialist iterative generator--validator fine-tuning (paper Algorithm~1, restated)}\label{alg:paper-loop}
+\KwIn{table corpus $\mathcal{T}$; vanilla models $M_G^{(0)}, M_C^{(0)}$; rounds $R$ (``up to 3''); tables per round $n$
+(``e.g.\ 3000'')}
+\KwOut{specialist $M_G^{(R)}$}
+\For{$r \leftarrow 1$ \KwTo $R$}{
+  $\mathcal{T}_r \leftarrow$ next $n$ tables of $\mathcal{T}$\Comment*[r]{repo: 1st, 2nd, 3rd 3K files}
+  $\mathcal{D}^G_r \leftarrow \varnothing$;\ $\mathcal{D}^C_r \leftarrow \varnothing$\Comment*[r]{training sets reset each round}
+  \ForEach{$t \in \mathcal{T}_r$}{
+    $x \leftarrow Q(t)$\Comment*[r]{question model: not specified}
+    $y \leftarrow M_G^{(r-1)}(x)$;\ $y' \leftarrow M_C^{(r-1)}(x)$\;
+    \If{$V(x,y,y') = 1$}{
+      add $(x,y)$ to $\mathcal{D}^G_r$;\ add $(x,y')$ to $\mathcal{D}^C_r$\;
+    }
+  }
+  $M_G^{(r)} \leftarrow \operatorname{FineTune}(\,\cdot\,, \mathcal{D}^G_r)$;\ $M_C^{(r)} \leftarrow
+  \operatorname{FineTune}(\,\cdot\,, \mathcal{D}^C_r)$\Comment*[r]{from previous model or from vanilla: ambiguous}
+}
+\Return{$M_G^{(R)}$}
+\end{algorithm}
+
+\begin{algorithm}[htbp]
+\caption{Execution-based validation for NL-to-SQL (paper Algorithm~3, restated)}\label{alg:paper-exec}
+\KwIn{table $t$; SQL $y$; dual program $y'$ (Spark-Scala); samples $K=10$; fraction $\phi=0.5$\Comment*[r]{repo}}
+\KwOut{keep or reject}
+\For{$k \leftarrow 0$ \KwTo $K-1$}{
+  $S_k \leftarrow$ \texttt{t.sample(frac=}$\phi$\texttt{, random\_state=}$k$\texttt{)}\Comment*[r]{repo \fpath{prepare_exec.py}}
+  $r \leftarrow \operatorname{run}_{\text{SQL}}(y, S_k)$;\ $r' \leftarrow \operatorname{run}_{\text{Spark}}(y', S_k)$\;
+  \lIf{either run fails \textbf{or} $r \neq r'$}{\Return{reject}}
+}
+\Return{keep}
+\end{algorithm}
+
+\begin{algorithm}[htbp]
+\caption{Permutation-based validation for error detection (paper Algorithm~2, restated)}\label{alg:paper-perm}
+\KwIn{column values $U$; injected error $e$ (or none for a clean column); validator $M_C$; permutations $J=5$}
+\KwOut{keep or reject}
+$W \leftarrow U \cup \{e\}$ (or $U$ for a clean column)\;
+\For{$j \leftarrow 0$ \KwTo $J-1$}{
+  $W_j \leftarrow$ \texttt{random.seed(}$j$\texttt{); random.shuffle(}$W$\texttt{)}\Comment*[r]{repo \fpath{ed_validation_prompt_gen_v3.py}}
+  $A \leftarrow$ values $M_C$ names as errors in $W_j$\;
+  \lIf{$A \neq \{e\}$ (or $A \neq \varnothing$ for a clean column)}{\Return{reject}}
+}
+\Return{keep}
+\end{algorithm}
+
+\begin{figure}[htbp]
+\centering
+\begin{adjustbox}{max width=\linewidth}\input{figures/paper-loop.tex}\end{adjustbox}
+\caption{The Table-Specialist loop for NL-to-SQL as described by the paper. One round turns a slice of unlabelled tables
+into validated (question, SQL) and (question, Scala) pairs, and fine-tunes both models. The new models generate the next
+round. Dashed boxes mark components the paper does not specify (who writes the questions; whether fine-tuning
+restarts from vanilla).}
+\label{fig:paper-loop}
+\end{figure}
+
+\section{Tasks, data and prompts}
+
+\begin{paperbox}[title={Tasks with results in the paper (Llama-3.1-8B)}]
+NL-to-SQL, NL-to-Scala, NL-to-R, schema matching, error detection, table question answering, and data
+transformation (Pandas, R and SQL). Entity matching, column-type annotation and fact verification are listed in the
+paper's Table~1 but have no results.
+\end{paperbox}
+
+\Cref{tab:paper-tasks} lists the test sets and validation per task (published version, Table~2 and Section~3).
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{2.6cm}p{4.2cm}p{4.6cm}p{3.2cm}@{}}
+\caption{Tasks in the paper, their dual-task validation, and their test sets. Sizes and metrics are from the published
+Table~2.}\label{tab:paper-tasks}\\
+\toprule\rowcolor{headshade}
+Task & Validation (dual task) & Test sets (cases) & Metric\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}
+Task & Validation (dual task) & Test sets (cases) & Metric\\\midrule\endhead
+\bottomrule\endfoot
+NL-to-SQL & SQL vs Spark-Scala execution agreement (\cref{eq:vexec}) & WikiSQL (1,000), WikiTQ (1,000),
+Text2Analysis (271), Spider (1,198), BIRD (356) & Execution accuracy\\
+NL-to-Scala & The same pairs; Scala checked against SQL (Example~5) & The same five & Execution accuracy\\
+NL-to-R & Execution agreement with a second language (not named) & The same five & Execution accuracy\\
+Schema matching & Model-based, consistent under permutation (Algorithm~2) & DeepM (42), WikiData (24), HXD (468) &
+F1\\
+Error detection & Permutation consistency of an injected error (\cref{eq:vperm}) & Spreadsheet-Tables (1,126),
+Relational-Tables (1,081) & F1\\
+Table QA & Paired with NL-to-code tasks; details not given & FinQA (1,000), TableBench (424), WikiTQ (1,000) & Accuracy\\
+Data transformation & Execution agreement & TDE (570), Transform-Text (335) & Execution accuracy\\
+\end{longtable}
+}
+
+\paragraph{Training tables.} The paper describes its corpus only as ``a large corpus'' of real tables. Its repository's
+data file names (\fpath{table2question_all_webtable_v4_1st_3K}) suggest web tables, sliced into 3,000-table files per
+round. The corpus is not released.
+
+\paragraph{Prompts.} The repository releases the prompts as code.
+\begin{itemize}
+\item \textbf{Generation.} Few-shot scripts with four worked examples, such as
+\fpath{Generation/NL2DSL/NL2SQL/nl2sql_generation_v6.py}. Tables are serialised as pipe-delimited markdown.
+\item \textbf{Questions.} \fpath{table2question_generationv_v4.py} samples ``requirements'' for each question
+(predicates 70\%, other requirements 33\% each).
+\item \textbf{Errors.} Separate scripts write typo errors and semantic errors.
+\item \textbf{Test and training format.} Prompt classes under \fpath{Finetune/data_generator/} build the zero-shot
+prompts by default.
+\end{itemize}
+The only query path, \fpath{Evaluete/queryWithDeployment.py}, is a chat call with a fixed system message: ``You are an
+AI assistant. Provide an answer to some data/table related questions.'' This is written for GPT-3.5; the paper does not
+publish its Llama call.
+
+\section{Training}\label{sec:paper-training}
+
+\begin{paperbox}[title={Fine-tuning, as published}]
+LoRA~\cite{hu2021lora}; batch size 1\% of the training data; a ``learning-rate multiplier of 0.5'' (an OpenAI
+fine-tuning term). Section~6.5 and Figure~14 (published version: Appendix~B.2, Figure~10) compare restarting each round from the vanilla model with continuing from
+the previous round, and find restarting ``consistently better''. The paper does not state which variant its main
+results use, nor the LoRA rank, alpha, epochs or absolute learning rate.
+\end{paperbox}
+
+For a weight matrix $W_0\in\mathbb{R}^{d\times k}$, LoRA trains a low-rank update
+\begin{equation}
+  W \;=\; W_0 + \frac{\alpha}{r}\, B A, \qquad B\in\mathbb{R}^{d\times r},\; A\in\mathbb{R}^{r\times k},\; r \ll
+  \min(d,k),
+  \label{eq:lora}
+\end{equation}
+with $W_0$ frozen. Supervised fine-tuning minimises the negative log-likelihood of the target output given the prompt,
+\begin{equation}
+  \mathcal{L}(\theta) \;=\; -\frac{1}{|\mathcal{D}_r|}\sum_{(x,y)\in\mathcal{D}_r} \sum_{i=1}^{|y|}
+  \log p_\theta\!\left(y_i \mid x, y_{<i}\right).
+  \label{eq:sft}
+\end{equation}
+With a batch of 1\% of the data, every epoch has about 100 optimiser steps, whatever the size of $\mathcal{D}_r$.
+
+\section{Evaluation}\label{sec:paper-metrics}
+
+\paragraph{Execution accuracy.} For $N$ test cases with gold program $p_i^\ast$ and predicted program $\hat p_i$, run
+on the case's table or database $D_i$,
+\begin{equation}
+  \mathrm{EA} \;=\; \frac{1}{N}\sum_{i=1}^{N} \mathbb{1}\!\left[\operatorname{norm}\bigl(\operatorname{run}(\hat
+  p_i,D_i)\bigr) = \operatorname{norm}\bigl(\operatorname{run}(p_i^\ast,D_i)\bigr)\right].
+  \label{eq:ea}
+\end{equation}
+In the repository's evaluators, $\operatorname{norm}$ converts values to numbers where possible and fills missing values
+with the string ``None''. Equality is the list comparison \texttt{are\_lists\_equal}, which is order-sensitive and has a
+relative tolerance for numbers. Its defects are analysed in \cref{sec:scoring}. For WikiTQ the gold answer is a list of
+values, not a program.
+
+\paragraph{Error-detection F1.} The repository's \fpath{ed_evaluator.py} computes precision only over columns with a
+prediction, $\mathcal{P}=\{c:\hat E_c\neq\varnothing\}$, and recall only over columns with errors,
+$\mathcal{R}=\{c:E_c\neq\varnothing\}$:
+\begin{equation}
+  P=\frac{1}{|\mathcal{P}|}\sum_{c\in\mathcal{P}}\frac{|\hat E_c\cap E_c|}{|\hat E_c|},\qquad
+  R=\frac{1}{|\mathcal{R}|}\sum_{c\in\mathcal{R}}\frac{|\hat E_c\cap E_c|}{|E_c|},\qquad
+  F_1=\frac{2PR}{P+R}.
+  \label{eq:edf1}
+\end{equation}
+AutoTest~\cite{autotestrepo} also marks some values as ``debatable''. The repository ignores this field, and the paper
+does not say how it was treated.
+
+\section{Reported results}\label{sec:paper-results}
+
+\Cref{tab:paper-results} gives the targets of this reproduction, from the published Table~3. The paper does not state
+which test prompt or which checkpoint (base or instruction-tuned) its Llama column uses. For GPT-3.5, every Table~3 value
+equals the last iteration plotted in Figure~6 (V3 for NL-to-code, V2 for error detection and schema matching), so Table~3
+most likely reports the final round; no such figure is given for Llama.
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}lrrrrrr@{}}
+\caption{The paper's Llama-3.1-8B results that this report compares against (published Table~3). The mean of 4 excludes
+Text2Analysis, which is unreleased; the paper's own averages include it.}\label{tab:paper-results}\\
+\toprule\rowcolor{headshade}
+Task and model & WikiSQL & WikiTQ & T2A & Spider & BIRD & Mean of 4\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}
+Task and model & WikiSQL & WikiTQ & T2A & Spider & BIRD & Mean of 4\\\midrule\endhead
+\bottomrule\endfoot
+NL-to-SQL, vanilla & 0.525 & 0.300 & 0.273 & 0.670 & 0.388 & 0.4708\\
+NL-to-SQL, Table-Specialist & 0.816 & 0.449 & 0.465 & 0.690 & 0.438 & 0.5983\\
+NL-to-Scala, vanilla & 0.359 & 0.043 & 0.129 & 0.249 & 0.100 & 0.1878\\
+NL-to-Scala, Table-Specialist & 0.728 & 0.188 & 0.214 & 0.356 & 0.228 & 0.3750\\
+NL-to-R, vanilla & 0.331 & 0.138 & 0.103 & 0.503 & 0.225 & 0.2993\\
+NL-to-R, Table-Specialist & 0.409 & 0.257 & 0.199 & 0.536 & 0.261 & 0.3658\\
+\midrule
+\multicolumn{7}{@{}l}{\textit{Other tasks}}\\
+Error detection ST / RT, vanilla & \multicolumn{6}{l}{0.071 / 0.108 (F1)}\\
+Error detection ST / RT, TS & \multicolumn{6}{l}{0.136 / 0.161 (F1)}\\
+Schema matching, vanilla $\to$ TS & \multicolumn{6}{l}{0.839 $\to$ 0.873 (F1, average of 3 sets)}\\
+Table QA, vanilla $\to$ TS & \multicolumn{6}{l}{0.270 $\to$ 0.296 (average of 3 sets, Table~4)}\\
+\end{longtable}
+}
+
+Three points about the paper's own numbers, settled by the published version:
+\begin{itemize}
+\item \textbf{The ablation reports round~1.} The ablation table (arXiv Table~11, published Table~6, GPT-3.5 only) gives
+NL-to-SQL 0.594, while Table~3 gives 0.616. This is not a contradiction: the ablation's Table-Specialist values (0.594,
+0.496, 0.466 for SQL, R, Scala) equal the V1 values in Figure~6, and Table~3's equal V3. In that ablation a
+language-model validator gives 0.595 against execution validation's 0.594, with vanilla at 0.569.
+\item \textbf{The paper's averages include Text2Analysis.} The NL-to-Scala Llama average of 0.343 is the mean over five
+sets, including Text2Analysis (0.214); over the four public sets it is 0.375. Likewise NL-to-R: 0.333 over five, 0.366
+over four.
+\item \textbf{No-validation numbers exist only for GPT-3.5}, as data labels in Figure~6 (NL-to-SQL 0.591, 0.591, 0.589
+over three iterations). There are none for Llama.
+\end{itemize}
+
+\section{Assumptions and limitations of the original approach}\label{sec:paper-limits}
+
+\begin{itemize}
+\item \textbf{Agreement is not correctness.} Two programs can agree and both be wrong, for example when both misread a
+vague question in the same way. Correct pairs can also be rejected because the two languages format results
+differently. The paper reports no precision or recall for its validator, and no pass rates.
+\item \textbf{Strict agreement discards most data.} Requiring all 10 samples to agree keeps a minority of pairs. In our
+runs it kept 11--25\% (\cref{sec:sql-validation}). The paper discards rejected pairs with no repair or retry.
+\item \textbf{The dual task must be executable or checkable.} Execution validation needs a second language with a
+sandbox. Permutation validation relies on the validator being better than chance, and early rounds use the vanilla
+model as validator.
+\item \textbf{Self-reinforcement.} The validator in later rounds is trained on data it accepted itself. This may lock in
+its biases, a risk the paper does not analyse.
+\item \textbf{Under-specification.} The corpus, the question model, the restart choice for the main results, the LoRA
+settings, the test prompt and the checkpoint are all unstated; the round reported is only implied by Figure~6
+(\cref{tab:gaps}).
+\end{itemize}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{4.1cm}p{5.4cm}p{5.2cm}@{}}
+\caption{What the paper and repository specify, and what they leave open. Our choice for each gap is in
+\cref{tab:adaptations}.}\label{tab:gaps}\\
+\toprule\rowcolor{headshade}
+Component & Specified & Not specified\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}
+Component & Specified & Not specified\\\midrule\endhead
+\bottomrule\endfoot
+Model & ``Llama-3.1-8B''; README links \texttt{meta-llama/Llama-3.1-8B} (base) & Base or Instruct; revision\\
+Query path & Repo: chat completions with a fixed system message & Any path for a model without a chat template; token
+limits; temperature\\
+Corpus & ``A large corpus'' of real tables; 3,000 per round ``e.g.'' & The tables; filters; pass rates; kept-pair
+counts\\
+Question model & Repo prompt and requirement sampler & Which model writes questions in later rounds\\
+Fine-tuning & LoRA; batch 1\%; LR multiplier 0.5 & Rank; alpha; epochs; absolute LR; target modules\\
+Rounds & Up to 3; restarting is better (Section 6.5) & Which variant Table~3 uses; the round only implied (Figure~6)\\
+Validation & Algorithm 3; repo samples 10 $\times$ 50\% & How results are compared (order, names, types, tolerance)\\
+Test prompt & Repo builds zero-shot test prompts by default & Which prompt produced Table 3\\
+Test cases & Counts per test set & Case ID lists; WikiSQL/WikiTQ sampling; BIRD filter\\
+Error detection & Algorithm 2; repo prompts and negatives & Who writes errors; validator per round; treatment of
+debatable labels\\
+NL-to-R & Repo generation prompt and evaluator & Any validation script\\
+\end{longtable}
+}

@@ -1,0 +1,29 @@
+\begin{landscape}
+{\small
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}crrrrrrrrrr@{}}
+\caption{Extension~2 labelling (base, round~1): 4 candidates per question (TS's greedy pair + 3 vanilla samples at temperature 0.7); the first candidate that passes Algorithm~3 is chosen.}\label{tab:gen-ext2-labels}\\
+\toprule
+\rowcolor{headshade}Seed & Questions & \makecell{TS kept\\(greedy)} & \makecell{bestof4\\chosen} & \makecell{From\\samples} & Gain \% & DPO pairs & \makecell{Rejected:\\rows differ} & \makecell{always\\empty} & \makecell{SQL\\failed} & \makecell{Scala\\runs}\\
+\midrule
+\endfirsthead
+\multicolumn{11}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Seed & Questions & \makecell{TS kept\\(greedy)} & \makecell{bestof4\\chosen} & \makecell{From\\samples} & Gain \% & DPO pairs & \makecell{Rejected:\\rows differ} & \makecell{always\\empty} & \makecell{SQL\\failed} & \makecell{Scala\\runs}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{11}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+1 & 2904 & 426 & 673 & 247 & 58 & 431 & 312 & 95 & 24 & 7329\\
+2 & 2888 & 388 & 627 & 239 & 62 & 438 & 318 & 107 & 13 & 7286\\
+3 & 2893 & 423 & 643 & 220 & 52 & 397 & 302 & 68 & 27 & 7147\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Source: \fpath{runs/train_bestof4_base_seed<s>/round1/summary.json}.\par}
+\medskip
+\end{landscape}

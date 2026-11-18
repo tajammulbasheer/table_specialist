@@ -1,0 +1,94 @@
+\chapter{Conclusion and Future Work}\label{ch:conclusion}
+
+\section{What the work achieved}
+
+\begin{enumerate}
+\item \textbf{An approximate reproduction of the paper's main Llama-3.1-8B result.} On Instruct through the
+repository's own query path, the zero-shot mean of 4 is $0.6113\pm0.0135$ against 0.5983. The per-set gaps are
+0.006--0.032, except Spider, which is offset for every model.
+\item \textbf{A documented negative for the README's base checkpoint}, whose vanilla scores cannot be matched under any
+setting we tried. On base, the paper's qualitative claims hold: TS beats vanilla and NV at round~3. We also observe a
+round-1 crossover the paper does not report.
+\item \textbf{Approximate vanilla reproductions for NL-to-Scala, NL-to-R and error detection}, with TS results above
+the paper's figures for all three, and \textbf{a complete NL-to-R pipeline} (SQL--R validation, which the repository
+does not include) on which TS gains $+0.128$ over vanilla (zero-shot mean of 4: 0.4760 against the paper's 0.3658).
+\item \textbf{A controlled study of recovering rejected data.}
+  \begin{itemize}
+  \item DPO harms.
+  \item Best-of-4 sampling gives a small, unstable gain.
+  \item Repair-TS helps base NL-to-SQL ($+0.0421$), Instruct NL-to-Scala ($+0.0167$) and NL-to-R ($+0.0244$), but not
+  Instruct NL-to-SQL.
+  \item A same-data control shows that the base gain is only half data volume.
+  \item Repair for error detection helps significantly only at round~1, and no more than a second sample does;
+  at rounds 2--3 it stays slightly ahead, within noise.
+  \end{itemize}
+\item \textbf{A complete, resumable, audited implementation.} It supplies what the repository lacks: the validation
+comparison, an NL-to-R validator, corrected scoring and test-set builders. A generator derives every table in this
+report from result files.
+\end{enumerate}
+
+\section{Assessment of contributions}\label{sec:novelty}
+
+{\small
+\rowcolors{2}{rowshade}{white}
+\begin{longtable}{@{}p{3.9cm}p{2.1cm}p{4.3cm}p{1.5cm}p{2.3cm}@{}}
+\caption{Candidate contributions, graded. \emph{Strong}: 3 seeds, $p<0.0001$, consistent sign and a control for the
+obvious alternative. \emph{Moderate}: significant and consistent, with an untested alternative. \emph{Weak}: one seed,
+mixed, or not significant.}\label{tab:novelty}\\
+\toprule\rowcolor{headshade}Candidate & Category & Evidence & Strength & Needed to establish\\\midrule\endfirsthead
+\toprule\rowcolor{headshade}Candidate & Category & Evidence & Strength & Needed to establish\\\midrule\endhead
+\bottomrule\endfoot
+Repair-TS improves base NL-to-SQL & Method & $+0.0421$; all seeds; half survives a same-data control & Moderate &
+Separate repair from distillation\\
+Repair-TS does not help a same-model repairer on SQL & Empirical (negative) & $-0.0014$, $p=0.55$; repaired $<$ fresh
+pairs & Strong & Another model family\\
+Repair-TS helps the dual language (Scala) & Empirical & $+0.0141$ to $+0.0337$ at every round, all seeds & Moderate &
+Mechanism; Scala same-data control\\
+Repair-TS helps NL-to-R & Method & $+0.011$, $+0.020$, $+0.024$ by round; all 9 seed-rounds positive; $p<0.0001$ &
+Moderate & R same-data control\\
+Repair-ED & Method & $+0.027$ at round~1 ($p=0.03$), beats same-data but not best-of-2; $+0.006$ and $+0.011$ at rounds 2--3, not significant, seeds split & Weak (not
+significant beyond round~1) & Larger test sets\\
+The paper's Llama results are Instruct through chat & Reproduction finding & vanilla within 0.015 on 3 sets; base fails
+6 settings & Not novel & Author confirmation\\
+Validation pays off only over rounds (round-1 crossover) & Empirical & base: NV wins 17 of 24 at round 1; TS 20 of 24
+at round 3 & Moderate & NV on Instruct, 3 seeds\\
+Rounds do not help Instruct & Empirical & $-0.0083$, $p=0.0012$ & Moderate & More seeds; restart vs continue\\
+TS's gain is a zero-shot gain & Empirical & few-shot vanilla $\approx$ zero-shot TS & Moderate & Paired test;
+few-shot-trained TS\\
+DPO on validator labels harms & Ablation (negative) & $-0.0209$; dev tuning fails & Moderate & Other preference
+losses\\
+Corrected scoring; complete validator; resumable harness & Engineering & used throughout & Engineering & Release\\
+Self-consistency helps & Confirmation & $+0.016$ to $+0.025$ & Not novel & --\\
+\end{longtable}
+}
+
+Repairing code from execution feedback is established in other settings~\cite{chen2023selfdebug}. What is new here is
+narrower: using repair as a \emph{data-recovery} step before an unchanged dual-task validator, and measuring under
+controls when it helps. The most defensible research claim is therefore the conditional one: \emph{recovering rejected
+data helps self-training with dual-task validation when the trained language's first-pass data is weak, and not
+otherwise}. It is not yet established; \cref{sec:future} lists what is missing.
+
+\section{Future work}\label{sec:future}
+
+\paragraph{To complete the reproduction.}
+\begin{itemize}
+\item Run a same-data control for repair-TS-R on NL-to-R (about 6 GPU-hours).
+\item Run Instruct NV for seeds 2 and 3.
+\item Build a web-table corpus with a value-level contamination filter, and compare it with GitTables.
+\item Verify the paper's non-SQL figures from its PDF.
+\item Release configurations, ID lists and a one-seed \texttt{make reproduce}.
+\end{itemize}
+
+\paragraph{To turn the repair findings into a contribution.}
+\begin{enumerate}
+\item \textbf{Separate repair from distillation.} Have Instruct write fresh pairs for base, without repair, under the
+same budget. Separately, let base repair itself with a prompt it follows.
+\item \textbf{Vary generator strength.} Use a weaker and a stronger model of another family, to test whether repair's
+value falls as the generator's first-pass data improves.
+\item \textbf{Mechanism by failure type.} Explain why \texttt{always\_empty} pairs are almost never recovered (question
+or data?), and whether repaired Scala carries the Scala gain.
+\item \textbf{Validator quality.} A precision--recall study of Algorithm~3 against known-correct SQL. This would
+quantify what the validator discards and what repair recovers.
+\item \textbf{Cumulative data across rounds.} Test whether rounds help Instruct once a later round's model also sees
+earlier rounds' data.
+\end{enumerate}

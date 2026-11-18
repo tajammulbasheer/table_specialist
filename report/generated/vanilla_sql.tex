@@ -1,0 +1,42 @@
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lllrrcrrr@{}}
+\caption{NL-to-SQL vanilla baselines on the four rebuilt test sets, both checkpoints and both prompts. Execution accuracy (fraction of cases). The paper's vanilla figures (Table~3, Llama-3.1-8B) are set beside our zero-shot rows only, because the paper does not state its test prompt.}\label{tab:gen-vanilla-sql}\\
+\toprule
+\rowcolor{headshade}Model & Prompt & Test set & $n$ & Repo-faithful & \makecell{95\%\\Wilson CI} & Corrected & \makecell{Paper\\vanilla} & Ours $-$ paper\\
+\midrule
+\endfirsthead
+\multicolumn{9}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Model & Prompt & Test set & $n$ & Repo-faithful & \makecell{95\%\\Wilson CI} & Corrected & \makecell{Paper\\vanilla} & Ours $-$ paper\\
+\midrule
+\endhead
+\midrule
+\multicolumn{9}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Base & zero-shot & WikiSQL & 1000 & 0.3260 & [0.2980, 0.3560] & 0.3260 & 0.525 & -0.1990\\
+Base & zero-shot & WikiTQ & 1000 & 0.2190 & [0.1940, 0.2460] & 0.2190 & 0.300 & -0.0810\\
+Base & zero-shot & Spider & 1198 & 0.7245 & [0.6990, 0.7490] & 0.7529 & 0.670 & +0.0545\\
+Base & zero-shot & BIRD & 363 & 0.3636 & [0.3160, 0.4140] & 0.3636 & 0.388 & -0.0244\\
+Base & few-shot & WikiSQL & 1000 & 0.6850 & [0.6560, 0.7130] & 0.6850 &  & --\\
+Base & few-shot & WikiTQ & 1000 & 0.3440 & [0.3150, 0.3740] & 0.3440 &  & --\\
+Base & few-shot & Spider & 1198 & 0.7688 & [0.7440, 0.7920] & 0.7721 &  & --\\
+Base & few-shot & BIRD & 363 & 0.3994 & [0.3500, 0.4510] & 0.3994 &  & --\\
+Instruct & zero-shot & WikiSQL & 1000 & 0.5180 & [0.4870, 0.5490] & 0.5180 & 0.525 & -0.0070\\
+Instruct & zero-shot & WikiTQ & 1000 & 0.2890 & [0.2620, 0.3180] & 0.2890 & 0.300 & -0.0110\\
+Instruct & zero-shot & Spider & 1198 & 0.7913 & [0.7670, 0.8130] & 0.7913 & 0.670 & +0.1213\\
+Instruct & zero-shot & BIRD & 363 & 0.4022 & [0.3530, 0.4530] & 0.4050 & 0.388 & +0.0142\\
+Instruct & few-shot & WikiSQL & 1000 & 0.7980 & [0.7720, 0.8220] & 0.7980 &  & --\\
+Instruct & few-shot & WikiTQ & 1000 & 0.4230 & [0.3930, 0.4540] & 0.4230 &  & --\\
+Instruct & few-shot & Spider & 1198 & 0.7963 & [0.7730, 0.8180] & 0.7988 &  & --\\
+Instruct & few-shot & BIRD & 363 & 0.4187 & [0.3690, 0.4700] & 0.4187 &  & --\\
+Base (original-case tables) & zero-shot & WikiSQL & 1000 & 0.1420 & [0.1220, 0.1650] & 0.1420 &  & \\
+Base (original-case tables) & few-shot & WikiSQL & 1000 & 0.2870 & [0.2600, 0.3160] & 0.2870 &  & \\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Sources: \fpath{results/baseline/final_*_base.json}, \fpath{gate_*_base_fewshot.json}, \fpath{gate_instruct_*.json}, \fpath{gate_wikisql_base_origcase_*.json}. Base queried with raw completions (128 tokens); Instruct through the repo's chat call (256 tokens).\par}
+\medskip

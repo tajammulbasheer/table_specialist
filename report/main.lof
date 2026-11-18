@@ -1,0 +1,33 @@
+\babel@toc {english}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces The Table-Specialist loop for NL-to-SQL as described by the paper. One round turns a slice of unlabelled tables into validated (question, SQL) and (question, Scala) pairs, and fine-tunes both models. The new models generate the next round. Dashed boxes mark components the paper does not specify (who writes the questions; whether fine-tuning restarts from vanilla).}}{7}{figure.caption.13}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Our implementation of one round (\fpath {ts/loop.py}). Teal boxes are our code, amber boxes are repository artefacts used unchanged. The response cache and the GPU and CPU locks make every stage resumable and keep one job per GPU.}}{12}{figure.caption.18}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Repair-TS. The failure type decides which side is repaired; each side's feedback comes only from its own execution on the sample where the pair was rejected. Recovered pairs join the kept pairs for training.}}{17}{figure.caption.21}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Module structure, with the main calls shown as arrows. Amber marks repository code, used either through imports or as patched source; the generators and scorers reach it through \fpath {ts/repo.py}. Every long job runs in its own detached \texttt {tmux} session and takes GPUs and the validation slot through file locks.}}{27}{figure.caption.35}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Project timeline, 2026-11-04 to 2026-11-17 (IST). Upper lane: decisions and results; lower lane: experiments and their durations; red markers: machine incidents.}}{31}{figure.caption.36}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {7.1}{\ignorespaces NL-to-SQL \textsf {M8}{} by round: mean over seeds 1--3, with error bars of one sample standard deviation (NV on Instruct is one seed, so it has none). Plotted from the per-cell result files.}}{39}{figure.caption.37}%
+\contentsline {figure}{\numberline {7.2}{\ignorespaces Instruct against the paper's Table~3, zero-shot, per test set. Our TS bars are the mean over seeds 1--3 at round~3, with one-SD error bars.}}{44}{figure.caption.38}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {9.1}{\ignorespaces NL-to-Scala \textsf {ZS4}{} by round (mean over seeds, one-SD error bars), against the paper's Llama figures (horizontal lines; published Table~3, mean of the 4 public sets).}}{58}{figure.caption.39}%
+\contentsline {figure}{\numberline {9.2}{\ignorespaces Error-detection F1 per seed and round. Repair-ED lines show the rounds finished when the tables were generated.}}{62}{figure.caption.40}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }

@@ -1,0 +1,35 @@
+\begin{tikzpicture}[x=1.13cm,y=1cm,
+  ev/.style={font=\sffamily\scriptsize,align=center,text width=1.95cm},
+  bar/.style={rounded corners=1.5pt,minimum height=0.32cm,inner sep=0pt},
+  lab/.style={font=\sffamily\tiny,text=white,anchor=west}]
+  % axis: day 4 .. 17 of November 2026
+  \draw[thick,navy,-{Stealth[length=5pt]}] (3.7,0) -- (17.4,0);
+  \foreach \d in {4,...,17} {\draw[navy] (\d,0.08) -- (\d,-0.08); \node[font=\sffamily\tiny,below=2pt] at (\d,0) {\d};}
+  \node[font=\sffamily\scriptsize,anchor=west] at (3.7,-0.55) {November 2026 (IST)};
+  % decisions and results (upper lane)
+  \foreach \x/\y/\t in {4/1.1/{Gate fails on base; reversal to LoRA, Scala, 3 rounds},
+                         7/2.75/{Core study done: TS beats NV at round 3},
+                         8/1.1/{DPO harms; repair pilot: Instruct repairer go},
+                         10/2.75/{Repair-TS base 0.5856; plan A/B approved},
+                         12/1.1/{Instruct TS matches paper},
+                         13/2.75/{Controls: repair null on Instruct SQL},
+                         15/1.1/{Repair-ED built},
+                         16/2.75/{Scala done: repair wins every round; NL-to-R built},
+                         17/1.1/{ED and NL-to-R done: repair-TS-R wins every round}}{
+    \draw[sea,thick] (\x,0) -- (\x,\y-0.25);
+    \fill[sea] (\x,0) circle (2pt);
+    \node[ev,anchor=south] at (\x,\y-0.3) {\t};}
+  % experiment bars (lower lane)
+  \node[bar,fill=navy,minimum width=3.6cm,anchor=west] at (4.95,-1.2) {}; \node[lab] at (5.0,-1.2) {Core study TS/NV, base};
+  \node[bar,fill=plum,minimum width=1.5cm,anchor=west] at (7.85,-1.65) {}; \node[lab] at (7.9,-1.65) {Ext.~2};
+  \node[bar,fill=sea,minimum width=2.6cm,anchor=west] at (8.4,-2.1) {}; \node[lab] at (8.45,-2.1) {Repair-TS base};
+  \node[bar,fill=teal,minimum width=2.6cm,anchor=west] at (10.9,-1.2) {}; \node[lab] at (10.95,-1.2) {Instruct TS/NV};
+  \node[bar,fill=amber,minimum width=2.4cm,anchor=west] at (12.75,-1.65) {}; \node[lab,text=black] at (12.8,-1.65) {Repair-TS Instr.};
+  \node[bar,fill=coral!80,minimum width=2.1cm,anchor=west] at (14.7,-1.2) {}; \node[lab] at (14.75,-1.2) {Scala};
+  \node[bar,fill=slate,minimum width=3.0cm,anchor=west] at (14.75,-2.1) {}; \node[lab] at (14.8,-2.1) {ED TS, repair-ED};
+  \node[bar,fill=plum,minimum width=1.7cm,anchor=west] at (16.2,-1.65) {}; \node[lab] at (16.25,-1.65) {NL-to-R};
+  % incidents
+  \foreach \x/\t in {5.4/crash, 14.8/stall, 15.5/WSL} {
+    \fill[coral] (\x,0) circle (2.5pt);
+    \node[font=\sffamily\tiny,text=coral,above=1pt] at (\x,0.05) {\t};}
+\end{tikzpicture}

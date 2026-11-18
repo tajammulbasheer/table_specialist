@@ -1,0 +1,44 @@
+\begin{landscape}
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}lccrrrrrrrrrrrrr@{}}
+\caption{Repair-TS (Extension~3): rejected pairs repaired once by Llama-3.1-8B-Instruct and validated again with Algorithm~3 unchanged. Per-reason columns give recovered / attempted; the last three give which side's new code passed.}\label{tab:gen-repair}\\
+\toprule
+\rowcolor{headshade}Model & S & R & Pairs & \makecell{Kept\\(1st pass)} & Repaired & Recovered & \makecell{Increase\\\%} & Disagree & \makecell{Scala\\failed} & \makecell{Always\\empty} & \makecell{SQL\\failed} & New Scala & New SQL & Both & \makecell{Scala\\runs}\\
+\midrule
+\endfirsthead
+\multicolumn{16}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Model & S & R & Pairs & \makecell{Kept\\(1st pass)} & Repaired & Recovered & \makecell{Increase\\\%} & Disagree & \makecell{Scala\\failed} & \makecell{Always\\empty} & \makecell{SQL\\failed} & New Scala & New SQL & Both & \makecell{Scala\\runs}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{16}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Base & 1 & 1 & 2904 & 426 & 2369 & 224 & 52.6 & 159/840 & 55/855 & 9/621 & 1/53 & 169 & 36 & 19 & 5465\\
+Base & 1 & 2 & 2918 & 690 & 2134 & 140 & 20.3 & 107/906 & 20/537 & 8/583 & 5/108 & 78 & 53 & 9 & 4649\\
+Base & 1 & 3 & 2918 & 761 & 2048 & 161 & 21.2 & 113/817 & 37/545 & 9/612 & 2/74 & 82 & 70 & 9 & 4661\\
+Base & 2 & 1 & 2888 & 388 & 2398 & 217 & 55.9 & 146/820 & 58/857 & 13/660 & 0/61 & 172 & 34 & 11 & 5430\\
+Base & 2 & 2 & 2916 & 713 & 2148 & 156 & 21.9 & 116/889 & 23/515 & 14/688 & 3/56 & 91 & 53 & 12 & 4672\\
+Base & 2 & 3 & 2911 & 829 & 2010 & 151 & 18.2 & 106/833 & 33/568 & 10/556 & 2/53 & 77 & 64 & 10 & 4466\\
+Base & 3 & 1 & 2893 & 423 & 2370 & 204 & 48.2 & 143/781 & 54/876 & 7/656 & 0/57 & 147 & 35 & 22 & 5230\\
+Base & 3 & 2 & 2890 & 701 & 2106 & 178 & 25.4 & 142/890 & 21/530 & 13/633 & 2/53 & 75 & 83 & 20 & 4881\\
+Base & 3 & 3 & 2908 & 896 & 1905 & 168 & 18.8 & 122/772 & 28/478 & 16/579 & 2/76 & 79 & 82 & 7 & 4328\\
+Instruct & 1 & 1 & 2978 & 319 & 2558 & 74 & 23.2 & 51/626 & 18/691 & 5/1007 & 0/234 & 53 & 16 & 5 & 3191\\
+Instruct & 1 & 2 & 2976 & 500 & 2420 & 95 & 19.0 & 67/600 & 16/569 & 7/1048 & 5/203 & 48 & 39 & 8 & 3235\\
+Instruct & 1 & 3 & 2974 & 507 & 2392 & 89 & 17.6 & 51/654 & 29/521 & 9/1005 & 0/212 & 52 & 34 & 3 & 3400\\
+Instruct & 2 & 1 & 2983 & 332 & 2551 & 75 & 22.6 & 53/605 & 16/702 & 5/1028 & 1/216 & 50 & 20 & 5 & 3095\\
+Instruct & 2 & 2 & 2980 & 492 & 2430 & 77 & 15.7 & 53/574 & 15/601 & 5/979 & 4/276 & 42 & 29 & 6 & 3025\\
+Instruct & 2 & 3 & 2973 & 525 & 2382 & 96 & 18.3 & 56/649 & 31/533 & 5/989 & 4/211 & 70 & 26 & 0 & 3351\\
+Instruct & 3 & 1 & 2982 & 332 & 2544 & 65 & 19.6 & 48/587 & 12/719 & 5/1034 & 0/204 & 46 & 17 & 2 & 3088\\
+Instruct & 3 & 2 & 2966 & 479 & 2415 & 92 & 19.2 & 59/619 & 14/519 & 13/1009 & 6/268 & 44 & 45 & 3 & 3220\\
+Instruct & 3 & 3 & 2967 & 531 & 2346 & 81 & 15.3 & 52/621 & 22/532 & 4/997 & 3/196 & 45 & 33 & 3 & 3270\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} ``No code'' pairs are not repaired. Sources: \fpath{runs/train_repairts_<profile>_seed<s>/round1/summary.json} and \fpath{round<r>/result.json} (field \fpath{repair}).\par}
+\medskip
+\end{landscape}

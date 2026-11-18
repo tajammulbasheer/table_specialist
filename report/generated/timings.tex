@@ -1,0 +1,54 @@
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}llccrrrrrl@{}}
+\caption{Wall-clock hours per stage of each NL-to-SQL round, as recorded in the round summaries.}\label{tab:gen-timings}\\
+\toprule
+\rowcolor{headshade}Model & Arm & S & R & Generation & Validation & Training & Evaluation & Total & Note\\
+\midrule
+\endfirsthead
+\multicolumn{10}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}Model & Arm & S & R & Generation & Validation & Training & Evaluation & Total & Note\\
+\midrule
+\endhead
+\midrule
+\multicolumn{10}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Base & TS & 1 & 1 & 0.73 & 2.26 & 0.85 & 0.74 & 4.57 & \\
+Base & TS & 1 & 2 & 0.71 & 2.89 & 1.24 & 0.75 & 5.59 & \\
+Base & TS & 1 & 3 & 0.00 & 0 & 1.16 & 0.68 & 1.83 & resumed\\
+Base & TS & 2 & 1 & 0.79 & 2.10 & 0.82 & 0.75 & 4.46 & \\
+Base & TS & 2 & 2 & 0.71 & 3.05 & 1.33 & 0.72 & 5.82 & \\
+Base & TS & 2 & 3 & 0.72 & 3.52 & 1.57 & 0.96 & 6.76 & \\
+Base & TS & 3 & 1 & 0.80 & 2.22 & 0.85 & 0.73 & 4.60 & \\
+Base & TS & 3 & 2 & 0.71 & 2.88 & 1.26 & 0.74 & 5.59 & \\
+Base & TS & 3 & 3 & 0.72 & 3.31 & 1.47 & 0.87 & 6.37 & \\
+Base & NV & 1 & 1 & 0 & 0 & 0 & 0 & 0.00 & 0 = not recorded\\
+Base & NV & 1 & 2 & 0.00 & 0 & 0.22 & 0.86 & 1.09 & resumed\\
+Base & NV & 1 & 3 & 0.54 & 0 & 5.90 & 1.33 & 7.76 & \\
+Base & NV & 2 & 1 & 0.03 & 0 & 5.77 & 1.27 & 7.07 & \\
+Base & NV & 2 & 2 & 0.54 & 0 & 5.84 & 0.77 & 7.15 & \\
+Base & NV & 2 & 3 & 0.54 & 0 & 5.99 & 1.24 & 7.77 & \\
+Base & NV & 3 & 1 & 0.03 & 0 & 5.77 & 0.72 & 6.53 & \\
+Base & NV & 3 & 2 & 0.53 & 0 & 5.66 & 0.72 & 6.91 & \\
+Base & NV & 3 & 3 & 0.53 & 0 & 5.69 & 0.73 & 6.96 & \\
+Instruct & TS & 1 & 1 & 0.86 & 1.99 & 9.03 & 0.79 & 12.67 & \\
+Instruct & TS & 1 & 2 & 0.66 & 2.81 & 4.70 & 1.47 & 9.64 & \\
+Instruct & TS & 1 & 3 & 0.93 & 3.06 & 2.24 & 1.49 & 7.72 & \\
+Instruct & TS & 2 & 1 & 1.72 & 3.17 & 9.23 & 1.72 & 15.84 & \\
+Instruct & TS & 2 & 2 & 0.93 & 2.86 & 4.80 & 1.91 & 10.51 & \\
+Instruct & TS & 2 & 3 & 0.93 & 3.07 & 3.81 & 1.37 & 9.18 & \\
+Instruct & TS & 3 & 1 & 2.62 & 4.40 & 9.83 & 1.83 & 18.68 & \\
+Instruct & TS & 3 & 2 & 0.95 & 2.86 & 4.07 & 0.87 & 8.76 & \\
+Instruct & TS & 3 & 3 & 0.97 & 5.07 & 3.19 & 0.76 & 9.99 & \\
+Instruct & NV & 1 & 1 & 2.66 & 0 & 6.64 & 0.93 & 10.23 & \\
+Instruct & NV & 1 & 2 & 0.94 & 0 & 12.52 & 0.94 & 14.40 & \\
+Instruct & NV & 1 & 3 & 0.75 & 0 & 9.87 & 0.32 & 10.94 & \\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} A resumed round records only the work after its restart, and a round re-run after a crash on 2026-11-05 recorded zeros (a known defect, fixed afterwards; its original timings are in the log). Training covers both adapters, and in GPU-pool runs includes waiting for a GPU.\par}
+\medskip

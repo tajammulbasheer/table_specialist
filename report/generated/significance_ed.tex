@@ -1,0 +1,36 @@
+\begin{landscape}
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}p{5.4cm}lrrrrrp{3.8cm}@{}}
+\caption{Error detection: paired bootstrap tests over test columns (10,000 draws, resampled within each test set, the same draw for both models and all seeds); F1 is recomputed on each draw, averaged over seeds, and the statistic is the mean over ST and RT of A $-$ B.}\label{tab:gen-significance-ed}\\
+\toprule
+\rowcolor{headshade}\makecell{Comparison\\(A vs B)} & Avg: $\Delta$ F1 [95\% CI] & $p$ & ST $\Delta$ & $p$ & RT $\Delta$ & $p$ & \makecell{Per seed\\(avg)}\\
+\midrule
+\endfirsthead
+\multicolumn{8}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}\makecell{Comparison\\(A vs B)} & Avg: $\Delta$ F1 [95\% CI] & $p$ & ST $\Delta$ & $p$ & RT $\Delta$ & $p$ & \makecell{Per seed\\(avg)}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{8}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+ED: TS r3 vs vanilla & +0.1997 [+0.1347, +0.2613] & $<$0.0001 & +0.2126 & $<$0.0001 & +0.1868 & $<$0.0001 & +0.2038, +0.1998, +0.1955\\
+ED: repair-ED r3 vs vanilla & +0.2107 [+0.1433, +0.2733] & $<$0.0001 & +0.1927 & $<$0.0001 & +0.2287 & $<$0.0001 & +0.1720, +0.2278, +0.2322\\
+ED: TS r3 vs TS r1 & +0.0786 [+0.0347, +0.1200] & 0.0002 & +0.1023 & $<$0.0001 & +0.0549 & 0.1044 & +0.1230, +0.0360, +0.0769\\
+ED: repair-ED r1 vs TS r1 & +0.0274 [+0.0030, +0.0516] & 0.0274 & +0.0241 & 0.1024 & +0.0306 & 0.1126 & +0.0256, +0.0342, +0.0222\\
+ED: repair-ED r2 vs TS r2 & +0.0064 [-0.0260, +0.0380] & 0.7044 & +0.0087 & 0.6714 & +0.0041 & 0.8672 & +0.0874, +0.0073, -0.0755\\
+ED: repair-ED r3 vs TS r3 & +0.0110 [-0.0261, +0.0502] & 0.5788 & -0.0199 & 0.3028 & +0.0419 & 0.2118 & -0.0318, +0.0280, +0.0368\\
+ED: best-of-2 r1 vs TS r1 & +0.0215 [-0.0052, +0.0492] & 0.1172 & +0.0156 & 0.3410 & +0.0274 & 0.1970 & -0.0120, +0.0276, +0.0490\\
+ED: same-data r1 vs TS r1 & +0.0042 [-0.0161, +0.0251] & 0.6856 & +0.0158 & 0.2548 & -0.0074 & 0.6540 & +0.0227, -0.0192, +0.0091\\
+ED: repair-ED r1 vs best-of-2 r1 & +0.0058 [-0.0232, +0.0361] & 0.7134 & +0.0085 & 0.5990 & +0.0032 & 0.9334 & +0.0376, +0.0067, -0.0268\\
+ED: repair-ED r1 vs same-data r1 & +0.0232 [+0.0024, +0.0433] & 0.0306 & +0.0083 & 0.5792 & +0.0380 & 0.0088 & +0.0029, +0.0534, +0.0131\\
+\end{longtable}
+}
+\vspace{-0.6\baselineskip}
+{\footnotesize\color{slate}\textit{Note.} Source: \fpath{results/analysis/significance_ed.json}, written by \fpath{ts/analysis/ed_significance.py}.\par}
+\medskip
+\end{landscape}

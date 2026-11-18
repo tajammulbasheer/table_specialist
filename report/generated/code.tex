@@ -1,0 +1,82 @@
+{\footnotesize
+\rowcolors{3}{rowshade}{white}
+\setlength{\tabcolsep}{4.2pt}
+\begin{longtable}{@{}p{4.6cm}rp{9.2cm}@{}}
+\caption{Code inventory: every source file we wrote, with its size and the first line of its description.}\label{tab:gen-code}\\
+\toprule
+\rowcolor{headshade}File & Lines & \makecell{First line of its\\docstring or comment}\\
+\midrule
+\endfirsthead
+\multicolumn{3}{l}{\textit{\tablename~\thetable{} (continued)}}\\
+\toprule
+\rowcolor{headshade}File & Lines & \makecell{First line of its\\docstring or comment}\\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\textit{continued on next page}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+\texttt{report/tools/build\_tables.py} & 1078 & Generate every results table of the LaTeX report from the project's own output files.\\
+\texttt{sandbox/Dockerfile.r} & 7 & Ours: the repo's sandbox/Dockerfile.r (r-base by digest, non-root) plus dplyr, which the repo's NL-to-R prompt\\
+\texttt{scripts/backup\_to\_windows.sh} & 38 & Back up the whole project to the Windows E: drive (separate physical disk from the WSL disk).\\
+\texttt{scripts/download\_data.sh} & 39 & Download raw benchmarks and the training-table corpus. Safe to re-run: finished files are skipped.\\
+\texttt{scripts/measure\_spark.py} & 68 & Measure the repo's Spark-Scala sandbox: seconds per program, and throughput with parallel workers.\\
+\texttt{scripts/run\_baseline.sh} & 30 & Serve a model on GPU 0, evaluate it, then stop the server.\\
+\texttt{scripts/run\_ext2.sh} & 18 & Extension 2 round-1 pilot on one GPU, for the seeds given. Safe to run again after any stop: finished steps ar\\
+\texttt{scripts/run\_fewshot\_test.sh} & 16 & Diagnostic: base on all four test sets with the repo's few-shot prompt from nl2sql\_generation\_v6.py.\\
+\texttt{scripts/run\_final\_baselines.sh} & 39 & Faithful baseline: vanilla (not fine-tuned) Llama-3.1-8B base on all four test sets, one at a time on GPU 0.\\
+\texttt{scripts/run\_gate\_matrix.sh} & 26 & Phase 3 gate: run every model and API setting on WikiSQL and Spider, one at a time on GPU 0.\\
+\texttt{scripts/run\_study.sh} & 19 & One arm of the core study on one GPU: 3 seeds, 3 rounds, 3,000 tables per round, with the settings in configs/\\
+\texttt{scripts/smoke\_qlora.py} & 100 & Run a short QLoRA job with the study's settings and measure training speed and peak VRAM.\\
+\texttt{scripts/smoke\_vllm.py} & 69 & Measure vLLM prefill and decode throughput with prompts shaped like the study's (about 3,000 tokens).\\
+\texttt{scripts/watch\_until\_done.sh} & 10 & Wait until no process matches a pattern, then exit. Run in the background so that its exit wakes the session.\\
+\texttt{ts/\_\_init\_\_.py} & 0 & \\
+\texttt{ts/a1\_instruct\_gate.py} & 21 & Plan A1 (docs/PLAN\_NEXT.md): Llama-3.1-8B-Instruct vanilla on the 4 test sets, through the repo's chat call wi\\
+\texttt{ts/analysis/ed\_significance.py} & 119 & Paired bootstrap tests for error detection (Phase 8): TS, repair-ED and its two controls.\\
+\texttt{ts/analysis/results\_table.py} & 112 & Every approach, every test set, both prompts, from the saved per-cell result files (for the final report).\\
+\texttt{ts/analysis/scala\_table.py} & 54 & NL-to-Scala results by round: mean of the 4 test sets per model, then mean and SD over seeds 1-3 (repo score,\\
+\texttt{ts/analysis/significance.py} & 196 & Paired significance tests for the main comparisons in docs/RESULTS.md (for the final report).\\
+\texttt{ts/bench/\_\_init\_\_.py} & 0 & \\
+\texttt{ts/bench/bird.py} & 128 & Rebuild the BIRD single-table test set in the repo's folder format.\\
+\texttt{ts/bench/dev.py} & 34 & Build the dev sets used only to tune extension 2's DPO settings. Never used for reported scores.\\
+\texttt{ts/bench/spider.py} & 136 & Rebuild the Spider single-table test set in the repo's folder format.\\
+\texttt{ts/bench/wikisql.py} & 172 & Rebuild the WikiSQL test set in the repo's folder format.\\
+\texttt{ts/bench/wikitq.py} & 90 & Rebuild the WikiTableQuestions test set in the repo's folder format.\\
+\texttt{ts/corpus/\_\_init\_\_.py} & 0 & \\
+\texttt{ts/corpus/build.py} & 242 & Build the training-table corpus from GitTables, with the limits in configs/base.yaml.\\
+\texttt{ts/data\_control.py} & 75 & Same-data control for repair-TS (for the final report): does repair-TS round 1 win only because it trains on m\\
+\texttt{ts/ed\_loop.py} & 333 & Phase 8: Table-Specialist for error detection (paper Section 4, Example 4.2; Algorithm 1 with Algorithm 2).\\
+\texttt{ts/eval/\_\_init\_\_.py} & 0 & \\
+\texttt{ts/eval/compare.py} & 64 & Corrected result comparison. It fixes the three defects of the repo's are\_lists\_equal:\\
+\texttt{ts/eval/ed\_eval.py} & 206 & Phase 8: error detection on AutoTest (paper "Spreadsheet-Tables" = ST-bench, "Relational-Tables" = RT-bench).\\
+\texttt{ts/eval/r\_eval.py} & 285 & Phase 9: NL-to-R test scoring, following the repo's Evaluete/evaluate/nr\_evaluator.py.\\
+\texttt{ts/eval/run\_baseline.py} & 183 & Evaluate a model on a rebuilt NL-to-SQL test set and report repo-faithful and corrected scores.\\
+\texttt{ts/eval/scala\_eval.py} & 426 & Phase 8: NL-to-Spark-Scala test scoring, following the repo's Evaluete/evaluate/nss\_evaluator.py.\\
+\texttt{ts/eval/self\_consistency.py} & 139 & Plan B1 + B2 (docs/PLAN\_NEXT.md): execution-based self-consistency at test time.\\
+\texttt{ts/ext2.py} & 294 & Extension 2: learn from rejected programs with DPO (round 1 pilot). Not part of the paper.\\
+\texttt{ts/ext2\_tune.py} & 93 & Tune extension 2's DPO settings on the dev sets (ts/bench/dev.py), never on the test sets.\\
+\texttt{ts/gen/\_\_init\_\_.py} & 0 & \\
+\texttt{ts/gen/code.py} & 21 & Extract SQL, Scala or R from a model's response, and build the generation prompts for a table and question.\\
+\texttt{ts/gen/prompts.py} & 58 & The repo's few-shot code-generation prompts, read from its scripts so that they stay byte for byte.\\
+\texttt{ts/gen/questions.py} & 81 & Question generation with the repo's textbook sampler (Generation/NL2DSL/Table2Question/table2question\_generati\\
+\texttt{ts/llm/\_\_init\_\_.py} & 0 & \\
+\texttt{ts/llm/client.py} & 90 & OpenAI-compatible client for vLLM, with retries and a disk cache so reruns never repeat a request.\\
+\texttt{ts/loop.py} & 441 & Run the Table-Specialist loop (paper Algorithm 1) for one arm and seed.\\
+\texttt{ts/r\_loop.py} & 379 & Phase 9: Table-Specialist for NL-to-R (paper Section 6, Table 3; Algorithm 1 with Algorithm 3), Instruct only.\\
+\texttt{ts/repair.py} & 319 & Extension 3 (not in the paper): repair rejected pairs once, then validate them again with Algorithm 3 unchange\\
+\texttt{ts/repair\_ed.py} & 344 & Phase 8 extension (not in the paper): repair-ED, the error-detection analogue of repair-TS, and its two contro\\
+\texttt{ts/repair\_loop.py} & 188 & Extension 3, rounds 2-3: the Table-Specialist loop (paper Algorithm 1) with repair of rejected pairs in every \\
+\texttt{ts/repair\_ts.py} & 66 & Extension 3, full run: Table-Specialist round 1 plus repaired pairs (ts/repair.py, Instruct repairer).\\
+\texttt{ts/repo.py} & 160 & The one place that touches third\_party/Table-Specialist. The clone itself is never edited.\\
+\texttt{ts/sc\_run.py} & 88 & Plan B1 driver: tune self-consistency on dev, then score the chosen setting on the test sets.\\
+\texttt{ts/tracking.py} & 52 & Local experiment tracking with MLflow. Everything stays in mlruns/ on this machine; telemetry is off.\\
+\texttt{ts/train/\_\_init\_\_.py} & 0 & \\
+\texttt{ts/train/dpo.py} & 111 & DPO on top of a trained SFT LoRA adapter (extension 2; not in the paper).\\
+\texttt{ts/train/sft.py} & 124 & LoRA fine-tuning with the paper's and the config's settings. Completion-only loss, so prompts cost no gradient\\
+\texttt{ts/validate/\_\_init\_\_.py} & 0 & \\
+\texttt{ts/validate/exec\_agree.py} & 146 & Execution validation (paper Algorithm 3): keep a pair only if SQL and Scala agree on every row sample.\\
+\texttt{ts/validate/r\_agree.py} & 72 & NL-to-R validation (ours; the repo has no NL-to-R validation script): paper Algorithm 3 with R in place of Sca\\
+\textbf{Total} & \textbf{7699} &\\
+\end{longtable}
+}

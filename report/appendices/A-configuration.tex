@@ -1,0 +1,14 @@
+\chapter{Configuration Files}\label{app:config}
+
+This appendix reproduces the project's configuration verbatim, read from the files at build time. Every value tagged
+``ours'' in \fpath{configs/base.yaml} is a choice where the paper is silent (\cref{tab:hparams}).
+
+\lstinputlisting[caption={\texttt{configs/base.yaml}: every setting of the study, tagged by source.},label={lst:baseyaml}]{../configs/base.yaml}
+
+\lstinputlisting[caption={\texttt{configs/sandbox.env}: sandbox images, pinned by image ID and base digest.},label={lst:sandboxenv}]{../configs/sandbox.env}
+
+\lstinputlisting[caption={\texttt{configs/runtime.env}: settings needed for vLLM and PyTorch on this machine.},label={lst:runtimeenv}]{../configs/runtime.env}
+
+\lstinputlisting[caption={\texttt{sandbox/Dockerfile.r}: our R sandbox, the repository's recipe plus \texttt{dplyr}.},label={lst:dockerr}]{../sandbox/Dockerfile.r}
+
+The complete Python environment is pinned in \fpath{configs/requirements.lock} (not reproduced here; 200+ packages).

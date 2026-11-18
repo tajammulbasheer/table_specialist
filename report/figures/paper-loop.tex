@@ -1,0 +1,29 @@
+\begin{tikzpicture}[
+  node distance=0.55cm and 0.7cm,
+  box/.style={draw=navy,fill=white,rounded corners=3pt,thick,align=center,font=\sffamily\small,minimum height=1.0cm,
+              text width=2.6cm,blur shadow={shadow blur steps=4,shadow xshift=0.6pt,shadow yshift=-0.6pt}},
+  model/.style={box,fill=headshade},
+  check/.style={box,draw=amber,fill=paperbg},
+  data/.style={box,draw=sea,fill=oursbg},
+  unspec/.style={box,dashed,draw=coral},
+  arr/.style={-{Stealth[length=5pt]},thick,color=slate}]
+  \node[data] (corpus) {Table corpus\\\footnotesize slice $\mathcal{T}_r$, 3,000 tables};
+  \node[unspec,right=of corpus] (q) {Question model $Q$\\\footnotesize (unspecified)};
+  \node[model,above right=0.25cm and 0.7cm of q] (g) {Generator $M_G^{(r-1)}$\\\footnotesize writes SQL};
+  \node[model,below right=0.25cm and 0.7cm of q] (c) {Dual model $M_C^{(r-1)}$\\\footnotesize writes Spark-Scala};
+  \node[check,right=2.9cm of q] (v) {Execute on 10 row\\samples; all agree?};
+  \node[data,below=1.2cm of v] (d) {Training sets\\$\mathcal{D}^G_r$, $\mathcal{D}^C_r$};
+  \node[unspec,left=of d] (ft) {LoRA fine-tune\\\footnotesize from vanilla or previous?};
+  \node[model,left=of ft] (next) {$M_G^{(r)}$, $M_C^{(r)}$\\\footnotesize next round};
+  \node[right=0.35cm of v,font=\sffamily\small,text=coral] (rej) {reject};
+  \draw[arr] (corpus) -- (q);
+  \draw[arr] (q) |- (g);
+  \draw[arr] (q) |- (c);
+  \draw[arr] (g) -| (v);
+  \draw[arr] (c) -| (v);
+  \draw[arr] (v) -- node[right,font=\sffamily\footnotesize]{agree} (d);
+  \draw[arr,coral] (v) -- (rej);
+  \draw[arr] (d) -- (ft);
+  \draw[arr] (ft) -- (next);
+  \draw[arr,dashed] (next.north) to[out=110,in=250] node[left,font=\sffamily\footnotesize,align=center]{round\\$r+1$} (corpus.south);
+\end{tikzpicture}

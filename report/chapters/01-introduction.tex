@@ -1,0 +1,105 @@
+\chapter{Introduction}\label{ch:intro}
+
+\section{Why this reproduction}
+
+Large language models handle many table tasks with no task-specific training: writing SQL for a question,
+finding a wrong value in a column, matching two schemas. A model fine-tuned for one task usually does better, but
+fine-tuning needs labelled examples, and labelling table tasks by hand is slow and expensive.
+Table-Specialist~\cite{xing2024tablellmspecialist} proposes to remove the human from that loop. The model generates
+its own training data, and a second, \emph{dual} task decides which generated examples are trustworthy enough to train
+on.
+
+The idea is attractive because the check is \emph{execution}, not opinion. Take a SQL query and a Spark-Scala program
+written for the same question. If both return the same rows on many random samples of the table, they are probably
+both right. Two independently written programs rarely make the same mistake on every sample. If the claim holds, it
+gives a cheap way to build task specialists from unlabelled tables. It also raises a practical question that the paper
+leaves open: the validator throws most generated data away, so what is lost, and can it be recovered?
+
+This project set out to test the paper's central Llama-3.1-8B NL-to-SQL claim on our own hardware, and then to ask
+whether the discarded data can be put to use. The claim being tested was fixed at the start, in the project
+\texttt{README.md}:
+
+\begin{keypoint}
+On benchmarks never used for training, Table-Specialist beats both the vanilla model and fine-tuning without
+validation, by more than the variation between seeds. A tie is reported as a valid finding.
+\end{keypoint}
+
+\section{Objectives}
+
+The work was organised around two goals, approved as a plan on 2026-11-10 (\fpath{docs/PLAN_NEXT.md}).
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Goal A: match the paper.] Reproduce the paper's Llama-3.1-8B NL-to-SQL numbers (its Table~3), using the paper's
+models and datasets as far as they are available. Extend the reproduction to the paper's other tasks where the data
+allows: NL-to-Scala, error detection and NL-to-R.
+\item[Goal B: improve on it.] Test whether the data the validator rejects can be recovered or exploited, and compare
+against established test-time methods.
+\end{description}
+Two rules governed both goals. First, an unpublished setting is filled with a documented choice and never tuned until
+the score lands near the paper's. Second, repo-faithful scores are always reported, with corrected scores beside them
+and never in their place.
+
+\section{What this report contains}
+
+\begin{itemize}
+\item \textbf{The original method} (\cref{ch:paper}): problem formulation, Algorithms~1--3, data, training and
+evaluation, as far as the paper and its code specify them, and where they do not.
+\item \textbf{Our methodology} (\cref{ch:method,ch:setup,ch:impl}): every approach we built, with its motivation,
+formalisation, settings, seeds and rounds, kept clearly separate from the paper's own method.
+\item \textbf{The experimental history} (\cref{ch:history}): a chronological account of how each result led to the
+next decision.
+\item \textbf{Complete results} (\cref{ch:results-sql,ch:results-ext,ch:results-other}): per seed, per round, per
+test set and per prompt, generated directly from the result files.
+\item \textbf{Failed approaches} (\cref{ch:failures}): what was tried, what happened, why, and what we learned.
+\item \textbf{Ablations, the comparison with the paper, discussion and limitations}
+(\cref{ch:ablations,ch:comparison,ch:discussion,ch:limitations}).
+\item \textbf{Appendices}: the full configuration, supplementary tables, significance tests, a run registry, the
+incident log, a code inventory, a cross-check of headline values, and reproduction instructions.
+\end{itemize}
+
+\section{Summary of findings}
+
+\begin{enumerate}
+\item \textbf{Approximate reproduction on Instruct.} Llama-3.1-8B-Instruct, queried through the repository's own chat
+call, reproduces the paper's NL-to-SQL Table~3 within about 0.03 per test set (Spider excepted;
+\cref{sec:sql-instruct}).
+\item \textbf{The base checkpoint does not reproduce the paper's vanilla scores.} This is the checkpoint the README
+links, and the gap stays unexplained (\cref{sec:sql-vanilla}).
+\item \textbf{The paper's qualitative claims hold on base} (\cref{sec:sql-core}): Table-Specialist beats vanilla and
+beats no-validation at round~3. The ordering reverses in round~1, which the paper does not report.
+\item \textbf{Repair-TS} is our main method contribution (\cref{sec:ext-repair}). It improves base NL-to-SQL
+($+0.0421$) and Instruct NL-to-Scala ($+0.0167$), but not Instruct NL-to-SQL. A same-data control separates data
+volume from data content.
+\item \textbf{Negative results} are reported in full: DPO on validator labels, base self-repair, rounds on Instruct,
+and the BIRD scoring artefact (\cref{ch:failures}).
+\end{enumerate}
+
+\section{Conventions}\label{sec:conventions}
+
+\begin{description}[style=nextline,leftmargin=1.2em]
+\item[Metrics.] NL-to-SQL, Scala and R use \emph{execution accuracy}: the fraction of test cases whose program
+returns the gold result. Error detection uses F1 as defined in \cref{sec:paper-metrics}.
+  \begin{itemize}
+  \item \ZSiv{} is the mean over WikiSQL, WikiTQ, Spider and BIRD with the zero-shot prompt. It is the only aggregate
+  comparable with the paper (Text2Analysis is excluded on both sides).
+  \item \Mviii{} is the mean over the 8 cells formed by the 4 test sets and the 2 prompts (zero-shot and few-shot).
+  \end{itemize}
+\item[Scores.] \emph{Repo-faithful} scores use the authors' comparison code, defects included, and are the headline
+numbers. \emph{Corrected} scores fix three comparison defects (\cref{sec:scoring}) and are reported alongside.
+\item[Seeds and statistics.] Fine-tuned results are seeds 1, 2 and 3 unless stated otherwise. ``Mean $\pm$ SD'' uses
+the sample standard deviation ($n-1$). Vanilla models are run once, greedy and deterministic. Significance is a paired
+bootstrap over test cases (\cref{sec:stats}).
+\item[Dates.] Dates and times are Indian Standard Time (IST, UTC+5:30), as in the project records.
+\item[Provenance markers.] Boxes mark where a statement comes from:
+  \begin{paperbox}[title={From the original paper},width=\linewidth]
+  stated by the paper or its repository;
+  \end{paperbox}
+  \begin{oursbox}[width=\linewidth]
+  our choice or implementation;
+  \end{oursbox}
+  \begin{observation}[width=\linewidth]a measured fact;\end{observation}
+  \begin{interpretation}[width=\linewidth]our reading of facts;\end{interpretation}
+  \begin{hypothesis}[width=\linewidth]an explanation not yet tested.\end{hypothesis}
+  Paper figures are from the published version's Table~3~\cite{xing2025emnlp}.
+\item[Names.] We write TS for Table-Specialist, NV for the no-validation ablation, and repair-TS for our repair
+extension. ``Base'' means Llama-3.1-8B and ``Instruct'' means Llama-3.1-8B-Instruct.
+\end{description}

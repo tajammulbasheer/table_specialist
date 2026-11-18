@@ -1,0 +1,50 @@
+\begin{titlepage}
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[navy] (current page.north west) rectangle ([yshift=-9.2cm]current page.north east);
+  \fill[sea] ([yshift=-9.2cm]current page.north west) rectangle ([yshift=-9.55cm]current page.north east);
+  \fill[amber] ([yshift=-9.55cm]current page.north west) rectangle ([yshift=-9.7cm]current page.north east);
+  \node[anchor=north west,text=white,font=\sffamily\small,inner sep=0pt] at ([xshift=2.4cm,yshift=-1.8cm]current page.north west)
+    {TECHNICAL AND RESEARCH REPORT \quad\textbar\quad REPRODUCTION STUDY};
+  \node[anchor=north west,text=white,font=\sffamily\bfseries\fontsize{30}{36}\selectfont,align=left,inner sep=0pt]
+    at ([xshift=2.4cm,yshift=-3.0cm]current page.north west)
+    {Reproducing and Extending\\Table-Specialist};
+  \node[anchor=north west,text=white!85!sea,font=\sffamily\Large,align=left,inner sep=0pt]
+    at ([xshift=2.4cm,yshift=-6.0cm]current page.north west)
+    {Iterative generator--validator fine-tuning of\\Llama-3.1-8B for table tasks, with execution-feedback repair};
+  % decorative loop: generate -> validate -> train
+  \begin{scope}[shift={([xshift=-3.0cm,yshift=-5.0cm]current page.north east)},every node/.style={font=\sffamily\scriptsize\bfseries,text=white}]
+    \foreach \a/\t/\c in {90/Generate/sea,330/Validate/amber,210/Fine-tune/coral}{
+      \fill[\c] (\a:1.55) circle (0.62);
+      \node at (\a:1.55) {\t};}
+    \draw[white,line width=1.1pt,-{Stealth[length=6pt]}] (62:1.6) arc (62:-2:1.6);
+    \draw[white,line width=1.1pt,-{Stealth[length=6pt]}] (302:1.6) arc (302:238:1.6);
+    \draw[white,line width=1.1pt,-{Stealth[length=6pt]}] (182:1.6) arc (182:118:1.6);
+  \end{scope}
+\end{tikzpicture}
+
+\vspace*{10.6cm}
+{\sffamily\large\color{navy}\textbf{Original work under study}}\par\vspace{2pt}
+{\color{slate}J.~Xing, Y.~He, M.~Zhou, H.~Dong, S.~Han, D.~Zhang, S.~Chaudhuri.
+\textit{Table-LLM-Specialist: Language Model Specialists for Tables using Iterative Generator-Validator Fine-tuning.}
+arXiv:2410.12164 (v2, 23~March~2026); full version of a paper in EMNLP 2025~\cite{xing2024tablellmspecialist}.
+Code: \url{https://github.com/microsoft/Table-Specialist}~\cite{tablespecialistrepo}.}
+
+\vspace{1.0cm}
+\begin{tcolorbox}[enhanced,colback=rowshade,colframe=headshade,boxrule=0.5pt,arc=2pt,left=10pt,right=10pt,top=8pt,bottom=8pt]
+\sffamily\small
+\begin{tabularx}{\linewidth}{@{}>{\bfseries\color{navy}}l X@{}}
+Scope & NL-to-SQL (main study, two checkpoints), NL-to-Spark-Scala, error detection (AutoTest), NL-to-R; four extensions beyond the paper \\
+Models & Llama-3.1-8B (base, revision \texttt{d04e592}) and Llama-3.1-8B-Instruct (revision \texttt{0e9e39f}) \\
+Compute & One workstation: 2\,$\times$ RTX 4500 Ada (24\,GB), Xeon w7-3455 (40 logical CPUs), 102\,GB RAM, WSL2 \\
+Period & 2026-11-04 to 2026-11-17 (dated project records); earlier set-up undated \\
+Records & \texttt{docs/RESULTS.md}, \texttt{docs/DECISIONS.md}, \texttt{docs/TASKS.md}, \texttt{configs/},
+          \texttt{results/}, \texttt{runs/}, \texttt{logs/} \\
+Tables generated & \tablesgenerated{} from the result files by \texttt{report/tools/build\_tables.py} \\
+\end{tabularx}
+\end{tcolorbox}
+
+\vfill
+{\sffamily\footnotesize\color{slate} Every number in the generated tables is read from a result file; values from the
+original paper are marked as such and come from its published Table~3. All planned experiments had
+finished when the tables were generated.}
+\end{titlepage}

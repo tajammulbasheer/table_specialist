@@ -1,0 +1,203 @@
+\chapter{Results: NL-to-SQL Reproduction}\label{ch:results-sql}
+
+All tables in this chapter are generated from the result files (\fpath{report/tools/build_tables.py}, generated
+\tablesgenerated). Scores are repo-faithful execution accuracy unless marked ``corrected''.
+
+\section{Vanilla baselines and the gate}\label{sec:sql-vanilla}
+
+\input{generated/vanilla_sql.tex}
+
+\begin{observation}
+\begin{itemize}
+\item \textbf{Base, zero-shot} (\cref{tab:gen-vanilla-sql}) meets the $\pm0.05$ gate only on BIRD ($-0.024$). It misses
+WikiSQL by $-0.199$ and WikiTQ by $-0.081$, and overshoots Spider by $+0.055$.
+\item \textbf{Base, few-shot} meets it on WikiTQ ($+0.044$) and BIRD ($+0.011$), but overshoots WikiSQL (0.685) and
+Spider (0.769).
+\item \textbf{Instruct}, through the repository's chat call with the zero-shot prompt, is within 0.015 of the paper on
+WikiSQL (0.518), WikiTQ (0.289) and BIRD (0.4022). It overshoots Spider by $+0.121$.
+\item \textbf{Instruct, few-shot} is much higher: WikiSQL 0.798, WikiTQ 0.423.
+\end{itemize}
+\end{observation}
+
+\begin{interpretation}
+Three facts point to the paper's vanilla column coming from Instruct through the repository's chat call with the
+zero-shot prompt:
+\begin{itemize}
+\item it is the only combination within the gate on three sets;
+\item it is the repository's only query path;
+\item the zero-shot prompt is the repository's default test prompt.
+\end{itemize}
+This cannot be confirmed without the authors. Spider is above the paper for every model and prompt of ours, so the
+Spider gap is attributed to the case set or the scoring, not to the model. Our Spider count (1,198) matches the paper
+exactly, but its cases cannot be checked.
+\end{interpretation}
+
+On base WikiSQL, most failures are execution errors: 507 of 1,000 zero-shot answers fail to run, often because a
+multi-word column name is unquoted (\texttt{WHERE Last Meeting = ...}). The few-shot prompt fixes the quoting (25
+failures), which explains most of its +0.359. Showing the WikiSQL tables in their original case lowered base to 0.142
+(zero-shot) and 0.287 (few-shot), because the database values are lowercase. The paper's WikiSQL score falls between
+the two prompts, and no tested combination lands near it.
+
+\section{The core study on base: TS against NV}\label{sec:sql-core}
+
+\input{generated/perseed_core_base.tex}
+
+\Cref{tab:gen-round-stats} summarises every NL-to-SQL approach of this and the next chapter over seeds, per round:
+mean, sample standard deviation, best and worst seed.
+
+\input{generated/round_stats.tex}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1,horizontal sep=1.6cm},
+  width=0.48\textwidth,height=6.2cm,xmin=0.7,xmax=3.3,xtick={1,2,3},xlabel={Round},
+  ylabel={\Mviii{} (mean of 8 cells)},ymajorgrids,grid style={headshade},
+  legend style={font=\scriptsize,at={(0.03,0.97)},anchor=north west,draw=none,fill=white,fill opacity=0.85},
+  tick label style={font=\scriptsize},label style={font=\small},title style={font=\small\bfseries}]
+\nextgroupplot[title={Llama-3.1-8B base},ymin=0.46,ymax=0.61]
+  \addplot[navy,thick,mark=*,error bars/.cd,y dir=both,y explicit] coordinates {\plotBaseTS};
+  \addplot[coral,thick,mark=square*,error bars/.cd,y dir=both,y explicit] coordinates {\plotBaseNV};
+  \addplot[sea,thick,mark=triangle*,error bars/.cd,y dir=both,y explicit] coordinates {\plotBaseRTS};
+  \addplot[slate,dashed,domain=0.7:3.3] {\valBaseVanilla};
+  \legend{TS,NV,repair-TS,vanilla}
+\nextgroupplot[title={Llama-3.1-8B-Instruct},ymin=0.54,ymax=0.66,legend style={at={(0.03,0.03)},anchor=south west}]
+  \addplot[navy,thick,mark=*,error bars/.cd,y dir=both,y explicit] coordinates {\plotInstTS};
+  \addplot[coral,thick,mark=square*] coordinates {\plotInstNV};
+  \addplot[sea,thick,mark=triangle*,error bars/.cd,y dir=both,y explicit] coordinates {\plotInstRTS};
+  \addplot[slate,dashed,domain=0.7:3.3] {\valInstVanilla};
+  \legend{TS,NV (seed 1),repair-TS,vanilla}
+\end{groupplot}
+\end{tikzpicture}
+\caption{NL-to-SQL \Mviii{} by round: mean over seeds 1--3, with error bars of one sample standard deviation (NV on
+Instruct is one seed, so it has none). Plotted from the per-cell result files.}
+\label{fig:rounds-sql}
+\end{figure}
+
+\begin{observation}
+At round~3 on base (\cref{tab:gen-perseed_core_base,tab:gen-round-stats}):
+\begin{itemize}
+\item TS has \Mviii{} $0.5435\pm0.0210$ and NV $0.4943\pm0.0108$; vanilla is 0.4788.
+\item TS over NV: $+0.0492$ [$+0.0426$, $+0.0557$], $p<0.0001$, positive on all three seeds ($+0.0593$, $+0.0354$,
+$+0.0528$).
+\item TS over vanilla: $+0.0647$ [$+0.0554$, $+0.0738$], $p<0.0001$, all seeds positive.
+\end{itemize}
+The orderings change across rounds (\cref{fig:rounds-sql}):
+\begin{itemize}
+\item In round~1, NV is higher than TS (0.5401 against 0.5266), and higher in 17 of the 24 (seed, cell) comparisons.
+\item By round~3, TS is higher in 20 of 24.
+\item NV falls every round (0.5401, 0.5173, 0.4943). TS rises (0.5266, 0.5286, 0.5435).
+\end{itemize}
+\end{observation}
+
+The TS gain over vanilla is uneven across cells (\cref{tab:gen-significance}, ``cells''):
+\begin{itemize}
+\item Zero-shot gains: $+0.453$ on WikiSQL, $+0.103$ on WikiTQ, $+0.017$ on BIRD and $-0.021$ on Spider.
+\item Few-shot cells change little or fall: $+0.083$ on WikiSQL, $-0.014$ on WikiTQ, $-0.081$ on Spider and $-0.022$
+on BIRD.
+\end{itemize}
+Fine-tuning on zero-shot-format examples mostly teaches the zero-shot prompt's output format. Base vanilla already does
+well with few-shot examples.
+
+\begin{interpretation}
+Two effects explain the round-1 advantage of NV and its later decline.
+\begin{itemize}
+\item \textbf{Volume.} NV trains on about 6.6 times as many pairs as TS in round~1 (2,797 against 426 for seed~1),
+which helps when the model starts weak.
+\item \textbf{Compounding errors.} From round~2, NV's generator is a model trained on unvalidated data, and its own
+errors compound. TS's validated data keeps each round's generator from drifting.
+\end{itemize}
+The paper reports this ablation only as a figure, and does not show the round-1 crossover.
+\end{interpretation}
+
+\section{Validation outcomes}\label{sec:sql-validation}
+
+\input{generated/validation.tex}
+
+\begin{observation}
+\begin{itemize}
+\item \textbf{Base TS} keeps 13.4--26.7\% of questions per round, rising with rounds (seed~1: 426, 608, 672 pairs).
+\item \textbf{Instruct TS} keeps fewer: 319--332 pairs in round~1 and 486--529 in rounds 2--3.
+\item \textbf{Main reasons for rejection.} \texttt{scala\_failed} and \texttt{disagree} on base, and
+\texttt{always\_empty} on Instruct (about 1,000 per round).
+\end{itemize}
+\end{observation}
+
+\begin{hypothesis}
+Instruct writes more questions whose SQL returns nothing on every half-sample (\texttt{always\_empty}). This may
+reflect questions with highly selective filters, which return no rows once half the table is removed. We did not test
+this.
+\end{hypothesis}
+
+The hand inspection of the base 300-table run (\cref{sec:fail-validator}) gives a rough measure of validator precision:
+\begin{itemize}
+\item 39 of 50 kept pairs fit their question, 5 were doubtful, and 6 did not.
+\item In 17 of 50 rejected pairs, the SQL may have been usable.
+\end{itemize}
+
+\section{Instruct: matching the paper}\label{sec:sql-instruct}
+
+\input{generated/perseed_core_instruct.tex}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[ybar,bar width=10pt,width=0.86\textwidth,height=6.2cm,ymin=0,ymax=0.95,
+  symbolic x coords={WikiSQL,WikiTQ,Spider,BIRD},xtick=data,ylabel={Execution accuracy (zero-shot)},
+  ymajorgrids,grid style={headshade},enlarge x limits=0.18,
+  legend style={font=\scriptsize,at={(0.5,1.02)},anchor=south,legend columns=4,draw=none},
+  nodes near coords,every node near coord/.append style={font=\tiny,rotate=90,anchor=west},
+  tick label style={font=\small}]
+\addplot[fill=slate!50,draw=slate] coordinates {(WikiSQL,\valInstVanzwikisql) (WikiTQ,\valInstVanzwikitq) (Spider,\valInstVanzspider) (BIRD,\valInstVanzbird)};
+\addplot[fill=amber!45,draw=amber] coordinates {(WikiSQL,0.525) (WikiTQ,0.300) (Spider,0.670) (BIRD,0.388)};
+\addplot[fill=navy!75,draw=navy,error bars/.cd,y dir=both,y explicit] coordinates {(WikiSQL,\valInstTSzwikisql) +- (0,\valInstTSzsdwikisql) (WikiTQ,\valInstTSzwikitq) +- (0,\valInstTSzsdwikitq) (Spider,\valInstTSzspider) +- (0,\valInstTSzsdspider) (BIRD,\valInstTSzbird) +- (0,\valInstTSzsdbird)};
+\addplot[fill=amber,draw=amber!70!black] coordinates {(WikiSQL,0.816) (WikiTQ,0.449) (Spider,0.690) (BIRD,0.438)};
+\legend{Our Instruct vanilla,Paper vanilla,Our Instruct TS r3 (mean $\pm$ SD),Paper TS}
+\end{axis}
+\end{tikzpicture}
+\caption{Instruct against the paper's Table~3, zero-shot, per test set. Our TS bars are the mean over seeds 1--3 at
+round~3, with one-SD error bars.}
+\label{fig:inst-vs-paper}
+\end{figure}
+
+\begin{observation}
+At round~3, Instruct TS has \ZSiv{} $0.6113\pm0.0135$ against the paper's 0.5983 (\cref{fig:inst-vs-paper}). Per
+test set, ours minus the paper's:
+\begin{itemize}
+\item WikiSQL $-0.032$, WikiTQ $-0.026$, BIRD $-0.006$: all within the $\pm0.05$ gate;
+\item Spider $+0.116$.
+\end{itemize}
+Gains over vanilla are WikiSQL $+0.266$, WikiTQ $+0.134$, BIRD $+0.029$ and Spider $+0.015$. The paper's are
+$+0.291$, $+0.149$, $+0.050$ and $+0.020$: the same order, and 0.005--0.025 smaller. TS round~3 over vanilla on
+\Mviii{}: $+0.0523$ [$+0.0424$, $+0.0622$], $p<0.0001$, all seeds positive.
+\end{observation}
+
+\begin{observation}
+Rounds do not help Instruct.
+\begin{itemize}
+\item \ZSiv{} by round: $0.6165\pm0.0100$, $0.6176\pm0.0166$, $0.6113\pm0.0135$.
+\item Round~3 against round~1 on \Mviii{}: $-0.0083$ [$-0.0133$, $-0.0032$], $p=0.0012$.
+\item Seeds 1 and 2 peak at round~2; seed~3 rises at round~3.
+\item The best round per seed averages 0.6245 \ZSiv{}, still above the paper.
+\end{itemize}
+Instruct NV (seed~1) falls every round (0.6162, 0.6094, 0.5852 \ZSiv{}). TS beats it at round~3 by $+0.0403$ on
+\Mviii{} ($p<0.0001$), but this is a single seed.
+\end{observation}
+
+\begin{interpretation}
+The Instruct track reproduces the paper's NL-to-SQL Table~3 approximately: the same method and test protocol, with
+substitute data. The base track reproduces the paper's \emph{direction} but not its level. Because the paper does not
+state which round Table~3 reports, both the last-round mean (0.6113) and the best-round mean (0.6245) are given. Both
+are above the paper's 0.5983, entirely because of Spider.
+\end{interpretation}
+
+\section{Training cost}
+
+\Cref{tab:gen-training,tab:gen-timings} in \cref{app:supp} give every adapter's size, steps, loss, time and memory, and
+every round's stage times.
+\begin{itemize}
+\item A complete, uninterrupted TS round on base took 4.5--6.8~h, of which validation was 2.1--3.5~h.
+\item An uninterrupted NV round took 6.5--7.8~h: NV has no validation, but training on about 2,800 pairs per adapter is about 6.6 times more training than TS.
+\item Peak reserved GPU memory in the NL-to-SQL SFT runs was 18.9--20.5~GB.
+\item Rounds that were resumed after a crash record only the time after the restart, so their totals are lower.
+\end{itemize}
