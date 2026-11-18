@@ -1,0 +1,140 @@
+% Beamer theme matching the mid-semester Table-Specialist deck:
+% Fira Sans, navy titles with a short red rule, grey section panels with an outline, footer with progress bar.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{beamerthemetsdeck}[2026/11/18]
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage[sfdefault,lining]{FiraSans}
+\RequirePackage[scale=0.86]{FiraMono}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,shapes.misc,shapes.geometric}
+\RequirePackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots,fillbetween}
+\RequirePackage{booktabs,array,colortbl,makecell,multirow}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{appendixnumberbeamer}
+\RequirePackage{xspace}
+
+% ---------------------------------------------------------------- colours
+\definecolor{tsnavy}{HTML}{1A2E4F}
+\definecolor{tsred}{HTML}{A6252D}
+\definecolor{tsink}{HTML}{1F2430}
+\definecolor{tsgrey}{HTML}{5F6B7C}
+\definecolor{tsmuted}{HTML}{A7B2C2}
+\definecolor{tslight}{HTML}{ECEFF4}
+\definecolor{tspanel}{HTML}{F4F6F9}
+\definecolor{tsline}{HTML}{D6DCE5}
+\definecolor{tspink}{HTML}{F6E6E7}
+\definecolor{tsgreen}{HTML}{2E7D4F}
+\definecolor{tsgreenbg}{HTML}{E7F2EA}
+% chart series (checked for colour-blind separation): ours = red, paper = navy, repair = teal,
+% controls = amber, vanilla = grey
+\colorlet{cOurs}{tsred}
+\colorlet{cPaper}{tsnavy}
+\definecolor{cRepair}{HTML}{1B7F9E}
+\definecolor{cControl}{HTML}{C98A2B}
+\colorlet{cVanilla}{tsmuted}
+% vanilla bars: light shade of the owner's colour (ours = light red, paper = steel blue); OKLab CVD check: worst pair dE 12.8
+\definecolor{cVanOurs}{HTML}{F2C3C6}
+\definecolor{cVanPaper}{HTML}{8AA4CC}
+
+% ---------------------------------------------------------------- beamer basics
+\setbeamersize{text margin left=1.05cm,text margin right=1.05cm}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{normal text}{fg=tsink,bg=white}
+\setbeamercolor{structure}{fg=tsnavy}
+\setbeamercolor{alerted text}{fg=tsred}
+\setbeamerfont{alerted text}{series=\bfseries}
+\setbeamercolor{frametitle}{fg=tsnavy}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamertemplate{frametitle}{%
+  \vspace*{0.30cm}%
+  {\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\par}%
+  \vspace{0.06cm}{\color{tsred}\rule{1.05cm}{1.8pt}}\par\vspace{-0.1cm}}
+
+\setbeamertemplate{itemize item}{\raisebox{0.12em}{\color{tsred}\rule{0.42em}{0.42em}}}
+\setbeamertemplate{itemize subitem}{\raisebox{0.14em}{\color{tsmuted}\rule{0.34em}{0.34em}}}
+\setbeamertemplate{enumerate item}{\color{tsred}\bfseries\insertenumlabel}
+\setlength{\leftmargini}{1.25em}
+\newcommand{\itemgap}{\addtolength{\itemsep}{0.35em}}
+
+% ---------------------------------------------------------------- footer with progress bar
+\newcommand{\tsdecklabel}{Table-Specialist \textperiodcentered{} End-semester project presentation}
+\newcommand{\tsprogress}{%
+  \begin{tikzpicture}
+    \fill[tslight] (0,0) rectangle (\paperwidth,0.055);
+    \pgfmathsetmacro{\tsfrac}{min(1,\insertframenumber/max(1,\inserttotalframenumber))}
+    \fill[tsred] (0,0) rectangle ({\tsfrac*\paperwidth},0.055);
+  \end{tikzpicture}}
+\setbeamertemplate{footline}{%
+  \hbox to \paperwidth{%
+    \hspace*{0.32cm}{\color{tsgrey}\scriptsize\tsdecklabel}\hfill
+    {\color{tsgrey}\scriptsize\insertsectionhead\hspace{0.55cm}\insertframenumber\,/\,\inserttotalframenumber}%
+    \hspace*{0.32cm}}%
+  \vspace{0.14cm}%
+  \hbox to \paperwidth{\tsprogress}}
+
+% ---------------------------------------------------------------- section dividers with outline
+\newcommand{\tsoutline}{}  % list of section names, set in the document
+\newcommand{\tsdivider}[2]{% #1 = big label (01, B), #2 = right-hand content
+  \begin{frame}[plain,noframenumbering]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[tslight] ([yshift=-0.58cm]current page.north west) rectangle ([xshift=0.382\paperwidth]current page.south west);
+    \node[anchor=south west,text=tsred,font=\fontsize{72}{72}\selectfont\bfseries,inner sep=0]
+      at ($(current page.west)+(1.35cm,-0.15cm)$) {#1};
+    \node[anchor=north west,text=tsnavy,font=\LARGE\bfseries,inner sep=0,text width=4.4cm]
+      at ($(current page.west)+(1.35cm,-0.95cm)$) {\insertsectionhead};
+    \node[anchor=north west,inner sep=0,text width=8.6cm]
+      at ($(current page.north west)+(0.398\paperwidth,-1.2cm)$) {#2};
+  \end{tikzpicture}
+  \end{frame}}
+\newcommand{\tsoutlineitems}[1]{% #1 = current section number
+  {\color{tsgrey}\small OUTLINE}\par\vspace{0.5cm}
+  \foreach \n/\name in \tsoutline {%
+    \ifnum\n=#1\relax
+      {\Large\textbf{\color{tsred}0\n}\hspace{0.45em}\color{tsnavy}\name}%
+    \else
+      {\Large\textbf{\color{tsmuted}0\n}\hspace{0.45em}\color{tsmuted}\name}%
+    \fi\par\vspace{0.42cm}}}
+
+% ---------------------------------------------------------------- building blocks
+% card with a coloured left bar: \begin{tscard}[colour]{label}{title} ... \end{tscard}
+\newtcolorbox{tscard}[3][tsnavy]{enhanced,colback=white,colframe=tsline,boxrule=0.45pt,arc=2.5pt,
+  borderline west={3pt}{0pt}{#1},left=8pt,right=7pt,top=3pt,bottom=4pt,
+  fontupper=\small,
+  before upper={\raggedright\ifx\relax#2\relax\else{\color{tsgrey}\scriptsize\MakeUppercase{#2}}\par\fi
+                \ifx\relax#3\relax\else{\color{tsnavy}\normalsize\bfseries #3}\par\vspace{2pt}\fi}}
+% shaded call-out box (pink or grey)
+\newtcolorbox{tscallout}[1][tspanel]{enhanced,colback=#1,colframe=#1,boxrule=0pt,arc=3pt,left=10pt,right=10pt,
+  top=6pt,bottom=6pt,halign=center}
+\newcommand{\tspill}[1]{\tikz[baseline=(p.base)]\node[draw=tsnavy!70,fill=tslight,rounded corners=2pt,inner xsep=5pt,
+  inner ysep=3pt,font=\small](p){#1};}
+\newcommand{\tsbadge}[1]{\tikz[baseline=(b.base)]\node[draw=tsred,text=tsred,rounded corners=6pt,inner xsep=6pt,
+  inner ysep=2pt,font=\small\bfseries](b){#1};}
+\newcommand{\tsnum}[2][tsred]{\tikz[baseline=(c.base)]\node[circle,fill=#1,text=white,font=\small\bfseries,
+  inner sep=0pt,minimum size=1.35em](c){#2};}
+\newcommand{\bignum}[1]{{\color{tsred}\fontsize{34}{36}\selectfont\bfseries #1}}
+\newcommand{\muted}[1]{{\color{tsgrey}#1}}
+\newcommand{\unv}{\textsuperscript{\color{tsgrey}\dag}}
+\newcommand{\hl}{\cellcolor{tspink}}
+\newcommand{\up}[1]{{\color{tsgreen}\bfseries #1}}
+\newcommand{\down}[1]{{\color{tsred}\bfseries #1}}
+
+% tables
+\renewcommand{\arraystretch}{1.15}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\heavyrulewidth}{1pt}
+\setlength{\lightrulewidth}{0.5pt}
+\newcommand{\thd}[1]{\textbf{\color{tsnavy}#1}}
+
+% charts
+\pgfplotsset{tsaxis/.style={
+  axis line style={tsline},tick style={tsline},
+  major grid style={tslight},ymajorgrids,
+  tick label style={font=\scriptsize,text=tsgrey},label style={font=\footnotesize,text=tsgrey},
+  title style={font=\small\bfseries,text=tsnavy},
+  legend style={font=\scriptsize,draw=none,fill=none,text=tsink},
+  legend cell align=left,scaled ticks=false,clip=false,
+  every axis plot/.append style={line width=1.4pt},
+  enlargelimits=false}}

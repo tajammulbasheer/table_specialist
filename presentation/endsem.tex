@@ -1,0 +1,1505 @@
+% End-semester presentation (30-minute slot): reproduction and extension of Table-Specialist on Llama-3.1-8B.
+% Same visual design as the mid-semester deck. Build with ./build.sh (TeX Live 2025 in Docker).
+% Every number comes from results/analysis/*.json, results/analysis/results_table.md, report/generated/*.tex
+% or runs/*/summary.json. Examples marked "illustrative" are made up to explain the method.
+\documentclass[11pt,aspectratio=169]{beamer}
+\usepackage{beamerthemetsdeck}
+
+\title{Table-Specialist}
+\newcommand{\tsdate}{November 2026}
+\renewcommand{\tsoutline}{1/The paper,2/Goals and plan,3/Filling the gaps,4/Reproducing the paper,5/Improving on the paper,6/Conclusions}
+\newcommand{\ok}{{\color{tsgreen}$\checkmark$}}
+\newcommand{\no}{{\color{tsred}$\times$}}
+\newcommand{\code}[1]{{\ttfamily\scriptsize #1}}
+\newcommand{\sig}[1]{{\color{cRepair}\bfseries #1}}
+
+\begin{document}
+
+% ================================================================ title
+\begin{frame}[plain,noframenumbering]
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[tsnavy] (current page.north west) rectangle ([xshift=0.33cm]current page.south west);
+  \node[anchor=north west,inner sep=0,text width=8.5cm,align=left] at ($(current page.north west)+(1.25cm,-0.6cm)$) {%
+    {\color{tsgrey}\small END-SEMESTER PROJECT PRESENTATION}\par\vspace{0.35cm}
+    {\color{tsnavy}\fontsize{30}{32}\selectfont\bfseries Table-Specialist}\par\vspace{0.22cm}
+    {\color{tsnavy}\Large Reproduction and extensions\\[1pt]on Llama-3.1-8B}\par\vspace{0.32cm}
+    {\color{tsred}\rule{2.4cm}{3pt}}\par\vspace{0.32cm}
+    {\color{tsgrey}\small Paper: Xing, He, Zhou, Dong, Han, Zhang,\\[1pt]Chaudhuri \textperiodcentered{} University of Michigan, Microsoft\\[3pt]\tsbadge{EMNLP 2025}}\par\vspace{0.38cm}
+    {\color{tsgrey}\small PRESENTED BY}\par\vspace{0.08cm}
+    {\color{tsnavy}\large\bfseries Fadil Mir\quad\textperiodcentered\quad Tajamul Bashir}\par\vspace{0.04cm}
+    {\color{tsgrey}\normalsize Computer Science and Engineering\\[1pt]IIT Jammu \textperiodcentered{} \tsdate}};
+  % right-hand graphic: the loop, with our repair step beside the validator
+  \begin{scope}[shift={($(current page.north west)+(11.15cm,-1.75cm)$)},
+      b/.style={draw=tsnavy!45,fill=white,rounded corners=2.5pt,align=center,font=\footnotesize,text width=1.75cm,minimum height=0.95cm,line width=0.7pt},
+      a/.style={-{Stealth[length=4pt]},color=tsgrey,line width=0.8pt}]
+    \fill[tslight,rounded corners=6pt] (-1.55,0.95) rectangle (4.4,-5.85);
+    \node[anchor=west,font=\scriptsize\bfseries,text=tsgrey] at (-1.35,0.62) {THE LOOP, AND WHERE WE ADD TO IT};
+    \node[cylinder,shape border rotate=90,aspect=0.2,draw=tsnavy!45,fill=white,minimum width=1.6cm,minimum height=0.85cm,
+      align=center,font=\scriptsize,line width=0.7pt] (tab) at (0,-0.35) {Unlabelled\\tables};
+    \node[b] (gen) at (0,-1.8) {\textbf{Generate}\\{\scriptsize SQL + Scala}};
+    \node[b] (val) at (0,-3.3) {\textbf{Validate}\\{\scriptsize run and compare}};
+    \node[b,draw=tsgreen,fill=tsgreenbg] (tr) at (0,-4.8) {\textbf{Fine-tune}\\{\scriptsize LoRA}};
+    \node[b,draw=tsred,fill=tspink,line width=1pt] (rep) at (3.25,-3.3) {\textbf{Repair}\\{\scriptsize rejected pairs}};
+    \draw[a] (tab) -- (gen);
+    \draw[a] (gen) -- (val);
+    \draw[a] (val) -- node[right,font=\scriptsize,text=tsgrey]{agree} (tr);
+    \draw[a,color=tsred] ([yshift=0.22cm]val.east) -- node[above=1pt,font=\scriptsize,text=tsred]{rejected} ([yshift=0.22cm]rep.west);
+    \draw[a,color=tsred] ([yshift=-0.22cm]rep.west) -- node[below=1pt,font=\scriptsize,text=tsred]{fixed} ([yshift=-0.22cm]val.east);
+    \draw[a] (tr.west) -- ++(-0.5,0) |- (gen.west);
+    \node[font=\scriptsize,text=tsgrey,anchor=north] at (0,-5.3) {repeat for 3 rounds};
+    \node[font=\scriptsize\bfseries,text=tsred,anchor=north] at ([yshift=-0.1cm]rep.south) {our extension};
+  \end{scope}
+\end{tikzpicture}
+\end{frame}
+
+% ================================================================ roadmap
+\begin{frame}{Roadmap}
+\vspace{0.1cm}
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \draw[tsline,line width=2pt] (0,0) -- (0,-5.0);
+  \foreach \i/\head/\desc/\col in {
+      1/The paper/{Problem, method, architecture, task types}/tsnavy,
+      2/Goals and plan/{What we set out to do}/tsnavy,
+      3/Filling the gaps/{What was missing, and how we found it}/tsnavy,
+      4/Reproducing the paper/{NL-to-SQL, Scala, R, error detection}/tsnavy,
+      5/Improving on the paper/{Using the data the validator rejects}/tsred,
+      6/Conclusions/{Evidence, limits, next steps}/tsnavy} {
+    \node[circle,fill=\col,text=white,font=\bfseries,minimum size=0.68cm,inner sep=0] at (0,{-(\i-1)*1.0}) {\i};
+    \node[anchor=west,font=\Large\bfseries,text=tsnavy] at (0.6,{-(\i-1)*1.0}) {\head};
+    \node[anchor=west,font=\normalsize,text=tsgrey] at (7.2,{-(\i-1)*1.0}) {\desc};
+  }
+\end{tikzpicture}
+\end{frame}
+
+% ================================================================ 1 the paper
+\section{The paper}
+\tsdivider{01}{\tsoutlineitems{1}}
+
+\begin{frame}{The problem: specialists need labels}
+\vspace{0.0cm}
+\begin{columns}[T]
+\column{0.32\textwidth}
+\begin{tscard}[tsmuted]{Option 1}{Prompt a generalist}
+No training, any task.\\[2pt]
+\textbf{But} weak on tables. Vanilla Llama-3.1-8B-Instruct, zero-shot:\\[2pt]
+NL-to-SQL \textbf{0.50}\\ NL-to-Scala \textbf{0.19}\\ Error detection F1 \textbf{0.09}
+\end{tscard}
+\column{0.32\textwidth}
+\begin{tscard}[tsnavy]{Option 2}{Fine-tune a specialist}
+One model per task: more accurate, and an 8B model is cheap to run.\\[2pt]
+\textbf{But} it needs labelled data for every task.
+\end{tscard}
+\column{0.32\textwidth}
+\begin{tscard}[tsred]{The catch}{Table labels are costly}
+A label is a \textbf{program} (SQL, Scala, R), a set of cells or a column mapping.\\[2pt]
+Experts must write and check each one.
+\end{tscard}
+\end{columns}
+\vspace{0.2cm}
+\begin{tscallout}[tspink]
+\large Can an LLM become a table specialist \textbf{without any human labels}?
+\end{tscallout}
+\end{frame}
+
+\begin{frame}{Problem statement}
+\vspace{0.1cm}
+\begin{center}
+\begin{tikzpicture}[b/.style={draw=tsnavy!50,fill=tslight,rounded corners=3pt,align=center,font=\small,minimum height=1.25cm,text width=2.9cm,line width=0.7pt},
+    a/.style={-{Stealth[length=5pt]},color=tsgrey,thick}]
+  \node[cylinder,shape border rotate=90,aspect=0.18,draw=tsnavy!50,fill=tslight,minimum width=2.6cm,minimum height=1.4cm,align=center,font=\small,line width=0.7pt] (t) at (0,0.75) {Real tables,\\\textbf{no labels}};
+  \node[b] (m) at (0,-1.15) {\textbf{Vanilla LLM}\\Llama-3.1-8B};
+  \node[draw=tsred,fill=tspink,rounded corners=3pt,align=center,font=\small,minimum height=2.9cm,text width=3.6cm,line width=1pt] (x) at (5.2,-0.2) {\textbf{\Large ?}\\[3pt]The model must create\\and \textbf{check} its own\\training data};
+  \node[b,draw=tsgreen,fill=tsgreenbg,minimum height=1.6cm] (s) at (10.3,-0.2) {\textbf{Specialist}\\better on held-out\\benchmarks};
+  \draw[a] (t.east) -- ++(0.55,0) |- ([yshift=0.4cm]x.west);
+  \draw[a] (m.east) -- ++(0.55,0) |- ([yshift=-0.4cm]x.west);
+  \draw[a,color=tsred] (x) -- (s);
+\end{tikzpicture}
+\end{center}
+\vspace{0.15cm}
+{\small
+\begin{columns}[T]
+\column{0.31\textwidth}\textbf{\color{tsnavy}Given}\\ A corpus of real, unlabelled tables and a vanilla LLM.
+\column{0.31\textwidth}\textbf{\color{tsnavy}Goal}\\ Higher accuracy on a table task's standard benchmarks.
+\column{0.31\textwidth}\textbf{\color{tsred}Hard part}\\ Self-made data contains the model's own mistakes. Which examples can be trusted?
+\end{columns}}
+\end{frame}
+
+\begin{frame}{Key idea: a dual task checks every answer}
+\vspace{0.05cm}
+{\small Agreement between two independent views \textbf{replaces the human label}.}\par\vspace{0.08cm}
+\begin{columns}[T]
+\column{0.485\textwidth}
+\begin{tscard}[tsnavy]{Generative tasks}{Output is a program}
+\textbf{Examples:} NL-to-SQL, NL-to-Scala, NL-to-R.\\[2pt]
+\textbf{Dual:} the same answer in a \textbf{second language}.\\[2pt]
+\textbf{Check:} run both; keep only if the results \textbf{match}.
+\vspace{0.1cm}
+\begin{center}
+\begin{tikzpicture}[p/.style={draw=tsnavy!50,fill=tslight,rounded corners=2pt,font=\scriptsize,minimum height=0.5cm,text width=1.2cm,align=center},
+    a/.style={-{Stealth[length=3.5pt]},color=tsgrey}]
+  \node[p] (q) at (0,0) {question};
+  \node[p] (s) at (1.95,0.36) {SQL};
+  \node[p] (c) at (1.95,-0.36) {Scala};
+  \node[p,draw=tsgreen,fill=tsgreenbg] (e) at (3.95,0) {same rows?};
+  \draw[a] (q) -- (s); \draw[a] (q) -- (c); \draw[a] (s) -- (e); \draw[a] (c) -- (e);
+\end{tikzpicture}
+\end{center}
+\end{tscard}
+\column{0.485\textwidth}
+\begin{tscard}[tsred]{Classification tasks}{Output is a label}
+\textbf{Examples:} error detection, schema matching.\\[2pt]
+\textbf{Dual:} \textbf{create} an input with a known answer, e.g.\ inject an error.\\[2pt]
+\textbf{Check:} the classifier must find it in \textbf{every} shuffled order.
+\vspace{0.1cm}
+\begin{center}
+\begin{tikzpicture}[p/.style={draw=tsred!50,fill=tspink,rounded corners=2pt,font=\scriptsize,minimum height=0.5cm,text width=1.2cm,align=center},
+    a/.style={-{Stealth[length=3.5pt]},color=tsgrey}]
+  \node[p] (q) at (0,0) {clean column};
+  \node[p] (s) at (1.95,0) {+ one error};
+  \node[p,draw=tsgreen,fill=tsgreenbg] (e) at (3.95,0) {found 5/5?};
+  \draw[a] (q) -- (s); \draw[a] (s) -- (e);
+\end{tikzpicture}
+\end{center}
+\end{tscard}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Architecture: the generator--validator loop}
+\vspace{0.05cm}
+\begin{center}
+\begin{tikzpicture}[b/.style={draw=tsnavy!50,fill=white,rounded corners=3pt,align=center,font=\footnotesize,text width=2.05cm,minimum height=1.0cm,line width=0.7pt},
+    d/.style={draw=tsgreen,fill=tsgreenbg},
+    a/.style={-{Stealth[length=4.5pt]},color=tsgrey,line width=0.8pt},
+    n/.style={circle,fill=tsred,text=white,font=\scriptsize\bfseries,inner sep=1.2pt}]
+  \node[cylinder,shape border rotate=90,aspect=0.18,draw=tsnavy!50,fill=tslight,minimum width=2.1cm,minimum height=1.2cm,align=center,font=\footnotesize,line width=0.7pt] (c) at (0,0) {Table corpus\\3,000 tables\\per round};
+  \node[b] (q) at (2.75,0) {\textbf{Question model}\\one question\\per table};
+  \node[b,fill=tslight] (g) at (5.55,0.72) {\textbf{Generator} $M_G$\\writes SQL};
+  \node[b,fill=tslight] (v) at (5.55,-0.72) {\textbf{Dual model} $M_C$\\writes Scala};
+  \node[b] (x) at (8.45,0) {\textbf{Execute both}\\on 10 random\\50\% samples};
+  \node[diamond,aspect=1.6,draw=cControl,fill=cControl!12,align=center,font=\footnotesize,inner sep=0.5pt,line width=0.8pt] (k) at (11.45,0) {all 10\\agree?};
+  \node[b,d] (dset) at (11.45,-2.25) {\textbf{Kept pairs}\\training data};
+  \node[b] (ft) at (8.45,-2.25) {\textbf{LoRA fine-tune}\\both models};
+  \node[b,draw=tsred,fill=tspink] (sp) at (5.55,-2.25) {\textbf{Round-$r$ models}\\$M_G^{(r)}$, $M_C^{(r)}$};
+  \node[draw=tsline,fill=tspanel,rounded corners=3pt,text=tsgrey,font=\footnotesize,minimum height=0.55cm] (dis) at (11.45,1.6) {discarded};
+  \draw[a] (c) -- (q); \draw[a] (q) -- (g); \draw[a] (q) -- (v);
+  \draw[a] (g) -- (x); \draw[a] (v) -- (x); \draw[a] (x) -- (k);
+  \draw[a] (k) -- node[right,font=\scriptsize,text=tsgrey]{yes} (dset);
+  \draw[a,color=tsmuted] (k) -- node[right,font=\scriptsize,text=tsgrey]{no} (dis);
+  \draw[a] (dset) -- (ft); \draw[a] (ft) -- (sp);
+  \draw[a,color=tsred,dashed] (sp.west) -- ++(-0.5,0) |- node[pos=0.3,left,font=\scriptsize,text=tsred,align=right]{next round\\(up to 3)} ([yshift=-0.25cm]v.west);
+  \node[n] at (q.north west) {1}; \node[n] at (g.north west) {2}; \node[n] at (x.north west) {3};
+  \node[n] at ([xshift=-0.3cm]k.north) {4}; \node[n] at (ft.north west) {5};
+\end{tikzpicture}
+\end{center}
+\vspace{0.1cm}
+{\scriptsize
+\begin{columns}[T]
+\column{0.19\textwidth}\textbf{\color{tsred}1} Questions from real tables.
+\column{0.19\textwidth}\textbf{\color{tsred}2} Two programs, two languages.
+\column{0.19\textwidth}\textbf{\color{tsred}3} Run on random halves of the table.
+\column{0.19\textwidth}\textbf{\color{tsred}4} Keep only full agreement.
+\column{0.19\textwidth}\textbf{\color{tsred}5} Better models write the next data.
+\end{columns}}
+\end{frame}
+
+\begin{frame}{Generative task: checked by execution}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.36\textwidth}
+{\small\textbf{\color{tsnavy}Table} \muted{(one of 3,000)}}\par\vspace{0.08cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.0}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\thd{Athlete} & \thd{Country} & \thd{Medals}\\\midrule
+Ana & ESP & 3\\ Ben & USA & 5\\ Chen & CHN & 4\\ Dana & USA & 2\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.2cm}
+{\small\textbf{\color{tsnavy}Question} \muted{(written by the model)}}\par
+{\small ``How many medals did athletes from the USA win in total?''}
+\column{0.6\textwidth}
+\begin{tscard}[tsnavy]{Two programs, one question}{SQL and Spark-Scala}
+\textbf{SQL}\enspace\code{SELECT SUM(Medals) FROM t WHERE Country='USA'}\\[3pt]
+\textbf{Scala}\enspace\code{df.filter(\$"Country"==="USA").agg(sum("Medals"))}
+\end{tscard}
+\vspace{0.05cm}
+{\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.0}
+\begin{tabular}{@{}lccccc@{\hspace{10pt}}l@{}}
+\thd{Sample} & $S_1$ & $S_2$ & $S_3$ & \ldots & $S_{10}$ & \\\midrule
+SQL & 7 & 5 & 2 & \ldots & 7 & \\
+Scala & 7 & 5 & 2 & \ldots & 7 & \\
+& \ok & \ok & \ok & & \ok & $\Rightarrow$ \textbf{\color{tsgreen}keep the pair}\\
+\end{tabular}}
+\end{columns}
+\vspace{0.2cm}
+\begin{tscallout}[tspanel]\small
+Had the Scala \emph{counted} rows instead of summing medals, it would return 2, not 7 $\Rightarrow$ \textbf{\color{tsred}reject}.
+Two wrong programs rarely agree on \textbf{ten} random halves of a table.
+\end{tscallout}
+\vspace{-0.05cm}
+\muted{\scriptsize Illustrative example. Each sample $S_k$ is a random 50\% of the rows; both programs run on the same sample.}
+\end{frame}
+
+\begin{frame}{Classification task: checked by shuffling}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.36\textwidth}
+\begin{tscard}[tsred]{Step 1: generate}{Inject a known error}
+Clean column \code{City}: Paris, London, Berlin, Rome.\\[2pt]
+The model writes an error, e.g.\ the typo \textbf{Lodnon} (or a semantic error such as \textbf{Tuesday}).
+\end{tscard}
+\column{0.6\textwidth}
+{\small\textbf{\color{tsnavy}Step 2: validate}\enspace 5 shuffled orders}\par\vspace{0.1cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}cll@{}}
+\toprule
+\thd{Order} & \thd{Values shown} & \thd{Answer}\\\midrule
+1 & Rome, \textbf{Lodnon}, Paris, Berlin, London & Lodnon \ok\\
+2 & London, Berlin, Rome, \textbf{Lodnon}, Paris & Lodnon \ok\\
+3 & \textbf{Lodnon}, Paris, London, Rome, Berlin & Lodnon \ok\\
+4 & Paris, Rome, Berlin, London, \textbf{Lodnon} & Lodnon \ok\\
+5 & Berlin, \textbf{Lodnon}, Rome, London, Paris & Lodnon \ok\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.12cm}
+{\small 5 of 5 $\Rightarrow$ \textbf{\color{tsgreen}keep}, labelled ``Lodnon''.}\par\vspace{0.05cm}
+{\footnotesize\muted{Why shuffle? A validator that always names the last value would agree by luck. Clean columns are kept only if \textbf{nothing} is named in all 5 orders.}}
+\end{columns}
+\vspace{0.1cm}
+\muted{\scriptsize Illustrative example. The repository uses 5 fixed shuffle seeds (0--4) and separate prompts for typos and semantic errors.}
+\end{frame}
+
+\begin{frame}{Why each part of the design is there}
+\vspace{0.1cm}
+\begin{columns}[T]
+\column{0.485\textwidth}
+\begin{tscard}[tsnavy]{Dual check}{The only source of supervision}
+Without it, the model trains on its own mistakes. The paper's ``no validation'' ablation tests exactly this, and so do we.
+\end{tscard}
+\vspace{0.05cm}
+\begin{tscard}[tsnavy]{10 random samples}{Guards against chance agreement}
+Two wrong programs can agree on one table, but rarely on ten random halves.
+\end{tscard}
+\column{0.485\textwidth}
+\begin{tscard}[tsred]{Permutations}{Guards against position bias}
+The classifier must name the same value whatever the order.
+\end{tscard}
+\vspace{0.05cm}
+\begin{tscard}[tsred]{Rounds}{Better model, better data}
+Round $r$'s model writes round $r{+}1$'s data, and a better validator keeps more of it. The paper restarts LoRA from vanilla each round.
+\end{tscard}
+\end{columns}
+\vspace{0.25cm}
+\begin{tscallout}[tspanel]\small The price: \textbf{strict agreement throws most generated data away}. That is where our extension starts.\end{tscallout}
+\end{frame}
+
+\begin{frame}{What the paper reports for Llama-3.1-8B}
+\vspace{0.05cm}
+\begin{center}
+{\scriptsize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+\thd{Task} & \thd{Type} & \thd{WikiSQL} & \thd{WikiTQ} & \thd{Spider} & \thd{BIRD} & \thd{Mean of 4}\\\midrule
+NL-to-SQL & generative & .525 $\to$ \textbf{.816} & .300 $\to$ \textbf{.449} & .670 $\to$ \textbf{.690} & .388 $\to$ \textbf{.438} & .471 $\to$ \textbf{.598}\\
+NL-to-Scala & generative & .359 $\to$ \textbf{.728} & .043 $\to$ \textbf{.188} & .249 $\to$ \textbf{.356} & .100 $\to$ \textbf{.228} & .188 $\to$ \textbf{.375}\\
+NL-to-R & generative & .331 $\to$ \textbf{.409} & .138 $\to$ \textbf{.257} & .503 $\to$ \textbf{.536} & .225 $\to$ \textbf{.261} & .299 $\to$ \textbf{.366}\\\midrule
+& & \multicolumn{2}{c}{\thd{Spreadsheet (ST)}} & \multicolumn{2}{c}{\thd{Relational (RT)}} & \thd{Mean}\\\midrule
+Error detection & classification & \multicolumn{2}{c}{.071 $\to$ \textbf{.136}} & \multicolumn{2}{c}{.108 $\to$ \textbf{.161}} & .090 $\to$ \textbf{.149}\\
+\bottomrule
+\end{tabular}}
+\end{center}
+\vspace{0.15cm}
+\begin{itemize}\small\setlength{\itemsep}{2pt}
+\item Vanilla $\to$ Table-Specialist (TS). We reproduce these four tasks: \textbf{three generative, one classification}.
+\item Text2Analysis is not public, so we compare on the \textbf{mean of the other 4} sets.
+\item The paper does not state the test prompt or checkpoint; the round is implied only for GPT-3.5 (Figure 6: the last).
+\end{itemize}
+\vspace{0.05cm}
+\muted{\scriptsize Source: the paper's Table 3, Llama-3.1-8B column. Mean of 4 computed by us without Text2Analysis.}
+\end{frame}
+
+% ================================================================ 2 goals and plan
+\section{Goals and plan}
+\tsdivider{02}{\tsoutlineitems{2}}
+
+\begin{frame}{Two goals}
+\vspace{0.2cm}
+\begin{columns}[T]
+\column{0.47\textwidth}
+\begin{tscard}[tsnavy]{Goal A}{Reproduce the paper}
+Match the Llama-3.1-8B results for NL-to-SQL, then extend the reproduction to NL-to-Scala, NL-to-R and error detection.
+\end{tscard}
+\column{0.47\textwidth}
+\begin{tscard}[tsred]{Goal B}{Improve on it}
+Recover the data that the validator rejects, and measure when it helps, with controls that separate ``better data'' from ``more data''.
+\end{tscard}
+\end{columns}
+\vspace{0.5cm}
+\begin{tscallout}[tspink]
+\Large The validator keeps only \textbf{\color{tsred}11--27\%} of generated pairs.\\[2pt] Can we use the rest?
+\end{tscallout}
+\end{frame}
+
+\begin{frame}{The plan: one grid, five stages}
+\vspace{0.05cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}L{3.6cm}cccc>{\columncolor{tspink}}L{3.3cm}@{}}
+\toprule
+\thd{Task (model)} & \thd{Vanilla} & \thd{No validation} & \thd{TS} & \thd{\color{tsred}Repair-TS} & \thd{\color{tsred}Controls}\\\midrule
+NL-to-SQL (base) & \ok & \ok & \ok & \ok & same data, best-of-4, DPO\\
+NL-to-SQL (Instruct) & \ok & \ok\,\muted{(1 seed)} & \ok & \ok & same data\\
+NL-to-Scala (Instruct) & \ok & -- & \ok & \ok & --\\
+NL-to-R (Instruct) & \ok & -- & \ok & \ok & --\\
+Error detection (Instruct) & \ok & -- & \ok & \ok & same data, best-of-2\\
+\bottomrule
+\end{tabular}}
+\vspace{0.3cm}
+\begin{center}
+\begin{tikzpicture}[s/.style={rounded corners=3pt,align=center,font=\scriptsize,text width=2.15cm,minimum height=0.95cm,line width=0.9pt,fill=white},
+    a/.style={-{Stealth[length=4pt]},color=tsgrey,thick}]
+  \foreach \i/\c/\t in {1/tsnavy/{\textbf{Fill the gaps}\\corpus, tests, validator},2/tsnavy/{\textbf{Reproduce}\\NL-to-SQL},
+      3/tsnavy/{\textbf{Extend}\\Scala, R, errors},4/tsred/{\textbf{Improve}\\rejected data},5/tsred/{\textbf{Control}\\more or better data?}} {
+    \node[s,draw=\c] (n\i) at ({(\i-1)*2.75},0) {\t};}
+  \foreach \i [evaluate=\i as \j using int(\i+1)] in {1,...,4} {\draw[a] (n\i) -- (n\j);}
+\end{tikzpicture}
+\end{center}
+\vspace{0.1cm}
+\muted{\scriptsize Every fine-tuned arm: 3 seeds $\times$ 3 rounds, 3,000 new tables per round. SQL, Scala, R: 4 test sets $\times$ 2 prompts; errors: 2 test sets.}
+\end{frame}
+
+% ================================================================ 3 gaps
+\section{Filling the gaps}
+\tsdivider{03}{\tsoutlineitems{3}}
+
+\begin{frame}{What we expected vs.\ what we found}
+\vspace{0.05cm}
+{\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}L{1.85cm}L{3.0cm}L{3.75cm}>{\columncolor{tspink}}L{4.9cm}@{}}
+\toprule
+& \thd{We expected} & \thd{We found} & \thd{\color{tsred}What we did}\\\midrule
+\thd{Training tables} & The paper's corpus & ``A large corpus''; not released. Only file names hint at web tables & GitTables, filtered to \textbf{10,053} tables; 3,000 new tables per round\\
+\thd{Test sets} & Case lists for 5 benchmarks & Counts only; Text2Analysis not public & Rebuilt WikiSQL, WikiTQ, Spider, BIRD; our length rule gives \textbf{exactly} the paper's 1,126 / 1,081 error-detection columns\\
+\thd{Model} & ``Llama-3.1-8B'': the README's base link & Base \textbf{cannot} match the paper's vanilla scores & Ran \textbf{both} base and Instruct (next slides)\\
+\thd{Training} & LoRA settings & ``LoRA, batch 1\%, LR multiplier 0.5'', an OpenAI API term & Rank 16, $\alpha$ 32, LR $2\!\times\!10^{-4}$, 3 epochs; restart from vanilla (paper \S6.5)\\
+\thd{Reporting} & Round and test prompt & Prompt not stated; round only implied & Report \textbf{every} round; zero-shot (the repo default) for comparison\\
+\bottomrule
+\end{tabular}}
+\vspace{0.12cm}
+
+\end{frame}
+
+\begin{frame}{What the released code does not do}
+\vspace{0.05cm}
+{\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{@{}L{2.4cm}L{5.0cm}>{\columncolor{tspink}}L{6.0cm}@{}}
+\toprule
+& \thd{What we found} & \thd{\color{tsred}How we fixed it}\\\midrule
+\thd{Validation} & Runs SQL and Scala, \textbf{never compares} them & Our own comparator, then a hand audit\\
+\thd{Spark sandbox} & Ran \textbf{0 of 32} programs (open-file limit) & Limit raised to 4,096: 48 of 48 ran\\
+\thd{Evaluator} & Uses pandas APIs removed in pandas 3 & Compiled from source with checked patches\\
+\thd{Training defaults} & Default few-shot settings \textbf{crash} & Zero-shot training prompts\\
+\thd{NL-to-R} & Prompt and scorer, but \textbf{no validator} & SQL--R agreement validator, R sandbox\\
+\thd{Error detection} & Who writes errors, who validates later: unstated & Vanilla writes; previous round validates\\
+\bottomrule
+\end{tabular}}
+\vspace{0.3cm}
+\begin{center}\large Reproduction was mostly \textbf{\color{tsred}detective work}.\end{center}
+\end{frame}
+
+\begin{frame}{The hard way (1): the README's model fails}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.42\textwidth}
+{\small\textbf{\color{tsnavy}Gate:} vanilla within $\pm$0.05 of the paper before any training.}\par\vspace{0.12cm}
+{\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}llc@{}}
+\toprule
+\thd{Setting tried} & \thd{Model} & \thd{WikiSQL}\\\midrule
+Raw text, zero-shot & Base & \down{.326}\\
+Raw text, few-shot & Base & .685\\
+Original case, zero-shot & Base & \down{.142}\\
+Original case, few-shot & Base & \down{.287}\\
+Chat, no system msg & Instruct & .552\\
+\rowcolor{tspink}Chat, repo's system msg & Instruct & \textbf{.519}\\\midrule
+\multicolumn{2}{@{}l}{\textbf{Paper}} & \textbf{.525}\\
+\bottomrule
+\end{tabular}}
+\column{0.54\textwidth}
+{\small\textbf{\color{tsnavy}All four test sets, zero-shot}}\par\vspace{0.12cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+& \thd{WikiSQL} & \thd{WikiTQ} & \thd{Spider} & \thd{BIRD}\\\midrule
+Paper & .525 & .300 & .670 & .388\\
+Base & \down{.326} & \down{.219} & .725 & .364\\
+\rowcolor{tspink}Instruct (chat) & \textbf{.518} & \textbf{.289} & .791 & \textbf{.402}\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.15cm}
+\begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+\item 507 of 1,000 base WikiSQL answers did not run.
+\item The repo's \textbf{only} query path is a chat call. Base cannot be served that way.
+\item Instruct via that call: within \textbf{0.015} on 3 of 4 sets.
+\end{itemize}
+\end{columns}
+\vspace{0.12cm}
+\begin{tscallout}[tspanel]\small Stopped after six settings and ran \textbf{both}: base for the method study, Instruct to match the paper.\end{tscallout}
+\end{frame}
+
+\begin{frame}{The hard way (2): writing the comparison}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.47\textwidth}
+\begin{tscard}[tsnavy]{Our comparator}{When do two results ``agree''?}
+\begin{itemize}\footnotesize\setlength{\itemsep}{0pt}
+\item Row order, column names ignored
+\item Numbers equal within $10^{-6}$; true/false = 1/0
+\item All-empty rows dropped
+\item SQL empty on all 10 samples: rejected
+\end{itemize}
+\end{tscard}
+\column{0.49\textwidth}
+\begin{tscard}[tsred]{Hand audit of a first run}{Five defects, fixed first}
+\begin{enumerate}\footnotesize\setlength{\itemsep}{0pt}
+\item Numbers compared as text: \code{MAX("Weight")}
+\item One-column NULL row = disagreement
+\item Booleans did not match 0/1
+\item Spark's escaped quotes misread
+\item Cached answers shared across arms
+\end{enumerate}
+\end{tscard}
+\end{columns}
+\vspace{0.2cm}
+\begin{tscallout}[tspink]\small After the fixes (100 pairs checked by hand): \textbf{8 in 10} kept pairs correct; \textbf{1 in 3} rejected pairs usable $\Rightarrow$ our extensions.\end{tscallout}
+\end{frame}
+
+% ================================================================ 4 reproduction
+\section{Reproducing the paper}
+\tsdivider{04}{\tsoutlineitems{4}}
+
+\begin{frame}{Experimental setup}
+\vspace{0.1cm}
+\begin{columns}[T]
+\column{0.32\textwidth}
+\begin{tscard}[tsnavy]{Training}{One loop per task}
+\begin{itemize}\footnotesize\setlength{\itemsep}{0pt}
+\item Base and Instruct
+\item 3,000 tables per round
+\item 3 rounds $\times$ 3 seeds
+\item LoRA from vanilla
+\item 2 $\times$ 24\,GB GPUs
+\end{itemize}
+\end{tscard}
+\column{0.32\textwidth}
+\begin{tscard}[tsnavy]{Testing}{The paper's benchmarks}
+\begin{itemize}\footnotesize\setlength{\itemsep}{0pt}
+\item WikiSQL, WikiTQ, Spider, BIRD
+\item Errors: ST and RT
+\item Sandboxed, no network
+\end{itemize}
+\end{tscard}
+\column{0.32\textwidth}
+\begin{tscard}[tsred]{Metrics}{How we compare}
+\begin{itemize}\footnotesize\setlength{\itemsep}{0pt}
+\item Execution accuracy; F1
+\item \textbf{Zero-shot mean of 4}: the paper's view
+\item \textbf{Mean of 8}: + few-shot
+\item Paired bootstrap; seed signs
+\end{itemize}
+\end{tscard}
+\end{columns}
+\vspace{0.15cm}
+\begin{tscallout}[tspanel]\footnotesize Arms: \textbf{vanilla} \textperiodcentered{} \textbf{no validation} (train on all pairs) \textperiodcentered{} \textbf{TS} (paper) \textperiodcentered{} \textbf{repair-TS} (ours) \textperiodcentered{} controls\end{tscallout}
+\end{frame}
+
+\begin{frame}{NL-to-SQL: Instruct TS matches the paper}
+\begin{columns}[c]
+\column{0.63\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,ybar,bar width=7pt,width=9.3cm,height=5.4cm,ymin=0,ymax=1,
+  symbolic x coords={WikiSQL,WikiTQ,Spider,BIRD},xtick=data,enlarge x limits=0.16,
+  ylabel={Execution accuracy (zero-shot)},
+  legend style={at={(0.5,1.02)},anchor=south,legend columns=4},
+  every axis plot/.append style={line width=0.4pt}]
+\addplot[fill=cVanOurs,draw=cOurs!45] coordinates {(WikiSQL,0.518) (WikiTQ,0.289) (Spider,0.7913) (BIRD,0.4022)};
+\addplot[fill=cVanPaper,draw=cVanPaper] coordinates {(WikiSQL,0.525) (WikiTQ,0.300) (Spider,0.670) (BIRD,0.388)};
+\addplot[fill=cOurs,draw=cOurs,error bars/.cd,y dir=both,y explicit,error bar style={black,line width=0.6pt}]
+  coordinates {(WikiSQL,0.7843) +- (0,0.0313) (WikiTQ,0.4233) +- (0,0.0023) (Spider,0.8058) +- (0,0.0076) (BIRD,0.4316) +- (0,0.0207)};
+\addplot[fill=cPaper,draw=cPaper] coordinates {(WikiSQL,0.816) (WikiTQ,0.449) (Spider,0.690) (BIRD,0.438)};
+\legend{Our vanilla,Paper vanilla,Our TS (round 3),Paper TS}
+\end{axis}
+\end{tikzpicture}
+\column{0.35\textwidth}
+\centering{\color{tsred}\fontsize{28}{30}\selectfont\bfseries 0.6113}\\\muted{\small $\pm$0.0135, our TS}\\[3pt]
+{\large vs.\ \textbf{0.5983}}\\\muted{\small paper; zero-shot mean of 4}
+\vspace{0.2cm}
+\begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+\item TS gains \textbf{+0.111} over vanilla ($p<0.0001$, every seed)
+\item WikiSQL $-0.032$, WikiTQ $-0.026$, BIRD $-0.006$ from the paper
+\item Spider $+0.116$: offset in every model, vanilla included
+\end{itemize}
+\end{columns}
+\muted{\scriptsize Llama-3.1-8B-Instruct. Our TS: mean of seeds 1--3 at round 3; error bars one SD. Rounds barely change Instruct: 0.6165, 0.6176, 0.6113.}
+\end{frame}
+
+\begin{frame}{NL-to-SQL: validation pays off only over rounds}
+\begin{columns}[c]
+\column{0.55\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,width=7.2cm,height=4.8cm,xmin=0.8,xmax=3.2,ymin=0.46,ymax=0.56,xtick={1,2,3},
+  xticklabels={Round 1,Round 2,Round 3},ylabel={Mean of 8},
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  every axis plot/.append style={mark size=2.6pt}]
+\addplot[cOurs,mark=*] coordinates {(1,0.5266) (2,0.5286) (3,0.5435)} node[right,font=\scriptsize\bfseries,text=tsink]{TS .544};
+\addplot[cControl,mark=triangle*] coordinates {(1,0.5401) (2,0.5173) (3,0.4943)} node[right,font=\scriptsize,text=tsink,align=left]{No valid-\\ation .494};
+\addplot[cVanilla,dashed,mark=none,line width=1.2pt] coordinates {(0.8,0.4788) (3.2,0.4788)} node[right,font=\scriptsize,text=tsgrey]{Vanilla};
+\end{axis}
+\end{tikzpicture}
+\column{0.43\textwidth}
+\begin{itemize}\small\setlength{\itemsep}{3pt}
+\item \textbf{Round 1:} no validation wins 17 of 24 comparisons; it trains on 6.6$\times$ more pairs.
+\item \textbf{Round 3:} TS wins 20 of 24: \textbf{+0.049} over no validation, \textbf{+0.065} over vanilla ($p<0.0001$, every seed).
+\item Without validation, the model's errors compound every round.
+\item The paper does not show this round-1 crossover.
+\end{itemize}
+\end{columns}
+\muted{\scriptsize Llama-3.1-8B base; mean of 3 seeds; 8 = 4 test sets $\times$ zero-shot and few-shot prompts.}
+\end{frame}
+
+\begin{frame}{NL-to-Scala: TS beats the paper's figure}
+\begin{columns}[c]
+\column{0.63\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,ybar,bar width=7pt,width=9.3cm,height=5.1cm,ymin=0,ymax=0.8,
+  symbolic x coords={WikiSQL,WikiTQ,Spider,BIRD},xtick=data,enlarge x limits=0.16,
+  ylabel={Execution accuracy (zero-shot)},
+  legend style={at={(0.5,1.02)},anchor=south,legend columns=4},
+  every axis plot/.append style={line width=0.4pt}]
+\addplot[fill=cVanOurs,draw=cOurs!45] coordinates {(WikiSQL,0.341) (WikiTQ,0.042) (Spider,0.3005) (BIRD,0.0909)};
+\addplot[fill=cVanPaper,draw=cVanPaper] coordinates {(WikiSQL,0.359) (WikiTQ,0.043) (Spider,0.249) (BIRD,0.100)};
+\addplot[fill=cOurs,draw=cOurs] coordinates {(WikiSQL,0.671) (WikiTQ,0.315) (Spider,0.5765) (BIRD,0.3039)};
+\addplot[fill=cPaper,draw=cPaper] coordinates {(WikiSQL,0.728) (WikiTQ,0.188) (Spider,0.356) (BIRD,0.228)};
+\legend{Our vanilla,Paper vanilla,Our TS (round 3),Paper TS}
+\end{axis}
+\end{tikzpicture}
+\column{0.35\textwidth}
+\centering{\color{tsred}\fontsize{28}{30}\selectfont\bfseries 0.467}\\\muted{\small our TS, zero-shot mean of 4}\\[3pt]
+{\large vs.\ \textbf{0.375}}\\\muted{\small paper TS}
+\vspace{0.2cm}
+\begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+\item Vanilla matches the paper: 0.194 vs.\ 0.188
+\item TS \textbf{2.4$\times$} vanilla; ahead of the paper on WikiTQ ($+0.127$), Spider ($+0.221$), BIRD ($+0.076$)
+\item Improves every round: 0.386, 0.441, 0.467
+\end{itemize}
+\end{columns}
+\muted{\scriptsize Instruct; our TS: mean of seeds 1--3, round 3. Scala adapters are trained inside the NL-to-SQL loop. Paper: Table 3, mean of the 4 public sets.}
+\end{frame}
+
+\begin{frame}{NL-to-R: TS beats the paper's figure}
+\begin{columns}[c]
+\column{0.63\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,ybar,bar width=7pt,width=9.3cm,height=5.1cm,ymin=0,ymax=0.8,
+  symbolic x coords={WikiSQL,WikiTQ,Spider,BIRD},xtick=data,enlarge x limits=0.16,
+  ylabel={Execution accuracy (zero-shot)},
+  legend style={at={(0.5,1.02)},anchor=south,legend columns=4},
+  every axis plot/.append style={line width=0.4pt}]
+\addplot[fill=cVanOurs,draw=cOurs!45] coordinates {(WikiSQL,0.326) (WikiTQ,0.150) (Spider,0.5993) (BIRD,0.2314)};
+\addplot[fill=cVanPaper,draw=cVanPaper] coordinates {(WikiSQL,0.331) (WikiTQ,0.138) (Spider,0.503) (BIRD,0.225)};
+\addplot[fill=cOurs,draw=cOurs] coordinates {(WikiSQL,0.5057) (WikiTQ,0.3147) (Spider,0.7156) (BIRD,0.3682)};
+\addplot[fill=cPaper,draw=cPaper] coordinates {(WikiSQL,0.409) (WikiTQ,0.257) (Spider,0.536) (BIRD,0.261)};
+\legend{Our vanilla,Paper vanilla,Our TS (round 3),Paper TS}
+\end{axis}
+\end{tikzpicture}
+\column{0.35\textwidth}
+\centering{\color{tsred}\fontsize{28}{30}\selectfont\bfseries 0.476}\\\muted{\small our TS, zero-shot mean of 4}\\[3pt]
+{\large vs.\ \textbf{0.366}}\\\muted{\small paper TS}
+\vspace{0.2cm}
+\begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+\item Vanilla near the paper: within 0.012 on 3 of 4 sets
+\item TS \textbf{+0.149} over vanilla (paper +0.067); ahead on all 4 sets
+\item Rises every round: .434, .458, .476
+\item Repo has no R validator: we built one
+\end{itemize}
+\end{columns}
+\muted{\scriptsize Instruct; our TS: seeds 1--3, round 3. Paper: Table 3, 4 public sets (its 5-set average is 0.260 $\to$ 0.333).}
+\end{frame}
+
+\begin{frame}{Error detection: TS more than triples F1}
+\begin{columns}[c]
+\column{0.55\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,ybar,bar width=9pt,width=7.6cm,height=5.1cm,ymin=0,ymax=0.36,
+  symbolic x coords={ST,RT},xtick=data,enlarge x limits=0.35,
+  xticklabels={Spreadsheet tables,Relational tables},
+  ylabel={F1},yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  legend style={at={(0.5,1.02)},anchor=south,legend columns=2},
+  every axis plot/.append style={line width=0.4pt}]
+\addplot[fill=cVanOurs,draw=cOurs!45] coordinates {(ST,0.0659) (RT,0.1111)};
+\addplot[fill=cVanPaper,draw=cVanPaper] coordinates {(ST,0.071) (RT,0.108)};
+\addplot[fill=cOurs,draw=cOurs] coordinates {(ST,0.2785) (RT,0.2979)};
+\addplot[fill=cPaper,draw=cPaper] coordinates {(ST,0.136) (RT,0.161)};
+\legend{Our vanilla,Paper vanilla,Our TS (round 3),Paper TS}
+\end{axis}
+\end{tikzpicture}
+\column{0.43\textwidth}
+\centering{\color{tsred}\fontsize{22}{24}\selectfont\bfseries 0.089 $\to$ 0.288}\\\muted{\small F1, mean of the two test sets}
+\vspace{0.25cm}
+\begin{itemize}\small\setlength{\itemsep}{3pt}
+\item Vanilla matches the paper within 0.006 on both sets.
+\item TS gains \textbf{+0.200} over vanilla: $p<0.0001$, every seed.
+\item Improves every round: 0.210, 0.270, 0.288.
+\end{itemize}
+\end{columns}
+\muted{\scriptsize Instruct; mean of seeds 1--3. Vanilla flags about 40\% of columns, almost all clean. Paper: Table 3.}
+\end{frame}
+
+\begin{frame}{Table-Specialist improves all four tasks}
+\begin{columns}[c]
+\column{0.64\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,width=9.2cm,height=5.4cm,xmin=0,xmax=0.75,ymin=0.4,ymax=4.6,ytick={1,2,3,4},
+  yticklabels={Error detection,NL-to-R,NL-to-Scala,NL-to-SQL},ymajorgrids=false,xmajorgrids,
+  xlabel={Task score (zero-shot mean of 4; F1 for error detection)},
+  xticklabel style={/pgf/number format/fixed,/pgf/number format/precision=1},
+  legend style={at={(0.5,1.04)},anchor=south,legend columns=3}]
+\draw[cOurs!45,line width=3pt] (axis cs:0.5001,4) -- (axis cs:0.6113,4);
+\draw[cOurs!45,line width=3pt] (axis cs:0.1936,3) -- (axis cs:0.4666,3);
+\draw[cOurs!45,line width=3pt] (axis cs:0.3267,2) -- (axis cs:0.4760,2);
+\draw[cOurs!45,line width=3pt] (axis cs:0.0885,1) -- (axis cs:0.2882,1);
+\addplot[only marks,mark=*,mark size=3.6pt,cVanilla] coordinates {(0.5001,4) (0.1936,3) (0.3267,2) (0.0885,1)};
+\addplot[only marks,mark=*,mark size=3.6pt,cOurs] coordinates {(0.6113,4) (0.4666,3) (0.4760,2) (0.2882,1)};
+\addplot[only marks,mark=diamond*,mark size=4pt,cPaper] coordinates {(0.5983,4) (0.3750,3) (0.3658,2) (0.1485,1)};
+\legend{Our vanilla,Our TS (round 3),Paper TS}
+\end{axis}
+\end{tikzpicture}
+\column{0.34\textwidth}
+\begin{itemize}\small\setlength{\itemsep}{4pt}
+\item Every task improves over vanilla, on \textbf{every seed}.
+\item NL-to-SQL matches the paper; Scala, R and error detection land \textbf{above} the paper's figures.
+\item Scala \textbf{2.4$\times$}, error detection \textbf{3.3$\times$} vanilla.
+\item NL-to-R: \textbf{+0.149}, with a validator we built.
+\end{itemize}
+\end{columns}
+\muted{\scriptsize Instruct, mean of seeds 1--3. Paper: Table 3, Llama-3.1-8B, mean of the 4 public sets (F1 mean of ST and RT).}
+\end{frame}
+
+% ================================================================ 5 improving
+\section{Improving on the paper}
+\tsdivider{05}{\tsoutlineitems{5}}
+
+\begin{frame}{The validator throws most of the data away}
+\begin{columns}[c]
+\column{0.62\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,xbar stacked,bar width=15pt,width=9.0cm,height=4.3cm,xmin=0,xmax=3000,
+  ytick={1,2},yticklabels={Instruct,Base},ymin=0.4,ymax=2.6,xmajorgrids,ymajorgrids=false,
+  xlabel={Questions in round 1 (seed 1)},
+  xticklabel style={/pgf/number format/1000 sep={,}},
+  legend style={at={(0.5,1.03)},anchor=south,legend columns=5},
+  every axis plot/.append style={line width=0.3pt,draw=white}]
+\addplot[fill=tsgreen] coordinates {(319,1) (426,2)};
+\addplot[fill=tsred] coordinates {(626,1) (840,2)};
+\addplot[fill=cControl] coordinates {(691,1) (855,2)};
+\addplot[fill=tsnavy] coordinates {(1007,1) (621,2)};
+\addplot[fill=tsmuted] coordinates {(335,1) (162,2)};
+\legend{Kept,Disagree,Scala failed,Always empty,Other}
+\end{axis}
+\end{tikzpicture}
+\column{0.36\textwidth}
+\centering{\color{tsred}\fontsize{28}{30}\selectfont\bfseries 11--27\%}\\\muted{\small of pairs kept per round}
+\vspace{0.2cm}
+\begin{itemize}\footnotesize\setlength{\itemsep}{2pt}
+\item Hand audit: about \textbf{8 in 10} kept pairs fit their question
+\item \ldots{} and about \textbf{1 in 3} rejected pairs held usable SQL
+\end{itemize}
+\vspace{0.1cm}
+\begin{tscallout}[tspink]\small Two ideas: \textbf{learn} from the rejects, or \textbf{repair} them.\end{tscallout}
+\end{columns}
+\muted{\scriptsize Kept: base 426 of 2,904 (14.7\%); Instruct 319 of 2,978 (10.7\%). Other = SQL failed, no code, errors.}
+\end{frame}
+
+\begin{frame}{Idea 1a: best-of-4 sampling}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.52\textwidth}
+{\small\textbf{\color{tsnavy}What we tried:} more chances per question}\par\vspace{0.12cm}
+\begin{tikzpicture}[c/.style={draw=tsnavy!45,fill=tslight,rounded corners=2pt,font=\scriptsize,minimum height=0.48cm,text width=2.2cm,align=center},
+    a/.style={-{Stealth[length=3.5pt]},color=tsgrey}]
+  \node[draw=tsnavy!45,fill=white,rounded corners=2pt,font=\scriptsize,text width=1.2cm,align=center,minimum height=1.0cm] (q) at (0,0) {question};
+  \node[c] (c1) at (2.6,0.81) {TS's greedy pair};
+  \node[c] (c2) at (2.6,0.27) {sample 1 ($T{=}0.7$)};
+  \node[c] (c3) at (2.6,-0.27) {sample 2};
+  \node[c] (c4) at (2.6,-0.81) {sample 3};
+  \node[draw=tsgreen,fill=tsgreenbg,rounded corners=2pt,font=\scriptsize,text width=1.5cm,align=center,minimum height=1.0cm] (k) at (5.15,0) {first pair that validates};
+  \foreach \i in {1,...,4} {\draw[a] (q.east) -- (c\i.west); \draw[a] (c\i.east) -- (k.west);}
+\end{tikzpicture}
+\par\vspace{0.15cm}
+\begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+\item \textbf{Task:} NL-to-SQL, base Llama, round 1, 3 seeds.
+\item Same questions, tables and validator as TS round 1.
+\item Train on one validated program per question.
+\end{itemize}
+\column{0.44\textwidth}
+{\small\textbf{\color{tsnavy}What happened}}\par\vspace{0.1cm}
+\centering{\color{tsred}\fontsize{22}{24}\selectfont\bfseries +52--62\%}\\\muted{\small questions with a validated program}\\\muted{\scriptsize (seed 1: 426 $\to$ 673)}\\[6pt]
+{\color{tsnavy}\fontsize{22}{24}\selectfont\bfseries +0.006}\\\muted{\small accuracy vs.\ TS round 1 (mean of 8)}\\\muted{\scriptsize seeds +0.007, +0.028, $-$0.016}
+\end{columns}
+\vspace{0.2cm}
+\begin{tscallout}[tspanel]\small Much more data, almost no gain, unstable across seeds: the extra programs are mostly for \textbf{easy questions}.\end{tscallout}
+\end{frame}
+
+\begin{frame}{Idea 1b: DPO on rejected programs}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.52\textwidth}
+{\small\textbf{\color{tsnavy}What we tried:} teach what \emph{not} to write}\par\vspace{0.12cm}
+\begin{tikzpicture}[a/.style={-{Stealth[length=3.5pt]},color=tsgrey}]
+  \node[draw=tsnavy!45,fill=white,rounded corners=2pt,font=\scriptsize,text width=1.2cm,align=center,minimum height=1.0cm] (q) at (0,0) {question};
+  \node[draw=tsgreen,fill=tsgreenbg,rounded corners=2pt,font=\scriptsize,text width=2.4cm,align=center] (w) at (2.65,0.42) {\textbf{chosen}: validated SQL};
+  \node[draw=tsred,fill=tspink,rounded corners=2pt,font=\scriptsize,text width=2.4cm,align=center] (l) at (2.65,-0.42) {\textbf{rejected}: other rows};
+  \node[draw=tsnavy!45,fill=tslight,rounded corners=2pt,font=\scriptsize,text width=1.4cm,align=center,minimum height=1.0cm] (p) at (5.15,0) {raise chosen, lower rejected};
+  \draw[a] (q) -- (w); \draw[a] (q) -- (l); \draw[a] (w) -- (p); \draw[a] (l) -- (p);
+\end{tikzpicture}
+\par\vspace{0.15cm}
+\begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+\item \textbf{Task:} NL-to-SQL, base Llama, round 1, 3 seeds.
+\item 397--438 pairs per seed; 3 in 4 rejected programs \emph{run} but return other rows.
+\item DPO + SFT term (RPO) on top of best-of-4; $\beta=0.1$, LR $2\!\times\!10^{-5}$.
+\end{itemize}
+\column{0.44\textwidth}
+{\small\textbf{\color{tsnavy}What happened}}\par\vspace{0.1cm}
+\centering{\color{tsred}\fontsize{26}{28}\selectfont\bfseries $-$0.021}\\\muted{\small vs.\ TS round 1 (mean of 8), $p<0.0001$}
+\vspace{0.15cm}
+\begin{itemize}\footnotesize\setlength{\itemsep}{2pt}
+\item Below best-of-4 on \textbf{every} seed.
+\item Execution errors up to \textbf{4$\times$} (WikiTQ: 15 $\to$ 58).
+\item Reward accuracy 0.98--1.00: the model moved far from where it started.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{DPO tuning on dev sets could not rescue it}
+\begin{columns}[c]
+\column{0.58\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,xbar,bar width=9pt,width=8.0cm,height=5.2cm,xmin=-0.03,xmax=0.006,
+  ytick={1,2,3,4,5,6},yticklabels={{v4: $\beta$ 0.5},{v5: LR $10^{-6}$},{v3: rows-differ only},{v1: LR $5\!\times\!10^{-6}$, 1 ep.},{v2: v1 + $\beta$ 0.5},{First DPO}},
+  ymin=0.4,ymax=6.6,xmajorgrids,ymajorgrids=false,
+  xlabel={Dev accuracy minus best-of-4 (seed 1)},
+  xticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2,/pgf/number format/showpos},
+  nodes near coords,nodes near coords style={font=\scriptsize,text=tsink,anchor=east,
+    /pgf/number format/fixed,/pgf/number format/precision=4,/pgf/number format/showpos},
+  every axis plot/.append style={line width=0.3pt}]
+\addplot[fill=cControl,draw=cControl] coordinates {(-0.0244,1) (-0.0061,2) (-0.0053,3) (-0.0044,4) (-0.0019,5) (-0.0209,6)};
+\draw[tsgrey,line width=0.8pt] (axis cs:0,0.4) -- (axis cs:0,6.6);
+\node[anchor=west,font=\scriptsize,text=tsgrey,rotate=90] at (axis cs:0.0028,1.0) {best-of-4 level};
+\end{axis}
+\end{tikzpicture}
+\column{0.4\textwidth}
+\begin{itemize}\small\setlength{\itemsep}{3pt}
+\item Five gentler variants, tuned on \textbf{dev sets only}.
+\item Rule fixed in advance: test a variant only if it beats best-of-4 on dev.
+\item \textbf{None did} (best: v2, $-0.002$).
+\item A lower learning rate removes most of the damage; a higher $\beta$ does not.
+\end{itemize}
+\end{columns}
+\muted{\scriptsize Dev sets: WikiSQL 300, Spider single-table 411, WikiTQ 300; zero-shot.}
+\end{frame}
+
+\begin{frame}{Idea 1 verdict: rejected, and what it taught us}
+\vspace{0.05cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}L{2.2cm}L{3.9cm}L{3.4cm}>{\columncolor{tspink}}L{3.6cm}@{}}
+\toprule
+\thd{Method} & \thd{Rejected data used as\ldots} & \thd{Base SQL, round 1} & \thd{\color{tsred}Verdict}\\\midrule
+Best-of-4 & a reason to sample again & $+0.006$; seeds $+,+,-$ & More data, little value\\
+DPO & negatives to push down & $-0.021$, $p<0.0001$ & Harms; tuning can't fix\\
+\bottomrule
+\end{tabular}}
+\vspace{0.3cm}
+\begin{columns}[T]
+\column{0.32\textwidth}
+\begin{tscard}[tsred]{Lesson 1}{Rejected $\neq$ wrong}
+Rejected programs are mostly \emph{plausible} SQL; pushing them down hits correct SQL too.
+\end{tscard}
+\column{0.32\textwidth}
+\begin{tscard}[tsred]{Lesson 2}{Volume is not enough}
+52--62\% more programs gave +0.006: new data must be \emph{different}.
+\end{tscard}
+\column{0.32\textwidth}
+\begin{tscard}[tsgreen]{So, idea 2}{Fix the rejects}
+Keep the validator as a \textbf{filter}; turn rejected pairs into \textbf{new positives}.
+\end{tscard}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Idea 2: repair-TS inside the TS loop}
+\vspace{0.0cm}
+\begin{center}
+\resizebox{!}{5.25cm}{%
+\begin{tikzpicture}[b/.style={draw=tsnavy!50,fill=white,rounded corners=3pt,align=center,font=\footnotesize,text width=2.0cm,minimum height=1.0cm,line width=0.7pt},
+    d/.style={draw=tsgreen,fill=tsgreenbg},
+    r/.style={draw=tsred,fill=tspink,line width=1.1pt},
+    a/.style={-{Stealth[length=4.5pt]},color=tsgrey,line width=0.8pt},
+    ra/.style={-{Stealth[length=4.5pt]},color=tsred,line width=1.1pt}]
+  \fill[tspink!40,rounded corners=6pt] (6.6,3.45) rectangle (13.0,1.3);
+  \draw[tsred,dashed,line width=0.8pt,rounded corners=6pt] (6.6,3.45) rectangle (13.0,1.3);
+  \node[anchor=north west,font=\scriptsize\bfseries,text=tsred] at (6.7,3.4) {OUR EXTENSION};
+  \node[cylinder,shape border rotate=90,aspect=0.18,draw=tsnavy!50,fill=tslight,minimum width=1.9cm,minimum height=1.1cm,align=center,font=\footnotesize,line width=0.7pt] (c) at (0,0) {Table corpus};
+  \node[b] (q) at (2.65,0) {\textbf{Question model}};
+  \node[b,fill=tslight] (g) at (5.35,0.7) {\textbf{Generator}\\SQL};
+  \node[b,fill=tslight] (v) at (5.35,-0.7) {\textbf{Dual model}\\Scala};
+  \node[b] (x) at (8.2,0) {\textbf{Execute both}\\on 10 samples};
+  \node[diamond,aspect=1.6,draw=cControl,fill=cControl!12,align=center,font=\footnotesize,inner sep=0.5pt,line width=0.8pt] (k) at (11.2,0) {all 10\\agree?};
+  \node[b,r,text width=3.0cm] (rep) at (8.4,2.1) {\textbf{Repairer} rewrites the failing side, once};
+  \node[b,r,text width=1.9cm,minimum height=0.8cm] (fb) at (11.45,2.1) {feedback from its own run};
+  \node[b,d,text width=2.2cm] (dset) at (11.2,-2.3) {\textbf{Kept} + \textbf{\color{tsred}recovered}};
+  \node[b] (ft) at (8.2,-2.3) {\textbf{LoRA fine-tune}};
+  \node[b] (sp) at (5.35,-2.3) {\textbf{Round-$r$ models}};
+  \draw[a] (c) -- (q); \draw[a] (q) -- (g); \draw[a] (q) -- (v);
+  \draw[a] (g) -- (x); \draw[a] (v) -- (x); \draw[a] (x) -- (k);
+  \draw[a] (k) -- node[right,font=\scriptsize,text=tsgrey]{yes} (dset);
+  \draw[ra] (k.north) -- node[right,font=\scriptsize,text=tsred]{no} (k.north |- fb.south);
+  \draw[ra] (fb) -- (rep);
+  \draw[ra] (rep.south -| x.north) -- node[pos=0.62,left,font=\scriptsize,text=tsred]{re-validate} (x.north);
+  \draw[a] (dset) -- (ft); \draw[a] (ft) -- (sp);
+  \draw[a,dashed] (sp.west) -- ++(-0.5,0) |- node[pos=0.25,left,font=\scriptsize,text=tsgrey]{next round} ([yshift=-0.25cm]v.west);
+\end{tikzpicture}}
+\end{center}
+\vspace{0.1cm}
+{\footnotesize Outside the red box is the paper's loop, \textbf{unchanged}. Repaired pairs must pass the \textbf{same} check; the rest are discarded.}
+\end{frame}
+
+\begin{frame}{Repair-TS in detail}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.485\textwidth}
+\begin{tscard}[tsnavy]{1. Which side is repaired}{Set by the failure type}
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item SQL fails or always empty: \textbf{SQL}
+\item Scala fails: \textbf{Scala}
+\item They disagree: \textbf{both}, then try new+old, old+new, new+new
+\end{itemize}
+\end{tscard}
+\vspace{0.05cm}
+\begin{tscard}[tsnavy]{2. Feedback}{Only from its own run}
+Its error, ``returns no rows'', or its first 5 rows on the failing sample.
+\end{tscard}
+\column{0.485\textwidth}
+\begin{tscard}[tsred]{3. The check stays honest}{Independence is kept}
+A program \textbf{never} sees the other language's code or output, so agreement still means two independent programs agree.
+\end{tscard}
+\vspace{0.05cm}
+\begin{tscard}[tsred]{4. One attempt}{Greedy, then $\leq$\,3 samples}
+Samples only if the reply is empty or unchanged. Also used for NL-to-R and error detection.
+\end{tscard}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Choosing the repairer with a fixed rule}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.52\textwidth}
+{\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\thd{Rejected because} & \thd{Tried} & \thd{Base} & \thd{Instruct}\\\midrule
+SQL and Scala disagree & 90 & 3 & \textbf{11}\\
+Scala failed & 79 & 3 & \textbf{9}\\
+SQL always empty & 60 & 1 & \textbf{3}\\
+SQL failed & 8 & 0 & 0\\\midrule
+\textbf{Recovered} & 237 & 7 & \textbf{23}\\
+\textbf{Kept pairs} (41 first pass) & & +17\% & \textbf{+56\%}\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.12cm}
+\muted{\scriptsize Pilot: seed 1, 300-table round 1; the same rejected pairs for both repairers.}
+\column{0.44\textwidth}
+\begin{tscard}[tsnavy]{Fixed before the pilot}{Go / no-go rule}
+Kept pairs $\geq$\,+30\% \textbf{and} $\geq$\,80\% recovered pairs correct.
+\end{tscard}
+\vspace{0.05cm}
+\begin{tscard}[tsgreen]{Outcome}{Instruct is the repairer}
+\textbf{Base +17\%: no-go}; it often copied the old code back.\\[2pt]
+\textbf{Instruct +56\%: go}; 21 of 23 correct, 0 wrong.
+\end{tscard}
+\end{columns}
+\end{frame}
+
+\begin{frame}{How much data repair recovers}
+\begin{columns}[c]
+\column{0.58\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,ybar,bar width=8pt,width=8.2cm,height=5.2cm,ymin=0,ymax=60,
+  symbolic x coords={R1,R2,R3},xtick=data,xticklabels={Round 1,Round 2,Round 3},enlarge x limits=0.25,
+  ylabel={Extra training pairs from repair (\%)},
+  legend style={at={(0.5,1.02)},anchor=south,legend columns=3},
+  nodes near coords,nodes near coords style={font=\tiny,text=tsink,/pgf/number format/fixed,/pgf/number format/precision=0},
+  every axis plot/.append style={line width=0.4pt}]
+\addplot[fill=tsnavy,draw=tsnavy] coordinates {(R1,52.2) (R2,22.5) (R3,19.4)};
+\addplot[fill=cRepair,draw=cRepair] coordinates {(R1,21.8) (R2,18.0) (R3,17.1)};
+\addplot[fill=cControl,draw=cControl] coordinates {(R1,27.8) (R2,20.5) (R3,19.5)};
+\legend{Base SQL+Scala,Instruct SQL+Scala,Instruct SQL+R}
+\end{axis}
+\end{tikzpicture}
+\column{0.4\textwidth}
+\begin{itemize}\small\setlength{\itemsep}{3pt}
+\item Round 1 on base: \textbf{+48--56\%} pairs (e.g.\ 426 $\to$ 650).
+\item Most recoveries are \emph{disagree} pairs.
+\item ``Always empty'' pairs are almost never recovered (7 of 1,048).
+\item Error detection: \textbf{491--696} extra errors per round.
+\item On Instruct, 60\% of recovered pairs carry a \textbf{new Scala} program.
+\end{itemize}
+\end{columns}
+\muted{\scriptsize Recovered pairs as \% of first-pass kept pairs, mean of 3 seeds. The Scala adapter trains on the same pairs as the SQL adapter.}
+\end{frame}
+
+\begin{frame}{Scoreboard: TS vs.\ repair-TS, all rounds}
+\vspace{0.05cm}
+{\footnotesize\setlength{\tabcolsep}{4.2pt}\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lc|cc|cc|cc|c@{}}
+\toprule
+& & \multicolumn{2}{c|}{\thd{Round 1}} & \multicolumn{2}{c|}{\thd{Round 2}} & \multicolumn{2}{c|}{\thd{Round 3}} & \\
+\thd{Setting} & \thd{Vanilla} & \thd{TS} & \thd{Repair} & \thd{TS} & \thd{Repair} & \thd{TS} & \thd{Repair} & \thd{Seeds ahead}\\\midrule
+Base NL-to-SQL & .408 & .524 & \sig{.553} & .527 & .578\rlap{\textsuperscript{*}} & .546 & \sig{.590} & 3, --, 3\\
+Instruct NL-to-Scala & .194 & .386 & \sig{.402} & .441 & \sig{.482} & .467 & \sig{.482} & 3, 3, 3\\
+Instruct NL-to-R & .327 & .434 & \sig{.444} & .458 & \sig{.481} & .476 & \sig{.504} & 3, 3, 3\\\midrule
+Instruct NL-to-SQL & .500 & .617 & .616 & .618 & .624 & .611 & .612 & 1, 2, 1\\
+Error detection (F1) & .089 & .210 & \sig{.237} & .270 & .276 & .288 & .299 & 3, 2, 2\\
+\bottomrule
+\end{tabular}}
+\vspace{0.25cm}
+\begin{columns}[T]
+\column{0.48\textwidth}
+\begin{itemize}\small\setlength{\itemsep}{2pt}
+\item Repair is \textbf{higher in 14 of 15} cells.
+\item \sig{Teal}: significant ($p<0.05$) \emph{and} positive on every seed.
+\end{itemize}
+\column{0.48\textwidth}
+\begin{itemize}\small\setlength{\itemsep}{2pt}
+\item Clear, growing gains: \textbf{base SQL, Scala, R}.
+\item No gain: Instruct SQL. Error detection: round 1 only.
+\end{itemize}
+\end{columns}
+\vspace{0.05cm}
+\muted{\scriptsize Zero-shot mean of 4 (F1 mean of ST and RT for errors); mean of 3 seeds. Tests: paired bootstrap on the mean of 8 (F1 for errors). * Base round 2 not tested per seed.}
+\end{frame}
+
+\begin{frame}{Base NL-to-SQL: repair-TS leads every round}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.5\textwidth}
+{\small\textbf{\color{tsnavy}Round 3, by test set \muted{(zero-shot)}}}\par\vspace{0.08cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.02}
+\begin{tabular}{@{}lcccr@{}}
+\toprule
+& \thd{Vanilla} & \thd{TS} & \thd{Repair} & \thd{$\Delta$}\\\midrule
+WikiSQL & .326 & .779 & .765 & $-$.014\\
+WikiTQ & .219 & .322 & \textbf{.395} & \textbf{+.073}\\
+Spider & .725 & .703 & \textbf{.784} & \textbf{+.081}\\
+BIRD & .364 & .380 & \textbf{.418} & \textbf{+.038}\\
+\midrule
+Mean of 4 & .408 & .546 & \textbf{.590} & \textbf{+.044}\\
+Mean of 8 & .479 & .544 & \textbf{.586} & \textbf{+.042}\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.1cm}
+{\footnotesize Mean of 8: \textbf{$p<0.0001$}; seeds +.020, +.056, +.050.\\Seed SD \textbf{0.005} vs.\ 0.021 for TS.}
+\column{0.47\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,width=6.9cm,height=4.6cm,xmin=0.8,xmax=3.3,ymin=0.51,ymax=0.615,xtick={1,2,3},
+  xticklabels={Round 1,Round 2,Round 3},ylabel={Zero-shot mean of 4},
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  title={vanilla 0.408, below the axis},title style={font=\scriptsize,text=tsgrey},
+  every axis plot/.append style={mark size=2.6pt}]
+\addplot[cRepair,mark=square*] coordinates {(1,0.5530) (2,0.5780) (3,0.5904)} node[anchor=west,font=\scriptsize\bfseries,text=tsink]{Repair};
+\addplot[cOurs,mark=*] coordinates {(1,0.5242) (2,0.5272) (3,0.5460)} node[anchor=west,font=\scriptsize,text=tsink]{TS};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:1,0.5555) {+.029};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:2,0.5805) {+.051};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:3,0.5929) {+.044};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\vspace{0.12cm}
+\begin{tscallout}[tspanel]\small Gains on the harder sets (WikiTQ, Spider, BIRD); repair-TS is also the most stable model.\end{tscallout}
+\end{frame}
+
+\begin{frame}{NL-to-Scala: repair-TS leads every round}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.5\textwidth}
+{\small\textbf{\color{tsnavy}Round 3, by test set \muted{(zero-shot)}}}\par\vspace{0.08cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.02}
+\begin{tabular}{@{}lcccr@{}}
+\toprule
+& \thd{Vanilla} & \thd{TS} & \thd{Repair} & \thd{$\Delta$}\\\midrule
+WikiSQL & .341 & .671 & .680 & +.009\\
+WikiTQ & .042 & .315 & \textbf{.337} & \textbf{+.022}\\
+Spider & .301 & .577 & \textbf{.625} & \textbf{+.048}\\
+BIRD & .091 & .304 & .285 & $-$.019\\
+\midrule
+Mean of 4 & .194 & .467 & \textbf{.482} & \textbf{+.015}\\
+Mean of 8 & .266 & .460 & \textbf{.477} & \textbf{+.017}\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.1cm}
+{\footnotesize Mean of 8: \textbf{$p<0.0001$} at every round;\\\textbf{9 of 9} seed--round differences positive.}
+\column{0.47\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,width=6.9cm,height=4.6cm,xmin=0.8,xmax=3.3,ymin=0.36,ymax=0.51,xtick={1,2,3},
+  xticklabels={Round 1,Round 2,Round 3},ylabel={Zero-shot mean of 4},
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  title={vanilla 0.194, below the axis},title style={font=\scriptsize,text=tsgrey},
+  every axis plot/.append style={mark size=2.6pt}]
+\addplot[cPaper,dashed,mark=none,line width=1pt] coordinates {(0.8,0.375) (3.3,0.375)} node[pos=1,anchor=south east,font=\scriptsize,text=tsnavy]{paper TS .375};
+\addplot[cRepair,mark=square*] coordinates {(1,0.4015) (2,0.4824) (3,0.4817)} node[anchor=west,font=\scriptsize\bfseries,text=tsink]{Repair};
+\addplot[cOurs,mark=*] coordinates {(1,0.3860) (2,0.4410) (3,0.4666)} node[anchor=west,font=\scriptsize,text=tsink]{TS};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:1,0.4045) {+.016};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:2,0.4854) {+.041};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:3,0.4847) {+.015};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\vspace{0.12cm}
+\begin{tscallout}[tspanel]\small Works with Instruct repairing \textbf{its own} programs; seed spread a quarter of TS's.\end{tscallout}
+\end{frame}
+
+\begin{frame}{NL-to-R: the repair gain grows every round}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.5\textwidth}
+{\small\textbf{\color{tsnavy}Round 3, by test set \muted{(zero-shot)}}}\par\vspace{0.08cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.02}
+\begin{tabular}{@{}lcccr@{}}
+\toprule
+& \thd{Vanilla} & \thd{TS} & \thd{Repair} & \thd{$\Delta$}\\\midrule
+WikiSQL & .326 & .506 & \textbf{.602} & \textbf{+.097}\\
+WikiTQ & .150 & .315 & \textbf{.333} & \textbf{+.019}\\
+Spider & .599 & .716 & .716 & .000\\
+BIRD & .231 & .368 & .366 & $-$.003\\
+\midrule
+Mean of 4 & .327 & .476 & \textbf{.504} & \textbf{+.028}\\
+Mean of 8 & .351 & .479 & \textbf{.503} & \textbf{+.024}\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.1cm}
+{\footnotesize Mean of 8: \textbf{$p<0.0001$} at every round;\\every seed positive at every round.}
+\column{0.47\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,width=6.9cm,height=4.6cm,xmin=0.8,xmax=3.3,ymin=0.42,ymax=0.525,xtick={1,2,3},
+  xticklabels={Round 1,Round 2,Round 3},ylabel={Zero-shot mean of 4},
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  title={vanilla 0.327, below the axis},title style={font=\scriptsize,text=tsgrey},
+  every axis plot/.append style={mark size=2.6pt}]
+\addplot[cRepair,mark=square*] coordinates {(1,0.4435) (2,0.4805) (3,0.5043)} node[anchor=west,font=\scriptsize\bfseries,text=tsink]{Repair};
+\addplot[cOurs,mark=*] coordinates {(1,0.4339) (2,0.4578) (3,0.4761)} node[anchor=west,font=\scriptsize,text=tsink]{TS};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:1,0.4460) {+.010};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:2,0.4830) {+.023};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:3,0.5068) {+.028};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\vspace{0.12cm}
+\begin{tscallout}[tspanel]\small A pipeline we built end to end, 7,122 test cases per model, and a gain that \textbf{grows each round}.\end{tscallout}
+\end{frame}
+
+\begin{frame}{Instruct NL-to-SQL: no gain from repair}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.5\textwidth}
+{\small\textbf{\color{tsnavy}Round 3, by test set \muted{(zero-shot)}}}\par\vspace{0.08cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.02}
+\begin{tabular}{@{}lcccr@{}}
+\toprule
+& \thd{Vanilla} & \thd{TS} & \thd{Repair} & \thd{$\Delta$}\\\midrule
+WikiSQL & .518 & .784 & .792 & +.008\\
+WikiTQ & .289 & .423 & .433 & +.009\\
+Spider & .791 & .806 & .780 & $-$.026\\
+BIRD & .402 & .432 & .444 & +.013\\
+\midrule
+Mean of 4 & .500 & .611 & .612 & +.001\\
+Mean of 8 & .555 & .607 & .605 & $-$.001\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.1cm}
+{\footnotesize Mean of 8: $p=0.55$; seeds $-$.004, +.005, $-$.005.\\Rounds 1--2: $-$.004 ($p=0.13$), +.005 (seeds split).}
+\column{0.47\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,width=6.9cm,height=4.6cm,xmin=0.8,xmax=3.3,ymin=0.59,ymax=0.635,xtick={1,2,3},
+  xticklabels={Round 1,Round 2,Round 3},ylabel={Zero-shot mean of 4},
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  title={vanilla 0.500, below the axis},title style={font=\scriptsize,text=tsgrey},
+  every axis plot/.append style={mark size=2.6pt}]
+\addplot[cPaper,dashed,mark=none,line width=1pt] coordinates {(0.8,0.5983) (3.3,0.5983)} node[pos=1,anchor=south east,font=\scriptsize,text=tsnavy]{paper TS .598};
+\addplot[cRepair,mark=square*] coordinates {(1,0.6156) (2,0.6241) (3,0.6122)} node[anchor=west,font=\scriptsize\bfseries,text=tsink]{Repair};
+\addplot[cOurs,mark=*] coordinates {(1,0.6165) (2,0.6176) (3,0.6113)} node[anchor=north west,font=\scriptsize,text=tsink]{TS};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\vspace{0.12cm}
+\begin{tscallout}[tspanel]\small Differences of $\pm$0.01 with seeds split: \textbf{no effect}. The controls show why.\end{tscallout}
+\end{frame}
+
+\begin{frame}{Error detection: repair helps in round 1 only}
+\vspace{0.05cm}
+\begin{columns}[T]
+\column{0.5\textwidth}
+{\small\textbf{\color{tsnavy}F1 by round and test set}}\par\vspace{0.08cm}
+{\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}lccc|ccc@{}}
+\toprule
+& \multicolumn{3}{c|}{\thd{TS}} & \multicolumn{3}{c}{\thd{Repair}}\\
+& \thd{ST} & \thd{RT} & \thd{Mean} & \thd{ST} & \thd{RT} & \thd{Mean}\\\midrule
+Round 1 & .176 & .243 & .210 & .200 & .274 & \textbf{.237}\\
+Round 2 & .239 & .301 & .270 & .247 & .305 & .276\\
+Round 3 & .279 & .298 & .288 & .259 & .340 & .299\\
+\bottomrule
+\end{tabular}}
+\par\vspace{0.1cm}
+{\footnotesize Vanilla: .066 / .111 / .089.\\
+Repair $-$ TS: \textbf{+.027} ($p=0.03$, every seed),\\then +.006 ($p=0.70$), +.011 ($p=0.58$).}
+\column{0.47\textwidth}
+\begin{tikzpicture}
+\begin{axis}[tsaxis,width=6.9cm,height=4.6cm,xmin=0.8,xmax=3.3,ymin=0.19,ymax=0.315,xtick={1,2,3},
+  xticklabels={Round 1,Round 2,Round 3},ylabel={F1 (mean of ST and RT)},
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=2},
+  title={vanilla 0.089, below the axis},title style={font=\scriptsize,text=tsgrey},
+  every axis plot/.append style={mark size=2.6pt}]
+\addplot[cRepair,mark=square*] coordinates {(1,0.2369) (2,0.2760) (3,0.2992)} node[anchor=west,font=\scriptsize\bfseries,text=tsink]{Repair};
+\addplot[cOurs,mark=*] coordinates {(1,0.2096) (2,0.2697) (3,0.2882)} node[anchor=north west,font=\scriptsize,text=tsink]{TS};
+\node[anchor=south,font=\scriptsize\bfseries,text=cRepair] at (axis cs:1,0.2394) {+.027};
+\node[anchor=south,font=\scriptsize,text=tsgrey] at (axis cs:2,0.2785) {+.006};
+\node[anchor=south,font=\scriptsize,text=tsgrey] at (axis cs:3,0.3017) {+.011};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\vspace{0.12cm}
+\begin{tscallout}[tspanel]\small Ahead every round, but with 42 and 36 error columns, rounds 2--3 are within noise.\end{tscallout}
+\end{frame}
+
+% ---------------------------------------------------------------- is it just more data?
+\begin{frame}{Is it just more data? The test}
+\vspace{0.05cm}
+{\small Repair-TS trains on \textbf{more} pairs than TS (+15--56\%). Is its gain from \emph{more} data, or \emph{better} data? \muted{(Round 1, 3 seeds.)}}
+\par\vspace{0.05cm}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \foreach \y/\lab in {0/TS,-0.85/Same-data control,-1.7/Repair-TS} {\node[anchor=east,font=\footnotesize\bfseries,text=tsnavy] at (-0.1,\y) {\lab};}
+  \foreach \y in {0,-0.85,-1.7} {\fill[tsgreen!75] (0,\y-0.27) rectangle (2.6,\y+0.27); \node[font=\scriptsize,text=white] at (1.3,\y) {$N$ kept pairs};}
+  \fill[cControl] (2.65,-1.12) rectangle (4.25,-0.58); \node[font=\scriptsize,text=white] at (3.45,-0.85) {+$M$ fresh};
+  \fill[cRepair] (2.65,-1.97) rectangle (4.25,-1.43); \node[font=\scriptsize,text=white] at (3.45,-1.7) {+$M$ repaired};
+\end{tikzpicture}
+\column{0.46\textwidth}
+\begin{tscard}[cControl]{Volume effect}{Control $-$ TS}
+$M$ extra \textbf{fresh} validated pairs, same generator, unseen tables.
+\end{tscard}
+\vspace{0.02cm}
+\begin{tscard}[cRepair]{Content effect}{Repair-TS $-$ Control}
+Same amount of data; only the \textbf{source} of the extra pairs differs.
+\end{tscard}
+\end{columns}
+\vspace{0.1cm}
+{\footnotesize\textbf{\color{tsnavy}Also:}\enspace \textbf{best-of-4} (base SQL) adds data by resampling; \textbf{best-of-2} (errors) retries without feedback.}
+\end{frame}
+
+\begin{frame}{Is it just more data? Splitting the round-1 gain}
+\vspace{0.0cm}
+\begin{center}
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=3 by 1,horizontal sep=1.45cm},tsaxis,
+  height=3.9cm,width=4.7cm,xmin=0.6,xmax=3.45,xtick={1,2,3},xticklabels={TS,{Same\\data},Repair},
+  xticklabel style={align=center},
+  yticklabel style={/pgf/number format/fixed,/pgf/number format/precision=3},
+  every axis plot/.append style={only marks,mark size=3.2pt}]
+\nextgroupplot[title={Base NL-to-SQL},ymin=0.52,ymax=0.556,ylabel={Mean of 8}]
+\draw[-{Stealth[length=5pt]},cControl,line width=1.4pt] (axis cs:1.1,0.5266) -- (axis cs:1.9,0.5385) node[midway,above left=-1pt,font=\scriptsize\bfseries,text=cControl]{+.012};
+\draw[-{Stealth[length=5pt]},cRepair,line width=1.4pt] (axis cs:2.1,0.5385) -- (axis cs:2.9,0.5509) node[midway,above left=-1pt,font=\scriptsize\bfseries,text=cRepair]{+.012};
+\addplot[mark=*,cOurs] coordinates {(1,0.5266)};
+\addplot[mark=*,cControl] coordinates {(2,0.5385)};
+\addplot[mark=*,cRepair] coordinates {(3,0.5509)};
+\addplot[mark=o,tsgrey,mark size=3pt] coordinates {(2,0.5330)} node[right,font=\tiny,text=tsgrey]{best-of-4};
+\nextgroupplot[title={Instruct NL-to-SQL},ymin=0.605,ymax=0.628]
+\draw[-{Stealth[length=5pt]},cControl,line width=1.4pt] (axis cs:1.1,0.6152) -- (axis cs:1.9,0.6231) node[midway,above left=-1pt,font=\scriptsize\bfseries,text=cControl]{+.008};
+\draw[-{Stealth[length=5pt]},tsred,line width=1.4pt] (axis cs:2.1,0.6231) -- (axis cs:2.9,0.6117) node[midway,above right=-1pt,font=\scriptsize\bfseries,text=tsred]{$-$.011};
+\addplot[mark=*,cOurs] coordinates {(1,0.6152)};
+\addplot[mark=*,cControl] coordinates {(2,0.6231)};
+\addplot[mark=*,cRepair] coordinates {(3,0.6117)};
+\nextgroupplot[title={Error detection},ymin=0.205,ymax=0.242,ylabel={F1}]
+\draw[-{Stealth[length=5pt]},cControl,line width=1.4pt] (axis cs:1.1,0.2096) -- (axis cs:1.9,0.2138) node[midway,above left=-1pt,font=\scriptsize\bfseries,text=cControl]{+.004};
+\draw[-{Stealth[length=5pt]},cRepair,line width=1.4pt] (axis cs:2.1,0.2138) -- (axis cs:2.9,0.2369) node[midway,above left=-1pt,font=\scriptsize\bfseries,text=cRepair]{+.023};
+\addplot[mark=*,cOurs] coordinates {(1,0.2096)};
+\addplot[mark=*,cControl] coordinates {(2,0.2138)};
+\addplot[mark=*,cRepair] coordinates {(3,0.2369)};
+\addplot[mark=o,tsgrey,mark size=3pt] coordinates {(3,0.2311)} node[right,font=\tiny,text=tsgrey]{best-of-2};
+\end{groupplot}
+\end{tikzpicture}
+\end{center}
+\vspace{-0.15cm}
+{\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}L{4.5cm}L{4.5cm}L{4.4cm}@{}}
+\textbf{\color{cControl}Volume} +.012 ($p<.0001$; 2 of 3 seeds)\newline \textbf{\color{cRepair}Content} +.012 ($p<.0001$; \textbf{3 of 3})\newline vs.\ best-of-4: +.018, 3 of 3 seeds &
+\textbf{\color{cControl}Volume} +.008 ($p=.0006$; 3 of 3)\newline \textbf{\color{tsred}Content} $-$.011 ($p<.0001$)\newline Fresh pairs beat repaired ones &
+\textbf{\color{cControl}Volume} +.004 ($p=.69$)\newline \textbf{\color{cRepair}Content} +.023 ($p=.03$)\newline Best-of-2 $\approx$ repair ($p=.71$)\\
+\end{tabular}}
+\end{frame}
+
+\begin{frame}{Is it just more data? What the controls show}
+\vspace{0.05cm}
+{\footnotesize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}L{2.5cm}L{1.6cm}L{2.2cm}>{\columncolor{tspink}}L{7.0cm}@{}}
+\toprule
+\thd{Setting} & \thd{Volume} & \thd{Content} & \thd{\color{tsred}What it means}\\\midrule
+Base NL-to-SQL & +.012 & \leavevmode\up{+.012}, all seeds & About \textbf{half} the gain is content: repaired pairs beat as many fresh ones\\
+Instruct NL-to-SQL & +.008 & \leavevmode\down{$-$.011} & Repaired pairs are \textbf{worth less} than fresh ones: hence no gain\\
+Error detection & +.004 & \leavevmode\up{+.023} & Not volume; but a plain retry does as well as feedback\\
+Scala, R & \multicolumn{2}{l}{no control run} & Gains grow over rounds; volume share unmeasured\\
+\bottomrule
+\end{tabular}}
+\vspace{0.2cm}
+\begin{tscallout}[tsgreenbg]\small\textbf{What we can claim:} on base SQL, repaired data beats as much fresh data, on every seed.\\[2pt]
+\footnotesize\muted{Caveat (untested): the base repairer is a stronger model, so part of the gain may be distillation.}\end{tscallout}
+\end{frame}
+
+% ================================================================ 6 conclusions
+\section{Conclusions}
+\tsdivider{06}{\tsoutlineitems{6}}
+
+\begin{frame}{What is established, and how strongly}
+\vspace{0.05cm}
+{\footnotesize\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{@{}L{4.9cm}L{5.9cm}>{\columncolor{tspink}}L{2.6cm}@{}}
+\toprule
+\thd{Claim} & \thd{Evidence} & \thd{\color{tsred}Strength}\\\midrule
+TS reproduces the paper (Instruct) & 0.6113 vs.\ 0.5983; 3 of 4 sets within 0.032 & Approximate\\
+TS improves all four tasks & Every seed, $p<0.0001$ & Strong\\
+Validation pays off over rounds & No validation wins round 1, loses round 3 & Moderate\\
+Repair-TS helps base SQL, Scala, R & +0.042, +0.017, +0.024; every seed & Moderate\\
+Repair beats more data (base SQL) & +0.012 over same-data control & Moderate\\
+Repair does not help Instruct SQL & $-$0.001 ($p=.55$); below control & Strong (neg.)\\
+Repair for error detection & Round 1 only; equal to best-of-2 & Weak\\
+DPO on validator labels & $-$0.021, even after dev tuning & Moderate (neg.)\\
+\bottomrule
+\end{tabular}}
+\vspace{0.15cm}
+
+\muted{\scriptsize \textbf{Strong}: 3 seeds, $p<0.0001$, consistent sign, control for the obvious alternative. \textbf{Moderate}: significant and consistent; alternative untested. \textbf{Weak}: mixed or not significant.}
+\end{frame}
+
+\begin{frame}{Limitations and next steps}
+\vspace{0.15cm}
+\begin{columns}[T]
+\column{0.48\textwidth}
+\begin{tscard}[tsred]{Limitations}{What could move the numbers}
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item Substitute corpus (GitTables)
+\item Text2Analysis not public: 4 of 5 test sets
+\item 3 seeds; Instruct no-validation: 1 seed
+\item Small error-detection test sets
+\item On base, the repairer is a stronger model
+\end{itemize}
+\end{tscard}
+\column{0.48\textwidth}
+\begin{tscard}[tsnavy]{Next steps}{What would settle it}
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item Same-data control for NL-to-R ($\sim$6 GPU-h)
+\item Separate repair from distillation
+\item Repairers from another model family
+\item Validator precision--recall study
+\end{itemize}
+\end{tscard}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Summary}
+\vspace{0.15cm}
+\begin{enumerate}\setlength{\itemsep}{0.45em}
+\item \textbf{Reproduction:} Instruct TS scores 0.6113 against the paper's 0.5983 --- on Instruct, not the README's base model.
+\item \textbf{All four tasks:} TS beats vanilla on SQL, Scala, R and error detection; Scala and errors land above the paper's figures.
+\item \textbf{Validation:} pays off over rounds, not in round 1.
+\item \textbf{Rejected data:} DPO hurts and resampling barely helps; \alert{repair-TS} clearly helps base SQL, Scala and R, and is never worse.
+\item \textbf{Controls:} on base SQL, repaired data is worth more than as much fresh data.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[plain,noframenumbering]
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[tsnavy] (current page.north west) rectangle ([xshift=0.33cm]current page.south west);
+  \node[anchor=north west,inner sep=0,text width=12cm] at ($(current page.north west)+(1.35cm,-0.9cm)$) {%
+    {\color{tsnavy}\fontsize{46}{48}\selectfont\bfseries Thank\hspace{0.28em}you}\par\vspace{0.3cm}
+    {\color{tsred}\rule{2.4cm}{3pt}}\par\vspace{0.45cm}
+    {\color{tsgrey}\LARGE Questions and discussion}\par\vspace{0.8cm}
+    {\color{tsnavy}\large\bfseries Fadil Mir\quad\textperiodcentered\quad Tajamul Bashir}\par\vspace{0.1cm}
+    {\color{tsgrey}Computer Science and Engineering, IIT Jammu}\par\vspace{0.45cm}
+    {\color{tsgrey}Paper: Xing et al., \emph{Table-LLM-Specialist}, EMNLP 2025\\Code: github.com/microsoft/Table-Specialist}};
+\end{tikzpicture}
+\end{frame}
+
+% ================================================================ backup
+\appendix
+\section{Backup}
+\begin{frame}[plain,noframenumbering]
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[tslight] ([yshift=-0.58cm]current page.north west) rectangle ([xshift=0.382\paperwidth]current page.south west);
+  \node[anchor=south west,text=tsred,font=\fontsize{72}{72}\selectfont\bfseries,inner sep=0] at ($(current page.west)+(1.35cm,-0.15cm)$) {B};
+  \node[anchor=north west,text=tsnavy,font=\LARGE\bfseries,inner sep=0] at ($(current page.west)+(1.35cm,-0.95cm)$) {Backup slides};
+  \node[anchor=west,inner sep=0,text width=8.8cm] at ($(current page.west)+(0.398\paperwidth,0)$) {%
+    \begin{itemize}\large\setlength{\itemsep}{0.2em}
+    \item Repair vs.\ TS, seed by seed
+    \item Error detection: full results
+    \item Test-time voting and few-shot prompts
+    \item Training settings
+    \item How the work progressed
+    \item Statistics
+    \item References
+    \end{itemize}};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Repair vs.\ TS, seed by seed}
+\begin{center}
+{\scriptsize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\thd{Seed, round} & \thd{Base SQL} & \thd{Instr.\ SQL} & \thd{Instr.\ Scala} & \thd{Instr.\ R} & \thd{Errors (F1)}\\\midrule
+Seed 1, R1 & +.028 & $-$.008 & +.017 & +.003 & +.026\\
+Seed 1, R2 & n/a & $-$.015 & +.030 & +.010 & +.087\\
+Seed 1, R3 & +.020 & $-$.004 & +.009 & +.014 & $-$.032\\\midrule
+Seed 2, R1 & +.043 & +.013 & +.006 & +.012 & +.034\\
+Seed 2, R2 & n/a & +.006 & +.014 & +.023 & +.007\\
+Seed 2, R3 & +.056 & +.005 & +.024 & +.036 & +.028\\\midrule
+Seed 3, R1 & +.002 & $-$.016 & +.020 & +.018 & +.022\\
+Seed 3, R2 & n/a & +.025 & +.057 & +.028 & $-$.076\\
+Seed 3, R3 & +.050 & $-$.005 & +.017 & +.023 & +.037\\\midrule
+\rowcolor{tspink}Zero-shot, seed mean & +.029/.051/.044 & $-$.001/+.007/+.001 & +.016/.041/.015 & +.010/.023/.028 & ---\\
+\bottomrule
+\end{tabular}}
+\end{center}
+\vspace{-0.1cm}
+\muted{\scriptsize Mean of 8 unless stated; base round 2 was not tested per seed. Zero-shot row: rounds 1 / 2 / 3. On zero-shot alone Instruct SQL looks slightly positive, but at $\pm$0.001 with seeds split it is no effect.}
+\end{frame}
+
+\begin{frame}{Error detection: full results}
+\begin{columns}[T]
+\column{0.5\textwidth}
+{\footnotesize\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.0}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\thd{Model} & \thd{ST} & \thd{RT} & \thd{Mean}\\\midrule
+Paper vanilla & .071 & .108 & .090\\
+Paper TS & .136 & .161 & .149\\\midrule
+Our vanilla & .066 & .111 & .089\\
+TS round 1 & .176 & .243 & .210\\
+TS round 2 & .239 & .301 & .270\\
+TS round 3 & .279 & .298 & .288\\
+\rowcolor{tspink}Repair round 1 & .200 & .274 & .237\\
+\rowcolor{tspink}Repair round 2 & .247 & .305 & .276\\
+\rowcolor{tspink}Repair round 3 & .259 & .340 & .299\\
+Best-of-2, round 1 & .192 & .271 & .231\\
+Same data, round 1 & .192 & .236 & .214\\
+\bottomrule
+\end{tabular}}
+\column{0.46\textwidth}
+\begin{itemize}\footnotesize\setlength{\itemsep}{3pt}
+\item TS round 3 vs.\ vanilla: \textbf{+0.200}, $p<0.0001$, every seed.
+\item Repair vs.\ TS: +0.027 ($p=.03$), +0.006 ($p=.70$), +0.011 ($p=.58$).
+\item 42 and 36 columns with errors: one column moves F1 by 0.01--0.02.
+\item Vanilla writes the errors and the previous adapter validates: our choices, so an adaptation.
+\item The validator keeps more each round (seed 1: 1,048 $\to$ 1,746 of 2,000 clean columns).
+\end{itemize}
+\end{columns}
+\vspace{0.05cm}
+\muted{\scriptsize F1 from column-averaged precision and recall; mean of seeds 1--3. Paper: Table 3.}
+\end{frame}
+
+\begin{frame}{Test-time voting and few-shot prompts}
+\vspace{0.1cm}
+\begin{columns}[T]
+\column{0.48\textwidth}
+\begin{tscard}[tsnavy]{Self-consistency (9 samples, vote)}{+0.014 to +0.025 everywhere}
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item Every model gains, $p<0.0001$
+\item Instruct TS: 0.6113 $\to$ 0.6277
+\item Base repair-TS: 0.5904 $\to$ 0.6067
+\item Established method: a confirmation
+\end{itemize}
+\end{tscard}
+\column{0.48\textwidth}
+\begin{tscard}[tsred]{Few-shot vanilla}{TS's gain is a zero-shot gain}
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item Instruct vanilla, few-shot: 0.6090
+\item Instruct TS round 3, zero-shot: 0.6113
+\item Fine-tuning mostly teaches what few-shot examples already show
+\end{itemize}
+\end{tscard}
+\end{columns}
+\vspace{0.15cm}
+\muted{\scriptsize Zero-shot mean of 4 unless stated; voting gains on the mean of 8.}
+\end{frame}
+
+\begin{frame}{Training settings}
+\vspace{0.05cm}
+{\footnotesize\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}L{3.4cm}L{9.6cm}@{}}
+\toprule
+\thd{Setting} & \thd{Value}\\\midrule
+LoRA & rank 16, $\alpha$ 32, dropout 0.05, all linear layers; restart from vanilla each round\\
+Optimiser & LR $2\times10^{-4}$, cosine, 3 epochs, bf16, max length 4,096 tokens\\
+Batch & 1\% of the training data (paper), by gradient accumulation: about 300 steps per run\\
+Questions & Repo prompt and requirement sampler; vanilla writes them, $T=0.7$\\
+Programs & Repo few-shot prompts, greedy; first complete code block kept\\
+Validation & 10 samples $\times$ 50\% of rows (repo); our comparator\\
+DPO (RPO) & $\beta=0.1$, $\lambda=1$, LR $2\times10^{-5}$, 2 epochs, 16 pairs per step, reference = best-of-4\\
+Repair & Instruct repairer; greedy, then up to 3 samples at $T=0.7$ if unchanged\\
+\bottomrule
+\end{tabular}}
+\end{frame}
+
+\begin{frame}{How the work progressed}
+\vspace{0.2cm}
+\begin{center}
+\begin{tikzpicture}[s/.style={fill=white,rounded corners=3pt,align=center,font=\small,text width=1.75cm,minimum height=1.45cm,line width=1pt},
+    a/.style={-{Stealth[length=5pt]},color=tsgrey,thick}]
+  \foreach \i/\c/\t in {1/tsnavy/{Validator built and audited},2/tsred/{Core study: TS vs.\ no validation},3/cControl/{DPO ruled out; repair-TS works},
+      4/tsred/{Instruct matches the paper},5/cRepair/{Repair on Instruct + controls},6/tsnavy/{Scala, error detection, NL-to-R}} {
+    \node[s,draw=\c] (n\i) at ({(\i-1)*2.3},0) {\t};
+    \node[circle,fill=\c,text=white,font=\scriptsize\bfseries,inner sep=1.5pt] at (n\i.north) {\i};}
+  \foreach \i [evaluate=\i as \j using int(\i+1)] in {1,...,5} {\draw[a] (n\i) -- (n\j);}
+\end{tikzpicture}
+\end{center}
+\vspace{0.4cm}
+\begin{tscallout}[tspanel]\small Three machine incidents (a crash, a long stall, a WSL crash) were all recovered from checkpoints and caches, with \textbf{no lost results}.\end{tscallout}
+\end{frame}
+
+\begin{frame}{Statistics}
+\begin{itemize}\small\setlength{\itemsep}{4pt}
+\item \textbf{Paired bootstrap}: resample test cases (columns for error detection) 10,000 times, the same draw for both models and all seeds; recompute the difference each time.
+\item \textbf{Statistic}: mean over seeds of model A minus model B; two-sided $p$-value; 95\% percentile interval.
+\item \textbf{Mean of 8}: 4 test sets $\times$ zero-shot and few-shot prompts; the paper's zero-shot mean of 4 is reported too.
+\item \textbf{Seeds}: the bootstrap does not cover seed variance, so each seed's difference is shown.
+\item Fine-tuned results use seeds 1, 2, 3; vanilla is greedy and run once.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{References}
+\footnotesize
+\setlength{\parskip}{0.3em}
+J. Xing, Y. He, M. Zhou, H. Dong, S. Han, D. Zhang, S. Chaudhuri. \textbf{Table-LLM-Specialist: Language Model Specialists for Tables using Iterative Generator-Validator Fine-tuning.} EMNLP 2025. arXiv:2410.12164.
+
+Microsoft. Table-Specialist official code. github.com/microsoft/Table-Specialist.
+
+M. Hulsebos, \c{C}. Demiralp, P. Groth. GitTables: A large-scale corpus of relational tables. 2021.
+
+A. Grattafiori et al. The Llama 3 herd of models. 2024. \quad E. J. Hu et al. LoRA: Low-rank adaptation of large language models. 2021.
+
+R. Rafailov et al. Direct preference optimization. 2023. \quad R. Y. Pang et al. Iterative reasoning preference optimization. 2024.
+
+X. Chen, M. Lin, N. Sch\"arli, D. Zhou. Teaching large language models to self-debug. 2023.
+
+X. Wang et al. Self-consistency improves chain of thought reasoning in language models. 2022.
+
+B. Efron, R. J. Tibshirani. An Introduction to the Bootstrap. 1993.
+\end{frame}
+
+\end{document}
