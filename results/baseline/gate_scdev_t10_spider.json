@@ -1,0 +1,40 @@
+{
+ "run_id": "gate_scdev_t10_spider",
+ "benchmark": "spider",
+ "split": "dev",
+ "model": "sql-a1ffc3593d46383b",
+ "n": 411,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.8127,
+ "repo_faithful_95ci": [
+  0.772,
+  0.847
+ ],
+ "corrected_acc": 0.82,
+ "corrected_95ci": [
+  0.78,
+  0.854
+ ],
+ "greedy_repo_faithful_acc": 0.7908,
+ "changed": {
+  "greedy_wrong_vote_right": 9,
+  "greedy_right_vote_wrong": 0,
+  "vote_differs_from_greedy": 12
+ },
+ "paper_vanilla_acc": 0.67,
+ "gate_passed_on_repo_faithful": false,
+ "seconds": {
+  "generation": 159,
+  "scoring": 9
+ }
+}

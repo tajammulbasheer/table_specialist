@@ -1,0 +1,40 @@
+{
+ "run_id": "final_sct10_repairts_seed3_wikisql_zeroshot",
+ "benchmark": "WikiSQL",
+ "split": "test",
+ "model": "sql-fb05e527ea84182c",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.802,
+ "repo_faithful_95ci": [
+  0.776,
+  0.826
+ ],
+ "corrected_acc": 0.802,
+ "corrected_95ci": [
+  0.776,
+  0.826
+ ],
+ "greedy_repo_faithful_acc": 0.765,
+ "changed": {
+  "greedy_wrong_vote_right": 41,
+  "greedy_right_vote_wrong": 4,
+  "vote_differs_from_greedy": 62
+ },
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "seconds": {
+  "generation": 1022,
+  "scoring": 55
+ }
+}

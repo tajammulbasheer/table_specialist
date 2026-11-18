@@ -1,0 +1,41 @@
+{
+ "run_id": "final_sct10_instruct_tablespecialist_seed3_wikisql_zeroshot",
+ "benchmark": "WikiSQL",
+ "split": "test",
+ "model": "sql-1f66a82179b1e590",
+ "n": 1000,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.848,
+ "repo_faithful_95ci": [
+  0.824,
+  0.869
+ ],
+ "corrected_acc": 0.848,
+ "corrected_95ci": [
+  0.824,
+  0.869
+ ],
+ "greedy_repo_faithful_acc": 0.818,
+ "changed": {
+  "greedy_wrong_vote_right": 32,
+  "greedy_right_vote_wrong": 2,
+  "vote_differs_from_greedy": 41
+ },
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "score_workers": 16,
+ "seconds": {
+  "generation": 972,
+  "scoring": 20
+ }
+}

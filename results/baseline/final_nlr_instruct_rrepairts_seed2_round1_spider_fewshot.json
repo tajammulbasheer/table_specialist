@@ -1,0 +1,77 @@
+{
+ "run_id": "final_nlr_instruct_rrepairts_seed2_round1_spider_fewshot",
+ "model": "r-8e2207055baaca1b",
+ "adapter": "/home/ts/table-specialist-repro/runs/train_rrepairts_instruct_seed2/round1/adapter_r",
+ "benchmark": "spider",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [
+  "spider_test_00963",
+  "spider_test_00964",
+  "spider_test_00965",
+  "spider_test_00966",
+  "spider_test_00967",
+  "spider_test_00968",
+  "spider_test_00969",
+  "spider_test_00970",
+  "spider_test_00973",
+  "spider_test_00974",
+  "spider_test_00975",
+  "spider_test_00976",
+  "spider_test_00997",
+  "spider_test_00998",
+  "spider_test_00999",
+  "spider_test_01000",
+  "spider_test_01001",
+  "spider_test_01002",
+  "spider_test_01003",
+  "spider_test_01004",
+  "spider_test_01005",
+  "spider_test_01006",
+  "spider_test_01009",
+  "spider_test_01010",
+  "spider_test_01035",
+  "spider_test_01036",
+  "spider_test_01041",
+  "spider_test_01042",
+  "spider_test_01517",
+  "spider_test_01518",
+  "spider_test_01583",
+  "spider_test_01584"
+ ],
+ "limit": null,
+ "task": "nl2r",
+ "split": "test",
+ "n": 1198,
+ "repo_faithful_acc": 0.6878,
+ "repo_faithful_95ci": [
+  0.661,
+  0.713
+ ],
+ "corrected_acc": 0.7204,
+ "corrected_95ci": [
+  0.694,
+  0.745
+ ],
+ "outcomes": {
+  "correct": 863,
+  "wrong": 304,
+  "exec_failed": 30,
+  "no_code": 1
+ },
+ "gold_failures": 0,
+ "truncated_responses": 1,
+ "paper_unverified_average": {
+  "vanilla": 0.26,
+  "table_specialist": 0.333
+ },
+ "generation_seconds": 186.8,
+ "r_sandbox": {
+  "programs_run": 22896,
+  "seconds": 1885.6,
+  "programs_per_s": 12.142,
+  "workers": 36
+ }
+}

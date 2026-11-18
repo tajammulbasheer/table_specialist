@@ -1,0 +1,45 @@
+{
+ "run_id": "final_nlscala_instruct_vanilla_wikitq_fewshot",
+ "model": "Llama-3.1-8B-Instruct",
+ "adapter": null,
+ "benchmark": "WikiQA",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": null,
+ "task": "nl2scala",
+ "split": "test",
+ "n": 1000,
+ "repo_faithful_acc": 0.129,
+ "repo_faithful_95ci": [
+  0.11,
+  0.151
+ ],
+ "corrected_acc": 0.13,
+ "corrected_95ci": [
+  0.111,
+  0.152
+ ],
+ "outcomes": {
+  "wrong": 361,
+  "exec_failed": 505,
+  "correct": 130,
+  "format_error": 1,
+  "no_code": 3
+ },
+ "gold_failures": 0,
+ "truncated_responses": 3,
+ "paper_unverified": {
+  "vanilla": 0.043,
+  "table_specialist": 0.188
+ },
+ "generation_seconds": 234.8,
+ "spark": {
+  "programs_run": 8395,
+  "seconds": 11509.0,
+  "programs_per_s": 0.729,
+  "workers": 36
+ }
+}

@@ -1,0 +1,37 @@
+{
+ "run_id": "train_ed_edts_instruct_seed1_round1_rt_zeroshot",
+ "task": "error_detection",
+ "benchmark": "rt",
+ "model": "ed-1df9aab662a97c40",
+ "adapter": "/home/ts/table-specialist-repro/runs/train_edts_instruct_seed1/round1/adapter_ed",
+ "n": 1081,
+ "limit": null,
+ "dropped": {
+  "unparseable": 0,
+  "too_long": 119
+ },
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "repo_faithful": {
+  "precision": 0.1241,
+  "recall": 0.5,
+  "f1": 0.1989,
+  "columns_predicted": 145,
+  "columns_with_errors": 36
+ },
+ "autotest_protocol": {
+  "precision": 0.1286,
+  "recall": 0.5,
+  "f1": 0.2045,
+  "columns_predicted": 140,
+  "columns_with_errors": 36
+ },
+ "truncated_responses": 1,
+ "no_json": 1,
+ "paper_unverified": {
+  "vanilla": 0.108,
+  "table_specialist": 0.161
+ },
+ "generation_seconds": 106.2
+}

@@ -1,0 +1,40 @@
+{
+ "run_id": "final_sct10_vanilla_wikisql_zeroshot",
+ "benchmark": "WikiSQL",
+ "split": "test",
+ "model": "Llama-3.1-8B",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.393,
+ "repo_faithful_95ci": [
+  0.363,
+  0.424
+ ],
+ "corrected_acc": 0.393,
+ "corrected_95ci": [
+  0.363,
+  0.424
+ ],
+ "greedy_repo_faithful_acc": 0.326,
+ "changed": {
+  "greedy_wrong_vote_right": 69,
+  "greedy_right_vote_wrong": 2,
+  "vote_differs_from_greedy": 113
+ },
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "seconds": {
+  "generation": 1171,
+  "scoring": 10
+ }
+}

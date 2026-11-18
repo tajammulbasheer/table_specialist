@@ -1,0 +1,45 @@
+{
+ "run_id": "train_tablespecialist_base_seed1_round2_bird_zeroshot",
+ "benchmark": "bird",
+ "model": "sql-c7f84766a48ad724",
+ "n": 363,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.3774,
+ "repo_faithful_95ci": [
+  0.329,
+  0.428
+ ],
+ "corrected_acc": 0.3774,
+ "corrected_95ci": [
+  0.329,
+  0.428
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "others": 201,
+  "none": 137,
+  "subset": 5,
+  "compile/execution error": 12,
+  "superset": 8
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 1,
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 31.2,
+  "new_requests": 363,
+  "prompt_tokens_mean": 1510,
+  "completion_tokens_mean": 34,
+  "completion_tokens_per_s": 396
+ }
+}

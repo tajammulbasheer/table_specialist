@@ -1,0 +1,42 @@
+{
+ "source": {
+  "files": 96,
+  "bytes": 16253928856,
+  "doi": "10.5281/zenodo.6517052",
+  "version": "0.0.6",
+  "license": {
+   "id": "cc-zero"
+  },
+  "problems": []
+ },
+ "tables_available": 1018649,
+ "tables_examined": 1018649,
+ "tables_kept": 10053,
+ "target": 20000,
+ "seed": 42,
+ "limits": {
+  "source": "gittables-1m-licensed",
+  "size": 20000,
+  "min_columns": 5,
+  "max_columns": 30,
+  "min_rows": 10,
+  "max_rows": 200,
+  "max_serialised_tokens": 2000,
+  "dedupe_header_jaccard": 0.9,
+  "max_per_header_group": 5
+ },
+ "benchmark_header_sets_checked": 1141,
+ "rejected": {
+  "too_many_tokens": 447282,
+  "columns": 272371,
+  "rows": 147845,
+  "duplicate_of_kept": 78872,
+  "blank_header": 36823,
+  "mostly_empty": 21402,
+  "duplicate_header": 3958,
+  "matches_benchmark": 38,
+  "unreadable": 5
+ },
+ "topics_used": 68,
+ "largest_topic_share": 0.4651
+}

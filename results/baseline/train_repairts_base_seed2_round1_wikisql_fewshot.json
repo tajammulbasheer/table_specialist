@@ -1,0 +1,45 @@
+{
+ "run_id": "train_repairts_base_seed2_round1_wikisql_fewshot",
+ "benchmark": "WikiSQL",
+ "split": "test",
+ "model": "sql-728e242013b5f24d",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.759,
+ "repo_faithful_95ci": [
+  0.732,
+  0.784
+ ],
+ "corrected_acc": 0.759,
+ "corrected_95ci": [
+  0.732,
+  0.784
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "superset": 8,
+  "none": 759,
+  "others": 214,
+  "compile/execution error": 19
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 139.7,
+  "new_requests": 1000,
+  "prompt_tokens_mean": 2652,
+  "completion_tokens_mean": 31,
+  "completion_tokens_per_s": 222
+ }
+}

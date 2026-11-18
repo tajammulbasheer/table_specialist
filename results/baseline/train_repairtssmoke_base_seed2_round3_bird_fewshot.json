@@ -1,0 +1,43 @@
+{
+ "run_id": "train_repairtssmoke_base_seed2_round3_bird_fewshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "sql-e084781f51bab16d",
+ "n": 5,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.2,
+ "repo_faithful_95ci": [
+  0.036,
+  0.624
+ ],
+ "corrected_acc": 0.2,
+ "corrected_95ci": [
+  0.036,
+  0.624
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 1,
+  "others": 4
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 3.6,
+  "new_requests": 5,
+  "prompt_tokens_mean": 3526,
+  "completion_tokens_mean": 53,
+  "completion_tokens_per_s": 73
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "run_id": "baseline_wikisql_instruct_n1000",
+ "benchmark": "WikiSQL",
+ "model": "Llama-3.1-8B-Instruct",
+ "n": 975,
+ "dropped_too_long": [
+  "wikisql_test_01535",
+  "wikisql_test_03752",
+  "wikisql_test_04304",
+  "wikisql_test_04315",
+  "wikisql_test_02646",
+  "wikisql_test_03750",
+  "wikisql_test_07744",
+  "wikisql_test_12855",
+  "wikisql_test_09016",
+  "wikisql_test_01891",
+  "wikisql_test_00832",
+  "wikisql_test_04533",
+  "wikisql_test_02647",
+  "wikisql_test_05974",
+  "wikisql_test_14331",
+  "wikisql_test_04065",
+  "wikisql_test_01889",
+  "wikisql_test_09932",
+  "wikisql_test_14791",
+  "wikisql_test_03585",
+  "wikisql_test_01988",
+  "wikisql_test_13353",
+  "wikisql_test_06991",
+  "wikisql_test_12184",
+  "wikisql_test_13749"
+ ],
+ "repo_faithful_acc": 0.5518,
+ "repo_faithful_95ci": [
+  0.52,
+  0.583
+ ],
+ "corrected_acc": 0.5528,
+ "corrected_95ci": [
+  0.521,
+  0.584
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 1
+ },
+ "errors": {
+  "others": 110,
+  "none": 538,
+  "compile/execution error": 323,
+  "superset": 4
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [
+  "wikisql_test_15219"
+ ],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 82.7,
+  "new_requests": 778,
+  "prompt_tokens_mean": 840,
+  "completion_tokens_mean": 28,
+  "completion_tokens_per_s": 262
+ }
+}

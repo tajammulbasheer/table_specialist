@@ -1,0 +1,41 @@
+{
+ "run_id": "final_sct10_instruct_repairts_seed3_wikisql_fewshot",
+ "benchmark": "WikiSQL",
+ "split": "test",
+ "model": "sql-4303c2fadadcbb2c",
+ "n": 1000,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "few-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.829,
+ "repo_faithful_95ci": [
+  0.804,
+  0.851
+ ],
+ "corrected_acc": 0.829,
+ "corrected_95ci": [
+  0.804,
+  0.851
+ ],
+ "greedy_repo_faithful_acc": 0.777,
+ "changed": {
+  "greedy_wrong_vote_right": 56,
+  "greedy_right_vote_wrong": 4,
+  "vote_differs_from_greedy": 78
+ },
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "score_workers": 16,
+ "seconds": {
+  "generation": 1094,
+  "scoring": 20
+ }
+}

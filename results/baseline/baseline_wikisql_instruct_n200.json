@@ -1,0 +1,42 @@
+{
+ "run_id": "baseline_wikisql_instruct_n200",
+ "benchmark": "WikiSQL",
+ "model": "Llama-3.1-8B-Instruct",
+ "n": 197,
+ "dropped_too_long": [
+  "wikisql_test_01535",
+  "wikisql_test_03752",
+  "wikisql_test_04304"
+ ],
+ "repo_faithful_acc": 0.5482,
+ "repo_faithful_95ci": [
+  0.478,
+  0.616
+ ],
+ "corrected_acc": 0.5482,
+ "corrected_95ci": [
+  0.478,
+  0.616
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "others": 21,
+  "none": 108,
+  "compile/execution error": 67,
+  "superset": 1
+ },
+ "gold_sql_failures": 0,
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 22.0,
+  "new_requests": 197,
+  "prompt_tokens_mean": 847,
+  "completion_tokens_mean": 27,
+  "completion_tokens_per_s": 244
+ }
+}

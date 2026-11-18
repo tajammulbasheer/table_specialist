@@ -1,0 +1,40 @@
+{
+ "run_id": "gate_scdev_t10_wikisql",
+ "benchmark": "WikiSQL",
+ "split": "dev",
+ "model": "sql-a1ffc3593d46383b",
+ "n": 300,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.83,
+ "repo_faithful_95ci": [
+  0.783,
+  0.868
+ ],
+ "corrected_acc": 0.83,
+ "corrected_95ci": [
+  0.783,
+  0.868
+ ],
+ "greedy_repo_faithful_acc": 0.7733,
+ "changed": {
+  "greedy_wrong_vote_right": 17,
+  "greedy_right_vote_wrong": 0,
+  "vote_differs_from_greedy": 19
+ },
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "seconds": {
+  "generation": 310,
+  "scoring": 6
+ }
+}

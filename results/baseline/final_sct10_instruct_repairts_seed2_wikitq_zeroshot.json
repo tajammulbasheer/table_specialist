@@ -1,0 +1,41 @@
+{
+ "run_id": "final_sct10_instruct_repairts_seed2_wikitq_zeroshot",
+ "benchmark": "WikiQA",
+ "split": "test",
+ "model": "sql-8306f9738e58b7c4",
+ "n": 1000,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.443,
+ "repo_faithful_95ci": [
+  0.412,
+  0.474
+ ],
+ "corrected_acc": 0.443,
+ "corrected_95ci": [
+  0.412,
+  0.474
+ ],
+ "greedy_repo_faithful_acc": 0.433,
+ "changed": {
+  "greedy_wrong_vote_right": 19,
+  "greedy_right_vote_wrong": 9,
+  "vote_differs_from_greedy": 109
+ },
+ "paper_vanilla_acc": 0.3,
+ "gate_passed_on_repo_faithful": false,
+ "score_workers": 16,
+ "seconds": {
+  "generation": 1008,
+  "scoring": 16
+ }
+}

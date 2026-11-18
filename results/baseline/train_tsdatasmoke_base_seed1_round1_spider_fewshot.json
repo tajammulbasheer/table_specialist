@@ -1,0 +1,42 @@
+{
+ "run_id": "train_tsdatasmoke_base_seed1_round1_spider_fewshot",
+ "benchmark": "spider",
+ "split": "test",
+ "model": "sql-1a27049adc2f996b",
+ "n": 20,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 1.0,
+ "repo_faithful_95ci": [
+  0.839,
+  1.0
+ ],
+ "corrected_acc": 1.0,
+ "corrected_95ci": [
+  0.839,
+  1.0
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 20
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.67,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 2.4,
+  "new_requests": 20,
+  "prompt_tokens_mean": 2348,
+  "completion_tokens_mean": 24,
+  "completion_tokens_per_s": 200
+ }
+}

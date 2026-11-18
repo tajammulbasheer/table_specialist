@@ -1,0 +1,12 @@
+{
+  "model": "models/Qwen2.5-7B-Instruct",
+  "dtype": "bfloat16",
+  "load_seconds": 99.8,
+  "prefill_tokens_per_s": 8087,
+  "mixed_seconds": 114.6,
+  "decode_tokens_per_s": 594,
+  "doc_assumption_expected": {
+    "prefill_tokens_per_s": 3500,
+    "decode_tokens_per_s": 800
+  }
+}

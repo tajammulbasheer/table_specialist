@@ -1,0 +1,45 @@
+{
+ "run_id": "train_novalidation_base_seed1_round2_bird_zeroshot",
+ "benchmark": "bird",
+ "model": "sql-5bfb32a9b58c8624",
+ "n": 363,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.3939,
+ "repo_faithful_95ci": [
+  0.345,
+  0.445
+ ],
+ "corrected_acc": 0.3939,
+ "corrected_95ci": [
+  0.345,
+  0.445
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 143,
+  "others": 190,
+  "superset": 14,
+  "compile/execution error": 13,
+  "subset": 3
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 34.4,
+  "new_requests": 363,
+  "prompt_tokens_mean": 1510,
+  "completion_tokens_mean": 38,
+  "completion_tokens_per_s": 395
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "run_id": "final_nlr_instruct_rrepairts_seed2_round1_bird_fewshot",
+ "model": "r-8e2207055baaca1b",
+ "adapter": "/home/ts/table-specialist-repro/runs/train_rrepairts_instruct_seed2/round1/adapter_r",
+ "benchmark": "bird",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": null,
+ "task": "nl2r",
+ "split": "test",
+ "n": 363,
+ "repo_faithful_acc": 0.3416,
+ "repo_faithful_95ci": [
+  0.295,
+  0.392
+ ],
+ "corrected_acc": 0.3802,
+ "corrected_95ci": [
+  0.332,
+  0.431
+ ],
+ "outcomes": {
+  "exec_failed": 42,
+  "wrong": 180,
+  "correct": 138,
+  "no_code": 3
+ },
+ "gold_failures": 0,
+ "truncated_responses": 3,
+ "paper_unverified_average": {
+  "vanilla": 0.26,
+  "table_specialist": 0.333
+ },
+ "generation_seconds": 86.6,
+ "r_sandbox": {
+  "programs_run": 22896,
+  "seconds": 1885.6,
+  "programs_per_s": 12.142,
+  "workers": 36
+ }
+}

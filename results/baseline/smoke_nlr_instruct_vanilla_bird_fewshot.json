@@ -1,0 +1,43 @@
+{
+ "run_id": "smoke_nlr_instruct_vanilla_bird_fewshot",
+ "model": "Llama-3.1-8B-Instruct",
+ "adapter": null,
+ "benchmark": "bird",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": 10,
+ "task": "nl2r",
+ "split": "test",
+ "n": 10,
+ "repo_faithful_acc": 0.1,
+ "repo_faithful_95ci": [
+  0.018,
+  0.404
+ ],
+ "corrected_acc": 0.2,
+ "corrected_95ci": [
+  0.057,
+  0.51
+ ],
+ "outcomes": {
+  "exec_failed": 5,
+  "wrong": 3,
+  "correct": 2
+ },
+ "gold_failures": 0,
+ "truncated_responses": 0,
+ "paper_unverified_average": {
+  "vanilla": 0.26,
+  "table_specialist": 0.333
+ },
+ "generation_seconds": 10.8,
+ "r_sandbox": {
+  "programs_run": 80,
+  "seconds": 8.9,
+  "programs_per_s": 9.039,
+  "workers": 36
+ }
+}

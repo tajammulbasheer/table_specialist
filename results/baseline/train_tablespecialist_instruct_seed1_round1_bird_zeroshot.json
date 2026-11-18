@@ -1,0 +1,46 @@
+{
+ "run_id": "train_tablespecialist_instruct_seed1_round1_bird_zeroshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "sql-47182201c56955f0",
+ "n": 363,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.4711,
+ "repo_faithful_95ci": [
+  0.42,
+  0.522
+ ],
+ "corrected_acc": 0.4711,
+ "corrected_95ci": [
+  0.42,
+  0.522
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 171,
+  "others": 179,
+  "compile/execution error": 7,
+  "subset": 5,
+  "superset": 1
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 36.4,
+  "new_requests": 363,
+  "prompt_tokens_mean": 1560,
+  "completion_tokens_mean": 36,
+  "completion_tokens_per_s": 363
+ }
+}

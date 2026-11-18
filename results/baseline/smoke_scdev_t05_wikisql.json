@@ -1,0 +1,40 @@
+{
+ "run_id": "smoke_scdev_t05_wikisql",
+ "benchmark": "WikiSQL",
+ "split": "dev",
+ "model": "sql-a1ffc3593d46383b",
+ "n": 20,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 0.5,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.85,
+ "repo_faithful_95ci": [
+  0.64,
+  0.948
+ ],
+ "corrected_acc": 0.85,
+ "corrected_95ci": [
+  0.64,
+  0.948
+ ],
+ "greedy_repo_faithful_acc": 0.85,
+ "changed": {
+  "greedy_wrong_vote_right": 0,
+  "greedy_right_vote_wrong": 0,
+  "vote_differs_from_greedy": 0
+ },
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "seconds": {
+  "generation": 26,
+  "scoring": 0
+ }
+}

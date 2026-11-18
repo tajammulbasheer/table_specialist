@@ -1,0 +1,40 @@
+{
+ "run_id": "final_sct10_tablespecialist_seed3_spider_zeroshot",
+ "benchmark": "spider",
+ "split": "test",
+ "model": "sql-2663068c4e660e8e",
+ "n": 1198,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.6878,
+ "repo_faithful_95ci": [
+  0.661,
+  0.713
+ ],
+ "corrected_acc": 0.7062,
+ "corrected_95ci": [
+  0.68,
+  0.731
+ ],
+ "greedy_repo_faithful_acc": 0.6845,
+ "changed": {
+  "greedy_wrong_vote_right": 9,
+  "greedy_right_vote_wrong": 5,
+  "vote_differs_from_greedy": 29
+ },
+ "paper_vanilla_acc": 0.67,
+ "gate_passed_on_repo_faithful": true,
+ "seconds": {
+  "generation": 518,
+  "scoring": 28
+ }
+}

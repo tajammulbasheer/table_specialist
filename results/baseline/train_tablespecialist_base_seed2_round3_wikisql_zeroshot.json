@@ -1,0 +1,44 @@
+{
+ "run_id": "train_tablespecialist_base_seed2_round3_wikisql_zeroshot",
+ "benchmark": "WikiSQL",
+ "model": "sql-8262141954c4be2e",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.772,
+ "repo_faithful_95ci": [
+  0.745,
+  0.797
+ ],
+ "corrected_acc": 0.772,
+ "corrected_95ci": [
+  0.745,
+  0.797
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 772,
+  "others": 191,
+  "superset": 7,
+  "compile/execution error": 30
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 1,
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 121.3,
+  "new_requests": 1000,
+  "prompt_tokens_mean": 808,
+  "completion_tokens_mean": 31,
+  "completion_tokens_per_s": 257
+ }
+}

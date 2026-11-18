@@ -1,0 +1,895 @@
+[
+ {
+  "comparison": "Base: TS r3 vs vanilla",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0647,
+   "ci95": [
+    0.0554,
+    0.0738
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.1377,
+   "ci95": [
+    0.1228,
+    0.1527
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0872,
+   "2": 0.0456,
+   "3": 0.0612
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.453,
+   "wikisql_fewshot": 0.0833,
+   "spider_zeroshot": -0.0214,
+   "spider_fewshot": -0.0807,
+   "wikitq_zeroshot": 0.1027,
+   "wikitq_fewshot": -0.014,
+   "bird_zeroshot": 0.0165,
+   "bird_fewshot": -0.022
+  }
+ },
+ {
+  "comparison": "Base: TS r3 vs NV r3",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0492,
+   "ci95": [
+    0.0426,
+    0.0557
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0384,
+   "ci95": [
+    0.0294,
+    0.0473
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0593,
+   "2": 0.0354,
+   "3": 0.0528
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.1163,
+   "wikisql_fewshot": 0.1513,
+   "spider_zeroshot": 0.0231,
+   "spider_fewshot": 0.0326,
+   "wikitq_zeroshot": 0.0057,
+   "wikitq_fewshot": 0.026,
+   "bird_zeroshot": 0.0083,
+   "bird_fewshot": 0.0303
+  }
+ },
+ {
+  "comparison": "Base: repair-TS r3 vs TS r3",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0421,
+   "ci95": [
+    0.0367,
+    0.0476
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0444,
+   "ci95": [
+    0.0365,
+    0.0524
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0204,
+   "2": 0.0557,
+   "3": 0.0501
+  },
+  "cells": {
+   "wikisql_zeroshot": -0.0143,
+   "wikisql_fewshot": -0.0013,
+   "spider_zeroshot": 0.0812,
+   "spider_fewshot": 0.0743,
+   "wikitq_zeroshot": 0.073,
+   "wikitq_fewshot": 0.0597,
+   "bird_zeroshot": 0.0376,
+   "bird_fewshot": 0.0266
+  }
+ },
+ {
+  "comparison": "Base: repair-TS r1 vs TS r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0243,
+   "ci95": [
+    0.0197,
+    0.029
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0288,
+   "ci95": [
+    0.0222,
+    0.0354
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0282,
+   "2": 0.0426,
+   "3": 0.0023
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0157,
+   "wikisql_fewshot": 0.0193,
+   "spider_zeroshot": 0.0225,
+   "spider_fewshot": 0.0128,
+   "wikitq_zeroshot": 0.052,
+   "wikitq_fewshot": 0.0227,
+   "bird_zeroshot": 0.0248,
+   "bird_fewshot": 0.0248
+  }
+ },
+ {
+  "comparison": "Base: repair-TS r1 vs bestof4 r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.018,
+   "ci95": [
+    0.0134,
+    0.0227
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0222,
+   "ci95": [
+    0.0157,
+    0.0288
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0217,
+   "2": 0.0144,
+   "3": 0.0178
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.023,
+   "wikisql_fewshot": 0.014,
+   "spider_zeroshot": 0.0184,
+   "spider_fewshot": 0.0095,
+   "wikitq_zeroshot": 0.039,
+   "wikitq_fewshot": 0.0113,
+   "bird_zeroshot": 0.0083,
+   "bird_fewshot": 0.0202
+  }
+ },
+ {
+  "comparison": "Base: same-data control r1 vs TS r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0119,
+   "ci95": [
+    0.0075,
+    0.0163
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0116,
+   "ci95": [
+    0.0054,
+    0.0179
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0214,
+   "2": 0.0296,
+   "3": -0.0153
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0153,
+   "wikisql_fewshot": 0.022,
+   "spider_zeroshot": 0.0117,
+   "spider_fewshot": 0.0114,
+   "wikitq_zeroshot": 0.0213,
+   "wikitq_fewshot": 0.0107,
+   "bird_zeroshot": -0.0018,
+   "bird_fewshot": 0.0046
+  }
+ },
+ {
+  "comparison": "Base: repair-TS r1 vs same-data control r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0124,
+   "ci95": [
+    0.0079,
+    0.017
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0171,
+   "ci95": [
+    0.0106,
+    0.0237
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0067,
+   "2": 0.013,
+   "3": 0.0176
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0003,
+   "wikisql_fewshot": -0.0027,
+   "spider_zeroshot": 0.0109,
+   "spider_fewshot": 0.0014,
+   "wikitq_zeroshot": 0.0307,
+   "wikitq_fewshot": 0.012,
+   "bird_zeroshot": 0.0266,
+   "bird_fewshot": 0.0202
+  }
+ },
+ {
+  "comparison": "Base: DPO r1 vs TS r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": -0.0209,
+   "ci95": [
+    -0.0262,
+    -0.0156
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": -0.0191,
+   "ci95": [
+    -0.0263,
+    -0.0118
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": -0.0246,
+   "2": 0.0117,
+   "3": -0.0497
+  },
+  "cells": {
+   "wikisql_zeroshot": -0.0003,
+   "wikisql_fewshot": -0.025,
+   "spider_zeroshot": -0.0047,
+   "spider_fewshot": -0.0167,
+   "wikitq_zeroshot": -0.0437,
+   "wikitq_fewshot": -0.0207,
+   "bird_zeroshot": -0.0275,
+   "bird_fewshot": -0.0285
+  }
+ },
+ {
+  "comparison": "Instruct: TS r3 vs vanilla",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0523,
+   "ci95": [
+    0.0424,
+    0.0622
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.1111,
+   "ci95": [
+    0.0956,
+    0.1264
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0572,
+   "2": 0.0374,
+   "3": 0.0623
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.2663,
+   "wikisql_fewshot": -0.0297,
+   "spider_zeroshot": 0.0145,
+   "spider_fewshot": -0.0064,
+   "wikitq_zeroshot": 0.1343,
+   "wikitq_fewshot": 0.0053,
+   "bird_zeroshot": 0.0294,
+   "bird_fewshot": 0.0046
+  }
+ },
+ {
+  "comparison": "Instruct: TS r3 vs NV r3 (seed 1)",
+  "seeds": [
+   1
+  ],
+  "mean_of_8": {
+   "diff": 0.0403,
+   "ci95": [
+    0.0308,
+    0.0499
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0304,
+   "ci95": [
+    0.0175,
+    0.0436
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0403
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.053,
+   "wikisql_fewshot": 0.06,
+   "spider_zeroshot": 0.0334,
+   "spider_fewshot": 0.0559,
+   "wikitq_zeroshot": 0.013,
+   "wikitq_fewshot": 0.044,
+   "bird_zeroshot": 0.022,
+   "bird_fewshot": 0.0413
+  }
+ },
+ {
+  "comparison": "Instruct: TS r3 vs TS r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": -0.0083,
+   "ci95": [
+    -0.0133,
+    -0.0032
+   ],
+   "p": 0.0012
+  },
+  "zero_shot_mean_of_4": {
+   "diff": -0.0052,
+   "ci95": [
+    -0.0124,
+    0.0019
+   ],
+   "p": 0.1526
+  },
+  "per_seed_mean_of_8": {
+   "1": -0.0154,
+   "2": -0.015,
+   "3": 0.0055
+  },
+  "cells": {
+   "wikisql_zeroshot": -0.0067,
+   "wikisql_fewshot": -0.0227,
+   "spider_zeroshot": -0.0039,
+   "spider_fewshot": -0.0086,
+   "wikitq_zeroshot": 0.0117,
+   "wikitq_fewshot": 0.0013,
+   "bird_zeroshot": -0.022,
+   "bird_fewshot": -0.0156
+  }
+ },
+ {
+  "comparison": "Instruct: repair-TS r1 vs TS r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": -0.0035,
+   "ci95": [
+    -0.0081,
+    0.001
+   ],
+   "p": 0.1268
+  },
+  "zero_shot_mean_of_4": {
+   "diff": -0.0009,
+   "ci95": [
+    -0.0072,
+    0.0053
+   ],
+   "p": 0.7804
+  },
+  "per_seed_mean_of_8": {
+   "1": -0.008,
+   "2": 0.0133,
+   "3": -0.0158
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0007,
+   "wikisql_fewshot": -0.0103,
+   "spider_zeroshot": -0.0017,
+   "spider_fewshot": -0.0173,
+   "wikitq_zeroshot": 0.0057,
+   "wikitq_fewshot": 0.0087,
+   "bird_zeroshot": -0.0083,
+   "bird_fewshot": -0.0055
+  }
+ },
+ {
+  "comparison": "Instruct: repair-TS r2 vs TS r2",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0053,
+   "ci95": [
+    0.0008,
+    0.0099
+   ],
+   "p": 0.0208
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0065,
+   "ci95": [
+    0.0002,
+    0.0129
+   ],
+   "p": 0.044
+  },
+  "per_seed_mean_of_8": {
+   "1": -0.0149,
+   "2": 0.0062,
+   "3": 0.0248
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0163,
+   "wikisql_fewshot": 0.015,
+   "spider_zeroshot": -0.0017,
+   "spider_fewshot": -0.0083,
+   "wikitq_zeroshot": 0.0103,
+   "wikitq_fewshot": 0.001,
+   "bird_zeroshot": 0.0009,
+   "bird_fewshot": 0.0092
+  }
+ },
+ {
+  "comparison": "Instruct: repair-TS r3 vs TS r3",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": -0.0014,
+   "ci95": [
+    -0.0062,
+    0.0033
+   ],
+   "p": 0.5544
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.001,
+   "ci95": [
+    -0.0055,
+    0.0076
+   ],
+   "p": 0.7828
+  },
+  "per_seed_mean_of_8": {
+   "1": -0.0044,
+   "2": 0.0052,
+   "3": -0.005
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0077,
+   "wikisql_fewshot": 0.018,
+   "spider_zeroshot": -0.0259,
+   "spider_fewshot": -0.032,
+   "wikitq_zeroshot": 0.0093,
+   "wikitq_fewshot": -0.0023,
+   "bird_zeroshot": 0.0129,
+   "bird_fewshot": 0.0009
+  }
+ },
+ {
+  "comparison": "Instruct: same-data control r1 vs TS r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0079,
+   "ci95": [
+    0.0038,
+    0.012
+   ],
+   "p": 0.0006
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0104,
+   "ci95": [
+    0.0044,
+    0.0164
+   ],
+   "p": 0.0004
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0068,
+   "2": 0.0096,
+   "3": 0.0072
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0207,
+   "wikisql_fewshot": 0.0097,
+   "spider_zeroshot": 0.0022,
+   "spider_fewshot": -0.0047,
+   "wikitq_zeroshot": 0.004,
+   "wikitq_fewshot": 0.0037,
+   "bird_zeroshot": 0.0147,
+   "bird_fewshot": 0.0129
+  }
+ },
+ {
+  "comparison": "Instruct: repair-TS r1 vs same-data control r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": -0.0114,
+   "ci95": [
+    -0.0155,
+    -0.0074
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": -0.0113,
+   "ci95": [
+    -0.0168,
+    -0.0057
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": -0.0148,
+   "2": 0.0037,
+   "3": -0.0231
+  },
+  "cells": {
+   "wikisql_zeroshot": -0.02,
+   "wikisql_fewshot": -0.02,
+   "spider_zeroshot": -0.0039,
+   "spider_fewshot": -0.0125,
+   "wikitq_zeroshot": 0.0017,
+   "wikitq_fewshot": 0.005,
+   "bird_zeroshot": -0.023,
+   "bird_fewshot": -0.0184
+  }
+ },
+ {
+  "comparison": "Vote vs greedy: base vanilla",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0248,
+   "ci95": [
+    0.0192,
+    0.0302
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0247,
+   "ci95": [
+    0.0196,
+    0.0299
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0248,
+   "2": 0.0248,
+   "3": 0.0248
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.067,
+   "wikisql_fewshot": 0.083,
+   "spider_zeroshot": 0.0033,
+   "spider_fewshot": 0.0033,
+   "wikitq_zeroshot": 0.02,
+   "wikitq_fewshot": 0.016,
+   "bird_zeroshot": 0.0083,
+   "bird_fewshot": -0.0028
+  }
+ },
+ {
+  "comparison": "Vote vs greedy: base TS r3",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0156,
+   "ci95": [
+    0.0132,
+    0.018
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0122,
+   "ci95": [
+    0.009,
+    0.0154
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0145,
+   "2": 0.0148,
+   "3": 0.0174
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.027,
+   "wikisql_fewshot": 0.0373,
+   "spider_zeroshot": 0.0028,
+   "spider_fewshot": 0.0122,
+   "wikitq_zeroshot": 0.0107,
+   "wikitq_fewshot": 0.0143,
+   "bird_zeroshot": 0.0083,
+   "bird_fewshot": 0.0119
+  }
+ },
+ {
+  "comparison": "Vote vs greedy: base repair-TS r3",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0159,
+   "ci95": [
+    0.0132,
+    0.0187
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0163,
+   "ci95": [
+    0.0126,
+    0.0202
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0179,
+   "2": 0.013,
+   "3": 0.017
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.036,
+   "wikisql_fewshot": 0.04,
+   "spider_zeroshot": 0.0064,
+   "spider_fewshot": 0.0061,
+   "wikitq_zeroshot": 0.0157,
+   "wikitq_fewshot": 0.0143,
+   "bird_zeroshot": 0.0073,
+   "bird_fewshot": 0.0018
+  }
+ },
+ {
+  "comparison": "Vote vs greedy: Instruct vanilla",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0175,
+   "ci95": [
+    0.0131,
+    0.022
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.01,
+   "ci95": [
+    0.007,
+    0.0132
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0175,
+   "2": 0.0175,
+   "3": 0.0175
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.033,
+   "wikisql_fewshot": 0.041,
+   "spider_zeroshot": 0.0008,
+   "spider_fewshot": 0.0167,
+   "wikitq_zeroshot": 0.006,
+   "wikitq_fewshot": 0.029,
+   "bird_zeroshot": 0.0,
+   "bird_fewshot": 0.0138
+  }
+ },
+ {
+  "comparison": "Vote vs greedy: Instruct TS r3",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0173,
+   "ci95": [
+    0.0147,
+    0.02
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0164,
+   "ci95": [
+    0.0128,
+    0.0203
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0165,
+   "2": 0.0224,
+   "3": 0.0132
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0453,
+   "wikisql_fewshot": 0.0477,
+   "spider_zeroshot": 0.0022,
+   "spider_fewshot": 0.0072,
+   "wikitq_zeroshot": 0.0173,
+   "wikitq_fewshot": 0.0107,
+   "bird_zeroshot": 0.0009,
+   "bird_fewshot": 0.0073
+  }
+ },
+ {
+  "comparison": "Vote vs greedy: Instruct repair-TS r3",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0188,
+   "ci95": [
+    0.0158,
+    0.0217
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0178,
+   "ci95": [
+    0.0136,
+    0.0221
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0141,
+   "2": 0.0247,
+   "3": 0.0174
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.045,
+   "wikisql_fewshot": 0.0467,
+   "spider_zeroshot": 0.0033,
+   "spider_fewshot": 0.0072,
+   "wikitq_zeroshot": 0.01,
+   "wikitq_fewshot": 0.014,
+   "bird_zeroshot": 0.0129,
+   "bird_fewshot": 0.011
+  }
+ },
+ {
+  "comparison": "Instruct: repair-TS r3 + vote vs TS r3 + vote",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": -0.0,
+   "ci95": [
+    -0.0045,
+    0.0046
+   ],
+   "p": 0.997
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0023,
+   "ci95": [
+    -0.0041,
+    0.009
+   ],
+   "p": 0.4906
+  },
+  "per_seed_mean_of_8": {
+   "1": -0.0068,
+   "2": 0.0076,
+   "3": -0.0008
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0073,
+   "wikisql_fewshot": 0.017,
+   "spider_zeroshot": -0.0248,
+   "spider_fewshot": -0.032,
+   "wikitq_zeroshot": 0.002,
+   "wikitq_fewshot": 0.001,
+   "bird_zeroshot": 0.0248,
+   "bird_fewshot": 0.0046
+  }
+ }
+]

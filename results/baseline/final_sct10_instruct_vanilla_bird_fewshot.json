@@ -1,0 +1,41 @@
+{
+ "run_id": "final_sct10_instruct_vanilla_bird_fewshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "Llama-3.1-8B-Instruct",
+ "n": 363,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "few-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.4325,
+ "repo_faithful_95ci": [
+  0.383,
+  0.484
+ ],
+ "corrected_acc": 0.4325,
+ "corrected_95ci": [
+  0.383,
+  0.484
+ ],
+ "greedy_repo_faithful_acc": 0.4187,
+ "changed": {
+  "greedy_wrong_vote_right": 14,
+  "greedy_right_vote_wrong": 9,
+  "vote_differs_from_greedy": 64
+ },
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": true,
+ "score_workers": 1,
+ "seconds": {
+  "generation": 1,
+  "scoring": 2580
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "run_id": "gate_bird_base_fewshot",
+ "benchmark": "bird",
+ "model": "Llama-3.1-8B",
+ "n": 363,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.3994,
+ "repo_faithful_95ci": [
+  0.35,
+  0.451
+ ],
+ "corrected_acc": 0.3994,
+ "corrected_95ci": [
+  0.35,
+  0.451
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "others": 192,
+  "none": 145,
+  "superset": 11,
+  "compile/execution error": 12,
+  "subset": 3
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 10,
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 38.9,
+  "new_requests": 363,
+  "prompt_tokens_mean": 3354,
+  "completion_tokens_mean": 39,
+  "completion_tokens_per_s": 360
+ }
+}

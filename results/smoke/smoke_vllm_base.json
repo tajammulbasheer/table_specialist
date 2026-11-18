@@ -1,0 +1,12 @@
+{
+  "model": "models/Llama-3.1-8B",
+  "dtype": "bfloat16",
+  "load_seconds": 92.3,
+  "prefill_tokens_per_s": 7417,
+  "mixed_seconds": 172.5,
+  "decode_tokens_per_s": 262,
+  "doc_assumption_expected": {
+    "prefill_tokens_per_s": 3500,
+    "decode_tokens_per_s": 800
+  }
+}

@@ -1,0 +1,45 @@
+{
+ "run_id": "train_dpotunev3gentlerowsdiffer_base_seed1_dev_wikitq_zeroshot",
+ "benchmark": "WikiQA",
+ "split": "dev",
+ "model": "sql-d9d98b0fea46ebcc",
+ "n": 300,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.27,
+ "repo_faithful_95ci": [
+  0.223,
+  0.323
+ ],
+ "corrected_acc": 0.2733,
+ "corrected_95ci": [
+  0.226,
+  0.326
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 1
+ },
+ "errors": {
+  "others": 212,
+  "none": 81,
+  "compile/execution error": 5,
+  "superset": 2
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.3,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 36.7,
+  "new_requests": 300,
+  "prompt_tokens_mean": 869,
+  "completion_tokens_mean": 33,
+  "completion_tokens_per_s": 267
+ }
+}

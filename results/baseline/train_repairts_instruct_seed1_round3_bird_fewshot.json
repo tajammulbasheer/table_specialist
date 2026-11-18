@@ -1,0 +1,46 @@
+{
+ "run_id": "train_repairts_instruct_seed1_round3_bird_fewshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "sql-a236312167ab6264",
+ "n": 363,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.438,
+ "repo_faithful_95ci": [
+  0.388,
+  0.489
+ ],
+ "corrected_acc": 0.438,
+ "corrected_95ci": [
+  0.388,
+  0.489
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 159,
+  "others": 176,
+  "compile/execution error": 13,
+  "superset": 12,
+  "subset": 3
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 4,
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 46.0,
+  "new_requests": 363,
+  "prompt_tokens_mean": 3404,
+  "completion_tokens_mean": 39,
+  "completion_tokens_per_s": 309
+ }
+}

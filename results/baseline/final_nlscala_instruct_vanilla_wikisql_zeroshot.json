@@ -1,0 +1,44 @@
+{
+ "run_id": "final_nlscala_instruct_vanilla_wikisql_zeroshot",
+ "model": "Llama-3.1-8B-Instruct",
+ "adapter": null,
+ "benchmark": "WikiSQL",
+ "prompt": "zero-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": null,
+ "task": "nl2scala",
+ "split": "test",
+ "n": 1000,
+ "repo_faithful_acc": 0.341,
+ "repo_faithful_95ci": [
+  0.312,
+  0.371
+ ],
+ "corrected_acc": 0.341,
+ "corrected_95ci": [
+  0.312,
+  0.371
+ ],
+ "outcomes": {
+  "exec_failed": 466,
+  "correct": 341,
+  "wrong": 191,
+  "format_error": 2
+ },
+ "gold_failures": 0,
+ "truncated_responses": 0,
+ "paper_unverified": {
+  "vanilla": 0.359,
+  "table_specialist": 0.728
+ },
+ "generation_seconds": 177.2,
+ "spark": {
+  "programs_run": 15420,
+  "seconds": 29113.0,
+  "programs_per_s": 0.53,
+  "workers": 36
+ }
+}

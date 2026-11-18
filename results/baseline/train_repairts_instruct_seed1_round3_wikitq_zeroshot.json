@@ -1,0 +1,45 @@
+{
+ "run_id": "train_repairts_instruct_seed1_round3_wikitq_zeroshot",
+ "benchmark": "WikiQA",
+ "split": "test",
+ "model": "sql-a236312167ab6264",
+ "n": 1000,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.419,
+ "repo_faithful_95ci": [
+  0.389,
+  0.45
+ ],
+ "corrected_acc": 0.419,
+ "corrected_95ci": [
+  0.389,
+  0.45
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "others": 543,
+  "none": 419,
+  "compile/execution error": 27,
+  "superset": 11
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 2,
+ "paper_vanilla_acc": 0.3,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 131.1,
+  "new_requests": 1000,
+  "prompt_tokens_mean": 915,
+  "completion_tokens_mean": 33,
+  "completion_tokens_per_s": 254
+ }
+}

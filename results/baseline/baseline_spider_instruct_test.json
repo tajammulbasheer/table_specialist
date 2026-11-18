@@ -1,0 +1,73 @@
+{
+ "run_id": "baseline_spider_instruct_test",
+ "benchmark": "spider",
+ "model": "Llama-3.1-8B-Instruct",
+ "n": 1198,
+ "dropped_too_long": [
+  "spider_test_00963",
+  "spider_test_00964",
+  "spider_test_00965",
+  "spider_test_00966",
+  "spider_test_00967",
+  "spider_test_00968",
+  "spider_test_00969",
+  "spider_test_00970",
+  "spider_test_00973",
+  "spider_test_00974",
+  "spider_test_00975",
+  "spider_test_00976",
+  "spider_test_00997",
+  "spider_test_00998",
+  "spider_test_00999",
+  "spider_test_01000",
+  "spider_test_01001",
+  "spider_test_01002",
+  "spider_test_01003",
+  "spider_test_01004",
+  "spider_test_01005",
+  "spider_test_01006",
+  "spider_test_01009",
+  "spider_test_01010",
+  "spider_test_01035",
+  "spider_test_01036",
+  "spider_test_01041",
+  "spider_test_01042",
+  "spider_test_01517",
+  "spider_test_01518",
+  "spider_test_01583",
+  "spider_test_01584"
+ ],
+ "repo_faithful_acc": 0.7871,
+ "repo_faithful_95ci": [
+  0.763,
+  0.809
+ ],
+ "corrected_acc": 0.7871,
+ "corrected_95ci": [
+  0.763,
+  0.809
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 943,
+  "others": 141,
+  "superset": 82,
+  "compile/execution error": 26,
+  "subset": 6
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 1,
+ "paper_vanilla_acc": 0.67,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 59.4,
+  "new_requests": 1198,
+  "prompt_tokens_mean": 638,
+  "completion_tokens_mean": 27,
+  "completion_tokens_per_s": 543
+ }
+}

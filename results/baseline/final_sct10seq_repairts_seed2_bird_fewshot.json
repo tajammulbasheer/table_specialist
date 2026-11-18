@@ -1,0 +1,41 @@
+{
+ "run_id": "final_sct10seq_repairts_seed2_bird_fewshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "sql-9b18b8383450f9c9",
+ "n": 363,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.3994,
+ "repo_faithful_95ci": [
+  0.35,
+  0.451
+ ],
+ "corrected_acc": 0.3994,
+ "corrected_95ci": [
+  0.35,
+  0.451
+ ],
+ "greedy_repo_faithful_acc": 0.4022,
+ "changed": {
+  "greedy_wrong_vote_right": 2,
+  "greedy_right_vote_wrong": 3,
+  "vote_differs_from_greedy": 37
+ },
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": true,
+ "score_workers": 1,
+ "seconds": {
+  "generation": 1,
+  "scoring": 1033
+ }
+}

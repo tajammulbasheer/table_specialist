@@ -1,0 +1,13 @@
+{
+  "model": "models/Qwen2.5-7B-Instruct",
+  "steps_timed": 45,
+  "seconds_per_step": 1.17,
+  "tokens_per_s_approx": 1282,
+  "peak_vram_allocated_gb": 6.7,
+  "peak_vram_reserved_gb": 7.1,
+  "trainable_params": 40370176,
+  "doc_assumption_expected": {
+    "tokens_per_s": 1500,
+    "total_vram_gb": "10-14"
+  }
+}

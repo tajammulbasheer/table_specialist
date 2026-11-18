@@ -1,0 +1,45 @@
+{
+ "run_id": "train_dpotunev2gentlebeta05_base_seed1_dev_wikitq_zeroshot",
+ "benchmark": "WikiQA",
+ "split": "dev",
+ "model": "sql-75a8e8db9fdb5d90",
+ "n": 300,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.2733,
+ "repo_faithful_95ci": [
+  0.226,
+  0.326
+ ],
+ "corrected_acc": 0.2767,
+ "corrected_95ci": [
+  0.229,
+  0.33
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 1
+ },
+ "errors": {
+  "others": 211,
+  "none": 82,
+  "compile/execution error": 5,
+  "superset": 2
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.3,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 36.6,
+  "new_requests": 300,
+  "prompt_tokens_mean": 869,
+  "completion_tokens_mean": 32,
+  "completion_tokens_per_s": 265
+ }
+}

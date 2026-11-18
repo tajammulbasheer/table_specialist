@@ -1,0 +1,42 @@
+{
+ "run_id": "smoke_nlscalar2_instruct_vanilla_wikitq_fewshot",
+ "model": "Llama-3.1-8B-Instruct",
+ "adapter": null,
+ "benchmark": "WikiQA",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": 10,
+ "task": "nl2scala",
+ "split": "test",
+ "n": 10,
+ "repo_faithful_acc": 0.0,
+ "repo_faithful_95ci": [
+  -0.0,
+  0.278
+ ],
+ "corrected_acc": 0.0,
+ "corrected_95ci": [
+  -0.0,
+  0.278
+ ],
+ "outcomes": {
+  "wrong": 4,
+  "exec_failed": 6
+ },
+ "gold_failures": 0,
+ "truncated_responses": 0,
+ "paper_unverified": {
+  "vanilla": 0.043,
+  "table_specialist": 0.188
+ },
+ "generation_seconds": 0.0,
+ "spark": {
+  "programs_run": 132,
+  "seconds": 227.8,
+  "programs_per_s": 0.579,
+  "workers": 36
+ }
+}

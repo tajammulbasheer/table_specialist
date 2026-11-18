@@ -1,0 +1,45 @@
+{
+ "run_id": "train_tsdata_base_seed2_round1_wikitq_fewshot",
+ "benchmark": "WikiQA",
+ "split": "test",
+ "model": "sql-b3d84608d169e4d1",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.341,
+ "repo_faithful_95ci": [
+  0.312,
+  0.371
+ ],
+ "corrected_acc": 0.341,
+ "corrected_95ci": [
+  0.312,
+  0.371
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 341,
+  "others": 622,
+  "superset": 22,
+  "compile/execution error": 15
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.3,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 140.5,
+  "new_requests": 1000,
+  "prompt_tokens_mean": 2709,
+  "completion_tokens_mean": 32,
+  "completion_tokens_per_s": 231
+ }
+}

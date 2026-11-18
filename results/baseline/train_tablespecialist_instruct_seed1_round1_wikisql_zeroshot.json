@@ -1,0 +1,45 @@
+{
+ "run_id": "train_tablespecialist_instruct_seed1_round1_wikisql_zeroshot",
+ "benchmark": "WikiSQL",
+ "split": "test",
+ "model": "sql-47182201c56955f0",
+ "n": 1000,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.801,
+ "repo_faithful_95ci": [
+  0.775,
+  0.825
+ ],
+ "corrected_acc": 0.801,
+ "corrected_95ci": [
+  0.775,
+  0.825
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 801,
+  "superset": 6,
+  "others": 191,
+  "compile/execution error": 2
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 121.8,
+  "new_requests": 1000,
+  "prompt_tokens_mean": 858,
+  "completion_tokens_mean": 29,
+  "completion_tokens_per_s": 241
+ }
+}

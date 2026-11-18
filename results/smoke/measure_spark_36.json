@@ -1,0 +1,11 @@
+{
+  "single_run_seconds": 45.3,
+  "single_run_ok": true,
+  "workers": 36,
+  "runs": 72,
+  "ok_runs": 72,
+  "mean_seconds_per_run": 46.0,
+  "wall_seconds": 95.5,
+  "runs_per_hour": 2714,
+  "hours_for_30000_runs": 11.1
+}

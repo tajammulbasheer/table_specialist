@@ -1,0 +1,44 @@
+{
+ "run_id": "final_nlscala_instruct_vanilla_bird_zeroshot",
+ "model": "Llama-3.1-8B-Instruct",
+ "adapter": null,
+ "benchmark": "bird",
+ "prompt": "zero-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": null,
+ "task": "nl2scala",
+ "split": "test",
+ "n": 363,
+ "repo_faithful_acc": 0.0909,
+ "repo_faithful_95ci": [
+  0.065,
+  0.125
+ ],
+ "corrected_acc": 0.0937,
+ "corrected_95ci": [
+  0.068,
+  0.128
+ ],
+ "outcomes": {
+  "exec_failed": 250,
+  "wrong": 77,
+  "correct": 34,
+  "no_code": 2
+ },
+ "gold_failures": 0,
+ "truncated_responses": 2,
+ "paper_unverified": {
+  "vanilla": 0.1,
+  "table_specialist": 0.228
+ },
+ "generation_seconds": 73.9,
+ "spark": {
+  "programs_run": 15420,
+  "seconds": 29113.0,
+  "programs_per_s": 0.53,
+  "workers": 36
+ }
+}

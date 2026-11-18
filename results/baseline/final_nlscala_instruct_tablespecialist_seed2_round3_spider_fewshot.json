@@ -1,0 +1,77 @@
+{
+ "run_id": "final_nlscala_instruct_tablespecialist_seed2_round3_spider_fewshot",
+ "model": "scala-287c4db847ec2cdf",
+ "adapter": "/home/ts/table-specialist-repro/runs/train_tablespecialist_instruct_seed2/round3/adapter_scala",
+ "benchmark": "spider",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [
+  "spider_test_00963",
+  "spider_test_00964",
+  "spider_test_00965",
+  "spider_test_00966",
+  "spider_test_00967",
+  "spider_test_00968",
+  "spider_test_00969",
+  "spider_test_00970",
+  "spider_test_00973",
+  "spider_test_00974",
+  "spider_test_00975",
+  "spider_test_00976",
+  "spider_test_00997",
+  "spider_test_00998",
+  "spider_test_00999",
+  "spider_test_01000",
+  "spider_test_01001",
+  "spider_test_01002",
+  "spider_test_01003",
+  "spider_test_01004",
+  "spider_test_01005",
+  "spider_test_01006",
+  "spider_test_01009",
+  "spider_test_01010",
+  "spider_test_01035",
+  "spider_test_01036",
+  "spider_test_01041",
+  "spider_test_01042",
+  "spider_test_01517",
+  "spider_test_01518",
+  "spider_test_01583",
+  "spider_test_01584"
+ ],
+ "limit": null,
+ "task": "nl2scala",
+ "split": "test",
+ "n": 1198,
+ "repo_faithful_acc": 0.571,
+ "repo_faithful_95ci": [
+  0.543,
+  0.599
+ ],
+ "corrected_acc": 0.6603,
+ "corrected_95ci": [
+  0.633,
+  0.687
+ ],
+ "outcomes": {
+  "correct": 791,
+  "wrong": 297,
+  "exec_failed": 103,
+  "no_code": 7
+ },
+ "gold_failures": 0,
+ "truncated_responses": 7,
+ "paper_unverified": {
+  "vanilla": 0.249,
+  "table_specialist": 0.356
+ },
+ "generation_seconds": 211.7,
+ "spark": {
+  "programs_run": 8395,
+  "seconds": 11509.0,
+  "programs_per_s": 0.729,
+  "workers": 36
+ }
+}

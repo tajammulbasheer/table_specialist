@@ -1,0 +1,40 @@
+{
+ "run_id": "final_sct10_tablespecialist_seed2_wikitq_fewshot",
+ "benchmark": "WikiQA",
+ "split": "test",
+ "model": "sql-8262141954c4be2e",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.328,
+ "repo_faithful_95ci": [
+  0.3,
+  0.358
+ ],
+ "corrected_acc": 0.328,
+ "corrected_95ci": [
+  0.3,
+  0.358
+ ],
+ "greedy_repo_faithful_acc": 0.308,
+ "changed": {
+  "greedy_wrong_vote_right": 26,
+  "greedy_right_vote_wrong": 6,
+  "vote_differs_from_greedy": 138
+ },
+ "paper_vanilla_acc": 0.3,
+ "gate_passed_on_repo_faithful": true,
+ "seconds": {
+  "generation": 1105,
+  "scoring": 16
+ }
+}

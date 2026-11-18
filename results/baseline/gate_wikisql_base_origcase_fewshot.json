@@ -1,0 +1,44 @@
+{
+ "run_id": "gate_wikisql_base_origcase_fewshot",
+ "benchmark": "WikiSQL",
+ "model": "Llama-3.1-8B",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data_original_case.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.287,
+ "repo_faithful_95ci": [
+  0.26,
+  0.316
+ ],
+ "corrected_acc": 0.287,
+ "corrected_95ci": [
+  0.26,
+  0.316
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 287,
+  "others": 682,
+  "superset": 9,
+  "compile/execution error": 22
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 5,
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 118.3,
+  "new_requests": 988,
+  "prompt_tokens_mean": 2603,
+  "completion_tokens_mean": 32,
+  "completion_tokens_per_s": 262
+ }
+}

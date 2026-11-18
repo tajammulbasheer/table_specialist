@@ -1,0 +1,70 @@
+{
+ "run_id": "gate_wikisql_instruct_system",
+ "benchmark": "WikiSQL",
+ "model": "Llama-3.1-8B-Instruct",
+ "n": 975,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "dropped_too_long": [
+  "wikisql_test_01535",
+  "wikisql_test_03752",
+  "wikisql_test_04304",
+  "wikisql_test_04315",
+  "wikisql_test_02646",
+  "wikisql_test_03750",
+  "wikisql_test_07744",
+  "wikisql_test_12855",
+  "wikisql_test_09016",
+  "wikisql_test_01891",
+  "wikisql_test_00832",
+  "wikisql_test_04533",
+  "wikisql_test_02647",
+  "wikisql_test_05974",
+  "wikisql_test_14331",
+  "wikisql_test_04065",
+  "wikisql_test_01889",
+  "wikisql_test_09932",
+  "wikisql_test_14791",
+  "wikisql_test_03585",
+  "wikisql_test_01988",
+  "wikisql_test_13353",
+  "wikisql_test_06991",
+  "wikisql_test_12184",
+  "wikisql_test_13749"
+ ],
+ "repo_faithful_acc": 0.519,
+ "repo_faithful_95ci": [
+  0.488,
+  0.55
+ ],
+ "corrected_acc": 0.52,
+ "corrected_95ci": [
+  0.489,
+  0.551
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 1
+ },
+ "errors": {
+  "others": 101,
+  "compile/execution error": 365,
+  "none": 506,
+  "superset": 3
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [
+  "wikisql_test_15219"
+ ],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 102.0,
+  "new_requests": 975,
+  "prompt_tokens_mean": 856,
+  "completion_tokens_mean": 27,
+  "completion_tokens_per_s": 256
+ }
+}

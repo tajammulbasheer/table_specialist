@@ -1,0 +1,78 @@
+{
+ "run_id": "train_tablespecialist_base_seed2_round3_spider_fewshot",
+ "benchmark": "spider",
+ "model": "sql-8262141954c4be2e",
+ "n": 1198,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [
+  "spider_test_00963",
+  "spider_test_00964",
+  "spider_test_00965",
+  "spider_test_00966",
+  "spider_test_00967",
+  "spider_test_00968",
+  "spider_test_00969",
+  "spider_test_00970",
+  "spider_test_00973",
+  "spider_test_00974",
+  "spider_test_00975",
+  "spider_test_00976",
+  "spider_test_00997",
+  "spider_test_00998",
+  "spider_test_00999",
+  "spider_test_01000",
+  "spider_test_01001",
+  "spider_test_01002",
+  "spider_test_01003",
+  "spider_test_01004",
+  "spider_test_01005",
+  "spider_test_01006",
+  "spider_test_01009",
+  "spider_test_01010",
+  "spider_test_01035",
+  "spider_test_01036",
+  "spider_test_01041",
+  "spider_test_01042",
+  "spider_test_01517",
+  "spider_test_01518",
+  "spider_test_01583",
+  "spider_test_01584"
+ ],
+ "repo_faithful_acc": 0.6711,
+ "repo_faithful_95ci": [
+  0.644,
+  0.697
+ ],
+ "corrected_acc": 0.6903,
+ "corrected_95ci": [
+  0.664,
+  0.716
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 23
+ },
+ "errors": {
+  "none": 804,
+  "superset": 190,
+  "others": 193,
+  "compile/execution error": 8,
+  "subset": 3
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.67,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 79.7,
+  "new_requests": 1198,
+  "prompt_tokens_mean": 2448,
+  "completion_tokens_mean": 29,
+  "completion_tokens_per_s": 434
+ }
+}

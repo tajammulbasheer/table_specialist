@@ -1,0 +1,43 @@
+{
+ "run_id": "train_repairtssmoke_instruct_seed2_round2_spider_zeroshot",
+ "benchmark": "spider",
+ "split": "test",
+ "model": "sql-66966a296fb9c324",
+ "n": 20,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "zero-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.95,
+ "repo_faithful_95ci": [
+  0.764,
+  0.991
+ ],
+ "corrected_acc": 1.0,
+ "corrected_95ci": [
+  0.839,
+  1.0
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 1
+ },
+ "errors": {
+  "none": 19,
+  "superset": 1
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.67,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 2.0,
+  "new_requests": 20,
+  "prompt_tokens_mean": 554,
+  "completion_tokens_mean": 23,
+  "completion_tokens_per_s": 236
+ }
+}

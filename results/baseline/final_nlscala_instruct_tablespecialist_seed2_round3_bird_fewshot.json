@@ -1,0 +1,44 @@
+{
+ "run_id": "final_nlscala_instruct_tablespecialist_seed2_round3_bird_fewshot",
+ "model": "scala-287c4db847ec2cdf",
+ "adapter": "/home/ts/table-specialist-repro/runs/train_tablespecialist_instruct_seed2/round3/adapter_scala",
+ "benchmark": "bird",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": null,
+ "task": "nl2scala",
+ "split": "test",
+ "n": 363,
+ "repo_faithful_acc": 0.2755,
+ "repo_faithful_95ci": [
+  0.232,
+  0.324
+ ],
+ "corrected_acc": 0.2782,
+ "corrected_95ci": [
+  0.235,
+  0.326
+ ],
+ "outcomes": {
+  "correct": 101,
+  "wrong": 148,
+  "exec_failed": 88,
+  "no_code": 26
+ },
+ "gold_failures": 0,
+ "truncated_responses": 26,
+ "paper_unverified": {
+  "vanilla": 0.1,
+  "table_specialist": 0.228
+ },
+ "generation_seconds": 116.9,
+ "spark": {
+  "programs_run": 8395,
+  "seconds": 11509.0,
+  "programs_per_s": 0.729,
+  "workers": 36
+ }
+}

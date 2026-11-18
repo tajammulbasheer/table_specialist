@@ -1,0 +1,44 @@
+{
+ "run_id": "final_nlscala_instruct_repairts_seed1_round2_wikitq_fewshot",
+ "model": "scala-96a71982529a42c3",
+ "adapter": "/home/ts/table-specialist-repro/runs/train_repairts_instruct_seed1/round2/adapter_scala",
+ "benchmark": "WikiQA",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": null,
+ "task": "nl2scala",
+ "split": "test",
+ "n": 1000,
+ "repo_faithful_acc": 0.338,
+ "repo_faithful_95ci": [
+  0.309,
+  0.368
+ ],
+ "corrected_acc": 0.339,
+ "corrected_95ci": [
+  0.31,
+  0.369
+ ],
+ "outcomes": {
+  "wrong": 361,
+  "no_code": 16,
+  "correct": 339,
+  "exec_failed": 284
+ },
+ "gold_failures": 0,
+ "truncated_responses": 16,
+ "paper_unverified": {
+  "vanilla": 0.043,
+  "table_specialist": 0.188
+ },
+ "generation_seconds": 309.8,
+ "spark": {
+  "programs_run": 29586,
+  "seconds": 42163.6,
+  "programs_per_s": 0.702,
+  "workers": 36
+ }
+}

@@ -1,0 +1,275 @@
+[
+ {
+  "comparison": "R: TS r1 vs vanilla",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0809,
+   "ci95": [
+    0.0723,
+    0.0898
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.1072,
+   "ci95": [
+    0.0946,
+    0.1202
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0966,
+   "2": 0.078,
+   "3": 0.0682
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0887,
+   "wikisql_fewshot": 0.0527,
+   "spider_zeroshot": 0.0946,
+   "spider_fewshot": 0.0562,
+   "wikitq_zeroshot": 0.1317,
+   "wikitq_fewshot": 0.0583,
+   "bird_zeroshot": 0.1139,
+   "bird_fewshot": 0.0514
+  }
+ },
+ {
+  "comparison": "R: TS r2 vs vanilla",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.1091,
+   "ci95": [
+    0.1001,
+    0.1181
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.1311,
+   "ci95": [
+    0.1177,
+    0.1447
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.1231,
+   "2": 0.1114,
+   "3": 0.0929
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.13,
+   "wikisql_fewshot": 0.1213,
+   "spider_zeroshot": 0.1107,
+   "spider_fewshot": 0.0701,
+   "wikitq_zeroshot": 0.1477,
+   "wikitq_fewshot": 0.0867,
+   "bird_zeroshot": 0.1359,
+   "bird_fewshot": 0.0707
+  }
+ },
+ {
+  "comparison": "R: TS r3 vs vanilla",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.128,
+   "ci95": [
+    0.1184,
+    0.1374
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.1494,
+   "ci95": [
+    0.1351,
+    0.1633
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.1566,
+   "2": 0.1025,
+   "3": 0.1248
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.1797,
+   "wikisql_fewshot": 0.159,
+   "spider_zeroshot": 0.1163,
+   "spider_fewshot": 0.086,
+   "wikitq_zeroshot": 0.1647,
+   "wikitq_fewshot": 0.1097,
+   "bird_zeroshot": 0.1368,
+   "bird_fewshot": 0.0716
+  }
+ },
+ {
+  "comparison": "R: TS r3 vs TS r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.047,
+   "ci95": [
+    0.0412,
+    0.0528
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0422,
+   "ci95": [
+    0.0341,
+    0.0501
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.06,
+   "2": 0.0245,
+   "3": 0.0566
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.091,
+   "wikisql_fewshot": 0.1063,
+   "spider_zeroshot": 0.0217,
+   "spider_fewshot": 0.0298,
+   "wikitq_zeroshot": 0.033,
+   "wikitq_fewshot": 0.0513,
+   "bird_zeroshot": 0.023,
+   "bird_fewshot": 0.0202
+  }
+ },
+ {
+  "comparison": "R: repair-TS r1 vs TS r1",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.011,
+   "ci95": [
+    0.0064,
+    0.0155
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0096,
+   "ci95": [
+    0.0034,
+    0.0159
+   ],
+   "p": 0.0024
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0029,
+   "2": 0.012,
+   "3": 0.0181
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0123,
+   "wikisql_fewshot": 0.025,
+   "spider_zeroshot": 0.0147,
+   "spider_fewshot": 0.0125,
+   "wikitq_zeroshot": 0.016,
+   "wikitq_fewshot": 0.0147,
+   "bird_zeroshot": -0.0046,
+   "bird_fewshot": -0.0028
+  }
+ },
+ {
+  "comparison": "R: repair-TS r2 vs TS r2",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0202,
+   "ci95": [
+    0.0151,
+    0.0254
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0228,
+   "ci95": [
+    0.0157,
+    0.03
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0096,
+   "2": 0.0228,
+   "3": 0.0282
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0547,
+   "wikisql_fewshot": 0.037,
+   "spider_zeroshot": 0.0111,
+   "spider_fewshot": 0.0178,
+   "wikitq_zeroshot": 0.0253,
+   "wikitq_fewshot": 0.021,
+   "bird_zeroshot": 0.0,
+   "bird_fewshot": -0.0055
+  }
+ },
+ {
+  "comparison": "R: repair-TS r3 vs TS r3",
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "mean_of_8": {
+   "diff": 0.0244,
+   "ci95": [
+    0.019,
+    0.0299
+   ],
+   "p": 0.0
+  },
+  "zero_shot_mean_of_4": {
+   "diff": 0.0282,
+   "ci95": [
+    0.0205,
+    0.0363
+   ],
+   "p": 0.0
+  },
+  "per_seed_mean_of_8": {
+   "1": 0.0137,
+   "2": 0.0364,
+   "3": 0.0232
+  },
+  "cells": {
+   "wikisql_zeroshot": 0.0967,
+   "wikisql_fewshot": 0.0667,
+   "spider_zeroshot": 0.0003,
+   "spider_fewshot": 0.0064,
+   "wikitq_zeroshot": 0.0187,
+   "wikitq_fewshot": 0.0093,
+   "bird_zeroshot": -0.0028,
+   "bird_fewshot": 0.0
+  }
+ }
+]

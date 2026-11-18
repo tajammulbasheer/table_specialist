@@ -1,0 +1,44 @@
+{
+ "run_id": "final_nlr_instruct_rts_seed2_round2_wikitq_fewshot",
+ "model": "r-6c1f3c2fc88eb11c",
+ "adapter": "/home/ts/table-specialist-repro/runs/train_rts_instruct_seed2/round2/adapter_r",
+ "benchmark": "WikiQA",
+ "prompt": "few-shot",
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "dropped_too_long": [],
+ "limit": null,
+ "task": "nl2r",
+ "split": "test",
+ "n": 1000,
+ "repo_faithful_acc": 0.314,
+ "repo_faithful_95ci": [
+  0.286,
+  0.343
+ ],
+ "corrected_acc": 0.314,
+ "corrected_95ci": [
+  0.286,
+  0.343
+ ],
+ "outcomes": {
+  "exec_failed": 363,
+  "correct": 314,
+  "wrong": 322,
+  "no_code": 1
+ },
+ "gold_failures": 0,
+ "truncated_responses": 1,
+ "paper_unverified_average": {
+  "vanilla": 0.26,
+  "table_specialist": 0.333
+ },
+ "generation_seconds": 249.6,
+ "r_sandbox": {
+  "programs_run": 39588,
+  "seconds": 3283.1,
+  "programs_per_s": 12.058,
+  "workers": 36
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "run_id": "train_tsdatasmoke_base_seed1_round1_wikitq_fewshot",
+ "benchmark": "WikiQA",
+ "split": "test",
+ "model": "sql-1a27049adc2f996b",
+ "n": 20,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.25,
+ "repo_faithful_95ci": [
+  0.112,
+  0.469
+ ],
+ "corrected_acc": 0.25,
+ "corrected_95ci": [
+  0.112,
+  0.469
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "others": 15,
+  "none": 5
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 0,
+ "paper_vanilla_acc": 0.3,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 4.7,
+  "new_requests": 20,
+  "prompt_tokens_mean": 2703,
+  "completion_tokens_mean": 32,
+  "completion_tokens_per_s": 135
+ }
+}

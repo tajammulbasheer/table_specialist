@@ -1,0 +1,41 @@
+{
+ "run_id": "final_sct10seq_vanilla_bird_fewshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "Llama-3.1-8B",
+ "n": 363,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.3967,
+ "repo_faithful_95ci": [
+  0.348,
+  0.448
+ ],
+ "corrected_acc": 0.3967,
+ "corrected_95ci": [
+  0.348,
+  0.448
+ ],
+ "greedy_repo_faithful_acc": 0.3994,
+ "changed": {
+  "greedy_wrong_vote_right": 11,
+  "greedy_right_vote_wrong": 12,
+  "vote_differs_from_greedy": 81
+ },
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": true,
+ "score_workers": 1,
+ "seconds": {
+  "generation": 1,
+  "scoring": 1302
+ }
+}

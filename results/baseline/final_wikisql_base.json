@@ -1,0 +1,42 @@
+{
+ "run_id": "final_wikisql_base",
+ "benchmark": "WikiSQL",
+ "model": "Llama-3.1-8B",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.326,
+ "repo_faithful_95ci": [
+  0.298,
+  0.356
+ ],
+ "corrected_acc": 0.326,
+ "corrected_95ci": [
+  0.298,
+  0.356
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "compile/execution error": 507,
+  "others": 138,
+  "none": 326,
+  "superset": 29
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 1,
+ "paper_vanilla_acc": 0.525,
+ "gate_passed_on_repo_faithful": false,
+ "generation": {
+  "seconds": 102.0,
+  "new_requests": 998,
+  "prompt_tokens_mean": 808,
+  "completion_tokens_mean": 26,
+  "completion_tokens_per_s": 255
+ }
+}

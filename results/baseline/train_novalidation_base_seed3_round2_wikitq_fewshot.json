@@ -1,0 +1,44 @@
+{
+ "run_id": "train_novalidation_base_seed3_round2_wikitq_fewshot",
+ "benchmark": "WikiQA",
+ "model": "sql-50793df5044776f3",
+ "n": 1000,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.32,
+ "repo_faithful_95ci": [
+  0.292,
+  0.35
+ ],
+ "corrected_acc": 0.32,
+ "corrected_95ci": [
+  0.292,
+  0.35
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "others": 606,
+  "none": 320,
+  "superset": 54,
+  "compile/execution error": 20
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 3,
+ "paper_vanilla_acc": 0.3,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 142.0,
+  "new_requests": 1000,
+  "prompt_tokens_mean": 2709,
+  "completion_tokens_mean": 35,
+  "completion_tokens_per_s": 248
+ }
+}

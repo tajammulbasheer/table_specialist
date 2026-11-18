@@ -1,0 +1,37 @@
+{
+ "run_id": "smoke_ed_instruct_vanilla_rt_zeroshot",
+ "task": "error_detection",
+ "benchmark": "rt",
+ "model": "Llama-3.1-8B-Instruct",
+ "adapter": null,
+ "n": 20,
+ "limit": 20,
+ "dropped": {
+  "unparseable": 0,
+  "too_long": 119
+ },
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "repo_faithful": {
+  "precision": 0.2222,
+  "recall": 1.0,
+  "f1": 0.3636,
+  "columns_predicted": 9,
+  "columns_with_errors": 2
+ },
+ "autotest_protocol": {
+  "precision": 0.25,
+  "recall": 1.0,
+  "f1": 0.4,
+  "columns_predicted": 8,
+  "columns_with_errors": 2
+ },
+ "truncated_responses": 0,
+ "no_json": 1,
+ "paper_unverified": {
+  "vanilla": 0.108,
+  "table_specialist": 0.161
+ },
+ "generation_seconds": 8.8
+}

@@ -1,0 +1,46 @@
+{
+ "run_id": "train_repairts_base_seed2_round3_bird_fewshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "sql-9b18b8383450f9c9",
+ "n": 363,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "few-shot",
+ "table_file": "data.csv",
+ "dropped_too_long": [],
+ "repo_faithful_acc": 0.4022,
+ "repo_faithful_95ci": [
+  0.353,
+  0.453
+ ],
+ "corrected_acc": 0.4022,
+ "corrected_95ci": [
+  0.353,
+  0.453
+ ],
+ "verdict_changes": {
+  "repo_right_corrected_wrong": 0,
+  "repo_wrong_corrected_right": 0
+ },
+ "errors": {
+  "none": 146,
+  "others": 200,
+  "subset": 4,
+  "superset": 7,
+  "compile/execution error": 6
+ },
+ "gold_sql_failures": 0,
+ "repo_gold_differs_from_corrected_gold": [],
+ "truncated_responses": 1,
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": true,
+ "generation": {
+  "seconds": 36.6,
+  "new_requests": 363,
+  "prompt_tokens_mean": 3354,
+  "completion_tokens_mean": 35,
+  "completion_tokens_per_s": 346
+ }
+}

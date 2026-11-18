@@ -1,0 +1,40 @@
+{
+ "run_id": "final_sct10_repairts_seed3_spider_zeroshot",
+ "benchmark": "spider",
+ "split": "test",
+ "model": "sql-fb05e527ea84182c",
+ "n": 1198,
+ "api": "completions",
+ "system_message": null,
+ "max_tokens": 128,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.8047,
+ "repo_faithful_95ci": [
+  0.781,
+  0.826
+ ],
+ "corrected_acc": 0.808,
+ "corrected_95ci": [
+  0.785,
+  0.829
+ ],
+ "greedy_repo_faithful_acc": 0.7963,
+ "changed": {
+  "greedy_wrong_vote_right": 12,
+  "greedy_right_vote_wrong": 2,
+  "vote_differs_from_greedy": 26
+ },
+ "paper_vanilla_acc": 0.67,
+ "gate_passed_on_repo_faithful": false,
+ "seconds": {
+  "generation": 549,
+  "scoring": 80
+ }
+}

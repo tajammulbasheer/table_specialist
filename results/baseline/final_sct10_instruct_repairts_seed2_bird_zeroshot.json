@@ -1,0 +1,41 @@
+{
+ "run_id": "final_sct10_instruct_repairts_seed2_bird_zeroshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "sql-8306f9738e58b7c4",
+ "n": 363,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.4545,
+ "repo_faithful_95ci": [
+  0.404,
+  0.506
+ ],
+ "corrected_acc": 0.4545,
+ "corrected_95ci": [
+  0.404,
+  0.506
+ ],
+ "greedy_repo_faithful_acc": 0.4215,
+ "changed": {
+  "greedy_wrong_vote_right": 15,
+  "greedy_right_vote_wrong": 3,
+  "vote_differs_from_greedy": 45
+ },
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": false,
+ "score_workers": 1,
+ "seconds": {
+  "generation": 283,
+  "scoring": 1083
+ }
+}

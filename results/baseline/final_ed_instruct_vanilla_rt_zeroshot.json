@@ -1,0 +1,37 @@
+{
+ "run_id": "final_ed_instruct_vanilla_rt_zeroshot",
+ "task": "error_detection",
+ "benchmark": "rt",
+ "model": "Llama-3.1-8B-Instruct",
+ "adapter": null,
+ "n": 1081,
+ "limit": null,
+ "dropped": {
+  "unparseable": 0,
+  "too_long": 119
+ },
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 512,
+ "repo_faithful": {
+  "precision": 0.0614,
+  "recall": 0.5833,
+  "f1": 0.1111,
+  "columns_predicted": 342,
+  "columns_with_errors": 36
+ },
+ "autotest_protocol": {
+  "precision": 0.0638,
+  "recall": 0.5833,
+  "f1": 0.1151,
+  "columns_predicted": 329,
+  "columns_with_errors": 36
+ },
+ "truncated_responses": 40,
+ "no_json": 46,
+ "paper_unverified": {
+  "vanilla": 0.108,
+  "table_specialist": 0.161
+ },
+ "generation_seconds": 216.8
+}

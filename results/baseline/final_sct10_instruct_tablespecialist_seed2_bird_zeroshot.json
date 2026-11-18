@@ -1,0 +1,41 @@
+{
+ "run_id": "final_sct10_instruct_tablespecialist_seed2_bird_zeroshot",
+ "benchmark": "bird",
+ "split": "test",
+ "model": "sql-b2797eca1812d643",
+ "n": 363,
+ "api": "chat",
+ "system_message": "You are an AI assistant. Provide an answer to some data/table related questions.",
+ "max_tokens": 256,
+ "prompt": "zero-shot",
+ "self_consistency": {
+  "samples": 8,
+  "temperature": 1.0,
+  "greedy_included": true,
+  "filter": "drop failed and empty results",
+  "tie": "first answer, greedy first"
+ },
+ "repo_faithful_acc": 0.416,
+ "repo_faithful_95ci": [
+  0.366,
+  0.467
+ ],
+ "corrected_acc": 0.416,
+ "corrected_95ci": [
+  0.366,
+  0.467
+ ],
+ "greedy_repo_faithful_acc": 0.4077,
+ "changed": {
+  "greedy_wrong_vote_right": 6,
+  "greedy_right_vote_wrong": 3,
+  "vote_differs_from_greedy": 33
+ },
+ "paper_vanilla_acc": 0.388,
+ "gate_passed_on_repo_faithful": true,
+ "score_workers": 1,
+ "seconds": {
+  "generation": 281,
+  "scoring": 2486
+ }
+}
