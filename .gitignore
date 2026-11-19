@@ -28,3 +28,6 @@ backups/
 *.lof
 *.lot
 *-SAVE-ERROR
+
+# README chart build output (PNGs in assets/ are tracked)
+assets/figures_src/*.pdf

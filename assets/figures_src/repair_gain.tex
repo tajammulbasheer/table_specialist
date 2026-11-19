@@ -1,0 +1,49 @@
+\documentclass[border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage[sfdefault,lining]{FiraSans}
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\definecolor{tsnavy}{HTML}{1A2E4F}\definecolor{tsred}{HTML}{A6252D}\definecolor{tsink}{HTML}{1F2430}
+\definecolor{tsgrey}{HTML}{5F6B7C}\definecolor{tsmuted}{HTML}{A7B2C2}\definecolor{tsline}{HTML}{D6DCE5}
+\definecolor{cRepair}{HTML}{1B7F9E}\definecolor{cControl}{HTML}{C98A2B}
+\definecolor{cVanOurs}{HTML}{F2C3C6}\definecolor{cVanPaper}{HTML}{8AA4CC}
+\pgfplotsset{rd/.style={axis lines*=left, ymajorgrids, grid style={tsline,line width=0.4pt},
+  axis line style={tsgrey,line width=0.5pt}, major tick style={draw=none},
+  tick label style={font=\small,text=tsgrey,/pgf/number format/assume math mode=true}, label style={font=\small,text=tsink},
+  title style={font=\bfseries\color{tsnavy}},
+  legend style={draw=none,fill=none,font=\small,text=tsink,/tikz/every even column/.append style={column sep=10pt}},
+  legend cell align=left, every axis plot/.append style={line width=0.5pt}}}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}
+\begin{axis}[rd, name=main, ymajorgrids=false, xmajorgrids, width=11cm, height=6cm,
+  xmin=-0.012, xmax=0.068, ymin=-0.6, ymax=3.6, ytick={0,1,2,3}, yticklabels={Instruct NL-to-SQL,Instruct NL-to-R,Instruct NL-to-Scala,Base NL-to-SQL},
+  xlabel={Repair-TS minus TS, round 3 (mean of 8; dot = mean, bar = 95\% CI)},
+  xtick={-0.01,0,0.01,...,0.06}, scaled x ticks=false, x tick label style={/pgf/number format/.cd,fixed,precision=2},
+  title={Execution accuracy}]
+\addplot[tsgrey,line width=0.8pt,mark=none] coordinates {(0,-0.6) (0,3.6)};
+\addplot[tsmuted,line width=2.2pt,mark=none] coordinates {(-0.0062,0) (0.0033,0)};
+\addplot[only marks,mark=*,mark size=3.6pt,tsmuted,mark options={draw=white,line width=0.8pt}] coordinates {(-0.0014,0)};
+\node[font=\scriptsize,text=tsink,anchor=west] at (axis cs:0.0033,0) {\,−0.001, p = 0.55};
+\addplot[cRepair,line width=2.2pt,mark=none] coordinates {(0.019,1) (0.0299,1)};
+\addplot[only marks,mark=*,mark size=3.6pt,cRepair,mark options={draw=white,line width=0.8pt}] coordinates {(0.0244,1)};
+\node[font=\scriptsize,text=tsink,anchor=west] at (axis cs:0.0299,1) {\,+0.024, p < 0.0001};
+\addplot[cRepair,line width=2.2pt,mark=none] coordinates {(0.0119,2) (0.0216,2)};
+\addplot[only marks,mark=*,mark size=3.6pt,cRepair,mark options={draw=white,line width=0.8pt}] coordinates {(0.0167,2)};
+\node[font=\scriptsize,text=tsink,anchor=west] at (axis cs:0.0216,2) {\,+0.017, p < 0.0001};
+\addplot[cRepair,line width=2.2pt,mark=none] coordinates {(0.0367,3) (0.0476,3)};
+\addplot[only marks,mark=*,mark size=3.6pt,cRepair,mark options={draw=white,line width=0.8pt}] coordinates {(0.0421,3)};
+\node[font=\scriptsize,text=tsink,anchor=west] at (axis cs:0.0476,3) {\,+0.042, p < 0.0001};
+\end{axis}
+\begin{axis}[rd, at={(main.south east)}, anchor=south west, xshift=1.4cm, ymajorgrids=false, xmajorgrids,
+  width=6.2cm, height=3.2cm, xmin=-0.04, xmax=0.13, ymin=-0.6, ymax=0.6, ytick={0}, yticklabels={Error detection},
+  xlabel={Repair-ED minus TS, F1}, xtick={-0.04,0,0.04,0.08}, scaled x ticks=false,
+  x tick label style={/pgf/number format/.cd,fixed,precision=2}, title={F1 (different scale)}]
+\addplot[tsgrey,line width=0.8pt,mark=none] coordinates {(0,-0.6) (0,0.6)};
+\addplot[tsmuted,line width=2.2pt,mark=none] coordinates {(-0.0261,0) (0.0502,0)};
+\addplot[only marks,mark=*,mark size=3.6pt,tsmuted,mark options={draw=white,line width=0.8pt}] coordinates {(0.011,0)};
+\node[font=\scriptsize,text=tsink,anchor=west] at (axis cs:0.0502,0) {\,+0.011, p = 0.58};
+\end{axis}
+\end{tikzpicture}
+\end{document}

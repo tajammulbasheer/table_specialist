@@ -1,0 +1,32 @@
+\documentclass[border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage[sfdefault,lining]{FiraSans}
+\usepackage{pgfplots}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\definecolor{tsnavy}{HTML}{1A2E4F}\definecolor{tsred}{HTML}{A6252D}\definecolor{tsink}{HTML}{1F2430}
+\definecolor{tsgrey}{HTML}{5F6B7C}\definecolor{tsmuted}{HTML}{A7B2C2}\definecolor{tsline}{HTML}{D6DCE5}
+\definecolor{cRepair}{HTML}{1B7F9E}\definecolor{cControl}{HTML}{C98A2B}
+\definecolor{cVanOurs}{HTML}{F2C3C6}\definecolor{cVanPaper}{HTML}{8AA4CC}
+\pgfplotsset{rd/.style={axis lines*=left, ymajorgrids, grid style={tsline,line width=0.4pt},
+  axis line style={tsgrey,line width=0.5pt}, major tick style={draw=none},
+  tick label style={font=\small,text=tsgrey,/pgf/number format/assume math mode=true}, label style={font=\small,text=tsink},
+  title style={font=\bfseries\color{tsnavy}},
+  legend style={draw=none,fill=none,font=\small,text=tsink,/tikz/every even column/.append style={column sep=10pt}},
+  legend cell align=left, every axis plot/.append style={line width=0.5pt}}}
+\begin{document}
+\pagecolor{white}
+\begin{tikzpicture}
+\begin{axis}[rd, ybar, bar width=9pt, width=15cm, height=7cm, ymin=0, ymax=1,
+  symbolic x coords={WikiSQL,WikiTQ,Spider,BIRD,Mean of 4}, xtick=data, enlarge x limits=0.12,
+  ylabel={Execution accuracy (zero-shot)}, ytick={0,0.2,...,1.0}, y tick label style={/pgf/number format/.cd,fixed,fixed zerofill,precision=1},
+  error bars/error bar style={tsink,line width=0.6pt}, error bars/error mark options={rotate=90,mark size=2pt,tsink},
+  legend style={at={(0.5,1.03)},anchor=south,legend columns=4}]
+\addplot[area legend,fill=cVanOurs,draw=tsred!45] coordinates {(WikiSQL,0.5180) (WikiTQ,0.2890) (Spider,0.7913) (BIRD,0.4022) (Mean of 4,0.5001)};
+\addplot[area legend,fill=cVanPaper,draw=cVanPaper] coordinates {(WikiSQL,0.5250) (WikiTQ,0.3000) (Spider,0.6700) (BIRD,0.3880) (Mean of 4,0.4708)};
+\addplot[area legend,fill=tsred,draw=tsred,error bars/.cd,y dir=both,y explicit] coordinates {(WikiSQL,0.7843) +- (0,0.0313) (WikiTQ,0.4233) +- (0,0.0023) (Spider,0.8058) +- (0,0.0076) (BIRD,0.4316) +- (0,0.0207) (Mean of 4,0.6113) +- (0,0.0135)};
+\addplot[area legend,fill=tsnavy,draw=tsnavy] coordinates {(WikiSQL,0.8160) (WikiTQ,0.4490) (Spider,0.6900) (BIRD,0.4380) (Mean of 4,0.5982)};
+\legend{Our vanilla,Paper vanilla,Our Table-Specialist (round 3),Paper Table-Specialist}
+\end{axis}
+\end{tikzpicture}
+\end{document}
