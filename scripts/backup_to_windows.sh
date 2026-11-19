@@ -33,6 +33,6 @@ rsync -a --exclude '/.venv/' "$SRC_PARENT/$NAME/" "$FOLDER/"
 
 echo "$(date -u '+%F %T UTC') [5/5] verify folder copy (rsync dry run; any listed file differs)"
 DIFF=$(rsync -a -n -i --exclude '/.venv/' "$SRC_PARENT/$NAME/" "$FOLDER/" | grep -v '^\.d' || true)
-if [ -z "$DIFF" ]; then echo "folder copy matches the project (size and time)"; else echo "DIFFERENCES:"; echo "$DIFF" | head -50; fi
+if [ -z "$DIFF" ]; then echo "folder copy matches the project (size and time)"; else echo "DIFFERENCES:"; printf "%s\n" "$DIFF" | head -50 || true; echo "($(printf "%s\n" "$DIFF" | wc -l) differing entries in total)"; fi
 du -sh --apparent-size "$FOLDER"
 echo "$(date -u '+%F %T UTC') done"
