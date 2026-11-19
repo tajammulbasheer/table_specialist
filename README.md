@@ -1,6 +1,6 @@
 # Table-Specialist reproduction
 
-A fourteen-day reproduction of the Llama-3.1-8B results from
+A reproduction of the Llama-3.1-8B results from
 [Table-LLM-Specialist](https://arxiv.org/abs/2410.12164) (EMNLP 2025), run on one workstation as a course project
 at IIT Jammu, plus two extensions that try to recover the training data the paper's validator throws away.
 
