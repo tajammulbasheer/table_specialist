@@ -1,0 +1,4 @@
+# Report, slides and figure sources are documentation, not project code
+report/** linguist-documentation
+presentation/** linguist-documentation
+assets/figures_src/** linguist-documentation
