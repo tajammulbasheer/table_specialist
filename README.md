@@ -1,4 +1,4 @@
-# Table-Specialist, Reproduced and Repaired
+# Reproducing and Extending Table-LLM-Specialist (EMNLP 2025)
 
 [![Paper](https://img.shields.io/badge/arXiv-2410.12164-b31b1b.svg)](https://arxiv.org/abs/2410.12164)
 [![Venue](https://img.shields.io/badge/EMNLP-2025-1A2E4F.svg)](https://arxiv.org/abs/2410.12164)
