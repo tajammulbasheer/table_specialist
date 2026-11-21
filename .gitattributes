@@ -2,3 +2,4 @@
 report/** linguist-documentation
 presentation/** linguist-documentation
 assets/figures_src/** linguist-documentation
+sandbox/Dockerfile.r linguist-language=Dockerfile
